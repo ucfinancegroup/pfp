@@ -16,9 +16,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Go to Right Dir
-      run: cd pfp_server
     - name: Build
       run: cargo build --verbose
+      working-directory: pfp_server
     - name: Run tests
       run: cargo test --verbose
+      working-directory: pfp_server

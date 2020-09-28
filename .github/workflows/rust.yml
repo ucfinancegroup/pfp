@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Go to Right Dir
+      run: cd pfp_server
     - name: Build
       run: cargo build --verbose
     - name: Run tests

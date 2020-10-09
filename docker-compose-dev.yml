@@ -1,0 +1,12 @@
+# https://vsupalov.com/rebuilding-docker-image-development/
+version: "3.3"
+services:
+  pfp_server:
+    image: pfp_server_dev
+    build:
+      context: ./pfp_server
+      dockerfile: Dockerfile-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./pfp_server:/app/dev

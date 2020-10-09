@@ -1,0 +1,9 @@
+version: "3.3"
+services:
+  pfp_server:
+    image: pfp_server_prod
+    build:
+      context: ./pfp_server
+      dockerfile: Dockerfile-prod
+    ports:
+      - "8080:8080"

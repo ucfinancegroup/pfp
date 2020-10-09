@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 actix-web = "3"
+cargo-watch = "7.5.0"

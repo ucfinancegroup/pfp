@@ -4,6 +4,16 @@
 
 Install docker.io, docker-compose, rustup.
 
-run `docker-compose up`
+For Development, in the root of the repo run:
 
-go to localhost:8080 in browser
+```
+$ sudo docker-compose -f docker-compose-dev.yml up --build
+```
+
+This builds dev containers. The rust container watches for changes and does not need to be rebuild while up.
+
+To clean up the docker stuff when you're done:
+
+```
+$ sudo docker-compose -f docker-compose-dev.yml down
+```

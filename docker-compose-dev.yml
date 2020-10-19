@@ -4,9 +4,20 @@ services:
   pfp_server:
     image: pfp_server_dev
     build:
-      context: ./pfp_server
+      context: ./server
       dockerfile: Dockerfile-dev
     ports:
       - "8080:8080"
     volumes:
-      - ./pfp_server:/app/dev
+      - ./server:/app/dev
+  pfp_client:
+    image: pfp_client_dev
+    build:
+      context: ./client
+      dockerfile: Dockerfile-dev
+    ports:
+      - "3001:3001"
+    stdin_open: true
+    volumes:
+      - /app/node_modules
+      - ./client:/app

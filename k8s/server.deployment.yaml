@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pfp-pfp-server
+spec:
+  selector:
+    matchLabels:
+      app: pfp-pfp-server
+      tier: backend
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: pfp-pfp-server
+        tier: backend
+    spec:
+      containers:
+        - name: pfp-pfp-server
+          image: finchcontainerregistry.azurecr.io/pfp_pfp_server:latest
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"

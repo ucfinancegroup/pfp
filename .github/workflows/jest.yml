@@ -1,0 +1,36 @@
+name: Jest Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+env:
+  working-directory: ./client
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Read node from package.json
+        uses: culshaw/read-package-node-version-actions@v2
+        id: package-node-version
+        working-directory: ${{env.working-directory}}
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{steps.package-version.outputs.version}}
+        working-directory: ${{env.working-directory}}
+
+      - run: npm install
+        working-directory: ${{env.working-directory}}
+
+      - run: npm run test
+        working-directory: ${{env.working-directory}}
+
+

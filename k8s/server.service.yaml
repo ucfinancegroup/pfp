@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pfp-pfp-server
+spec:
+  selector:
+    app: pfp-pfp-server
+    tier: backend
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: http

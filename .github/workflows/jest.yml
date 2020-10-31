@@ -26,7 +26,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{steps.package-version.outputs.version}}
-        working-directory: ${{env.working-directory}}
 
       - run: npm install
         working-directory: ${{env.working-directory}}

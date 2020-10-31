@@ -18,8 +18,9 @@ jobs:
 
       - name: Read node from package.json
         uses: culshaw/read-package-node-version-actions@v2
+        with:
+          path: "${{env.working-directory}}"
         id: package-node-version
-        working-directory: ${{env.working-directory}}
 
       - name: Setup Node
         uses: actions/setup-node@v1

@@ -1,4 +1,4 @@
-pub use crate::models::user_model;
+pub use crate::models::user_model::*;
 
 use serde::{Deserialize};
 use actix_web::{Responder, HttpResponse, HttpRequest, web::Json, get, post, web::Data};
@@ -6,23 +6,7 @@ use actix_session::Session;
 
 use rand::Rng;
 
-#[derive(Deserialize)]
-pub struct SignupPayload {
-  email: String,
-  password: String,
-  first_name: String,
-  last_name: String,
-}
-
-trait Validation {
-  fn validate(&self) -> Result<(), String>;
-}
-
-impl Validation for SignupPayload {
-  fn validate(&self) -> Result<(), String> {
-    return Ok(())
-  }
-}
+use argon2::{self, Config};
 
 #[post("/signup")]
 pub async fn signup(session: Session, signup_payload: Json<SignupPayload>) -> impl Responder {
@@ -30,8 +14,7 @@ pub async fn signup(session: Session, signup_payload: Json<SignupPayload>) -> im
     return HttpResponse::BadRequest().json(error_msg);
   }
 
-  // check if user's email exists
-
+  // check if user's email exists!!
 
 
   let key = rand::thread_rng().gen::<[u8; 32]>();
@@ -45,8 +28,6 @@ pub async fn logout(session: Session) -> impl Responder {
   session.set("sid", "");
   HttpResponse::Ok().json("Success")
 }
-
-
 
 use actix_web::web::ServiceConfig;
 pub fn init_routes(config: &mut ServiceConfig) {

@@ -1,8 +1,9 @@
+mod common;
 mod controllers;
 mod models;
 
-use actix_web::{get, App, HttpResponse, HttpServer, Responder, middleware};
 use actix_session::CookieSession;
+use actix_web::{get, middleware, App, HttpResponse, HttpServer, Responder};
 
 #[get("/")]
 async fn root_route() -> impl Responder {
@@ -15,10 +16,10 @@ async fn main() -> std::io::Result<()> {
     App::new()
       .wrap(
         CookieSession::signed(&[0; 32])
-        .domain("https://finchapp.eastus.cloudapp.azure.com/")
-        .name("sid")
-        .path("/")
-        .secure(true)
+          .domain("https://finchapp.eastus.cloudapp.azure.com/")
+          .name("sid")
+          .path("/")
+          .secure(true),
       )
       .wrap(middleware::Logger::default())
       .configure(controllers::configure)

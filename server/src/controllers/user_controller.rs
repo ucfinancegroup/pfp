@@ -1,13 +1,11 @@
-pub use crate::models::user_model::*;
+pub use crate::models::{session_model, user_model::*};
 
 use actix_session::Session;
 use actix_web::{
-  get, post,
+  post,
   web::{Data, Json},
-  HttpResponse, Responder,
+  HttpResponse,
 };
-
-use rand::Rng;
 
 use crate::common::errors::ApiError;
 
@@ -15,21 +13,21 @@ use crate::common::errors::ApiError;
 pub async fn signup(
   session: Session,
   signup_payload: Json<SignupPayload>,
-  db: Data<mongodb::Database>,
+  db: Data<mongodb::sync::Database>,
 ) -> HttpResponse {
-  // tell user model to do a signup
-  // it'll return errors if there are any
-  let res = User::new_from_signup(signup_payload.into_inner()).and_then(|user| {
-    let key = rand::thread_rng().gen::<[u8; 32]>();
-    match session.set("sid", std::str::from_utf8(&key).unwrap().to_string()) {
-      Ok(_) => Ok(user),
-      Err(_) => Err(ApiError::new(500, "Could not store session".to_string())),
-    }
-  });
+  let user_res = User::new_from_signup(signup_payload.into_inner(), db.collection("Users"));
 
-  match res {
-    Ok(user) => SignupResponse::new(user).into(),
+  match user_res {
     Err(e) => e.into(),
+    Ok(user) => {
+      let _session_res = session_model::Session::new_user_session(
+        db.collection("Sessions"),
+        user._id.clone(),
+        &session,
+      );
+
+      SignupResponse::new(user).into()
+    }
   }
 }
 
@@ -41,15 +39,13 @@ pub async fn signup(
 // ) -> HttpResponse {
 // }
 
-#[get("/logout")]
-pub async fn logout(session: Session, db: Data<mongodb::Database>) -> impl Responder {
-  let _ = session.set("sid", "");
-  HttpResponse::Ok().json("Success")
-}
+// #[get("/logout")]
+// pub async fn logout(session: Session, db: Data<mongodb::Database>) -> impl Responder {
+// }
 
 use actix_web::web::ServiceConfig;
 pub fn init_routes(config: &mut ServiceConfig) {
   config.service(signup);
   // config.service(login);
-  config.service(logout);
+  // config.service(logout);
 }

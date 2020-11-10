@@ -5,7 +5,7 @@ mod models;
 use actix_session::CookieSession;
 use actix_web::{get, middleware, App, HttpResponse, HttpServer, Responder};
 use dotenv::dotenv;
-use mongodb::{bson::doc, Client};
+use mongodb::{bson::doc, sync::Client};
 
 #[get("/")]
 async fn root_route() -> impl Responder {
@@ -25,21 +25,17 @@ async fn main() -> std::io::Result<()> {
     db_user, db_pw, uri, db_name
   );
 
-  let client = Client::with_uri_str(&connection_str)
-    .await
-    .expect("Failed to initialize client.");
+  let client = Client::with_uri_str(&connection_str).expect("Failed to initialize client.");
 
   let db = client.database(&db_name);
 
   db.run_command(doc! {"ping": 1}, None)
-    .await
     .expect("Failed to ping client");
 
   println!("Connected successfully.");
 
   for coll_name in db
     .list_collection_names(None)
-    .await
     .expect("Failed to print collections.")
   {
     println!("collection: {}", coll_name);

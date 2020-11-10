@@ -3,39 +3,51 @@ use serde::{Deserialize, Serialize};
 
 use argon2::{self, Config};
 
-// use bson::{oid::ObjectId};
+use mongodb::{
+  bson::{bson, doc, oid::ObjectId},
+  sync::Collection,
+};
 
 use crate::common::errors::ApiError;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
-  email: String,
+  pub _id: ObjectId,
+  pub email: String,
   password: String,
-  first_name: String,
-  last_name: String,
-  income: f64,
+  pub first_name: String,
+  pub last_name: String,
+  pub income: f64,
   // recurrings: Vec<ObjectId>,
   // snapshots: Vec<ObjectId>,
   // accounts: Vec<ObjectId>,
 }
 
 impl User {
-  pub fn new_from_signup(data: SignupPayload) -> Result<User, ApiError> {
+  pub fn new_from_signup(data: SignupPayload, col: Collection) -> Result<User, ApiError> {
     let validated_signup_payload = data.validate();
     if let Err(e) = validated_signup_payload {
       return Err(ApiError::new(400, e));
     }
 
     // check for unused email
+    if let Ok(Some(_)) = col.find_one(Some(doc! {"email": data.email.clone()}), None) {
+      return Err(ApiError::new(400, "Email is in use".to_string()));
+    }
 
     if let Ok(password_hash) = User::hash_password(data.password) {
-      Ok(User {
+      let user = User {
+        _id: ObjectId::new(),
         email: data.email,
         password: password_hash,
         first_name: data.first_name,
         last_name: data.last_name,
         income: data.income,
-      })
+      };
+
+      let _ = col.insert_one(bson!(user.clone()).as_document().unwrap().clone(), None);
+
+      Ok(user)
     } else {
       Err(ApiError::new(400, "Password hashing failed".to_string()))
     }
@@ -44,7 +56,7 @@ impl User {
   fn hash_password(plaintext: String) -> Result<String, ApiError> {
     let salt: [u8; 32] = rand::thread_rng().gen::<[u8; 32]>();
     let config = Config::default();
-    argon2::hash_encoded(plaintext.as_bytes(), &salt, &config).map_err(|e| {
+    argon2::hash_encoded(plaintext.as_bytes(), &salt, &config).map_err(|_| {
       ApiError::new(
         actix_web::http::StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
         "Password hashing failed".to_string(),
@@ -53,12 +65,18 @@ impl User {
   }
 
   fn compare_password(&self, plaintext: String) -> Result<bool, ApiError> {
-    argon2::verify_encoded(&self.password.as_str(), plaintext.as_bytes()).map_err(|e| {
+    argon2::verify_encoded(&self.password.as_str(), plaintext.as_bytes()).map_err(|_| {
       ApiError::new(
         actix_web::http::StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
         "Password checking failed".to_string(),
       )
     })
+  }
+}
+
+impl std::convert::From<User> for mongodb::bson::Bson {
+  fn from(s: User) -> mongodb::bson::Bson {
+    mongodb::bson::to_bson(&s).unwrap()
   }
 }
 

@@ -21,3 +21,13 @@ services:
     volumes:
       - /app/node_modules
       - ./client:/app
+  nginx:
+    image: nginx:latest
+    container_name: dev_nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 8888:8888
+    depends_on:
+      - pfp_server
+      - pfp_client

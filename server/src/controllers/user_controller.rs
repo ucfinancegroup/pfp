@@ -7,8 +7,6 @@ use actix_web::{
   HttpResponse,
 };
 
-use crate::common::errors::ApiError;
-
 #[post("/signup")]
 pub async fn signup(
   session: Session,

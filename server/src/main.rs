@@ -1,11 +1,11 @@
 mod common;
 mod controllers;
 mod models;
+mod services;
 
 use actix_session::CookieSession;
 use actix_web::{get, middleware, App, HttpResponse, HttpServer, Responder};
 use dotenv::dotenv;
-use mongodb::{bson::doc, sync::Client};
 
 #[get("/")]
 async fn root_route() -> impl Responder {
@@ -20,26 +20,7 @@ async fn main() -> std::io::Result<()> {
   let db_pw = dotenv::var("DATABASE_PW").expect("DATABASE_PW is not set in .env file");
   let db_name = dotenv::var("DATABASE_NAME").expect("DATABASE_NAME is not set in .env file");
 
-  let connection_str = format!(
-    "mongodb+srv://{}:{}@{}/{}?w=majority",
-    db_user, db_pw, uri, db_name
-  );
-
-  let client = Client::with_uri_str(&connection_str).expect("Failed to initialize client.");
-
-  let db = client.database(&db_name);
-
-  db.run_command(doc! {"ping": 1}, None)
-    .expect("Failed to ping client");
-
-  println!("Connected successfully.");
-
-  for coll_name in db
-    .list_collection_names(None)
-    .expect("Failed to print collections.")
-  {
-    println!("collection: {}", coll_name);
-  }
+  let db = services::db_service::connect_to_mongo(uri, db_user, db_pw, db_name).unwrap();
 
   HttpServer::new(move || {
     App::new()

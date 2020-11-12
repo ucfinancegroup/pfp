@@ -8,7 +8,9 @@ use mongodb::{
   sync::Collection,
 };
 
-use crate::common::errors::ApiError;
+use actix_web::HttpResponse;
+
+use crate::common::{errors::ApiError, Validation};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
@@ -53,6 +55,32 @@ impl User {
     }
   }
 
+  pub fn new_from_login(data: LoginPayload, col: Collection) -> Result<User, ApiError> {
+    if let Err(e) = data.validate() {
+      return Err(ApiError::new(400, e));
+    }
+
+    let search_db_res = col
+      .find_one(Some(doc! {"email": data.email.clone()}), None)
+      .map_err(|_| ApiError::new(500, "DB Error".to_string()));
+
+    let got_user_res: Result<User, ApiError> = search_db_res.and_then(|user_opt| {
+      user_opt
+        .ok_or(ApiError::new(500, "User not found".to_string()))
+        .and_then(|user| {
+          bson::from_bson(user.into())
+            .map_err(|_| ApiError::new(500, "user format error".to_string()))
+        })
+    });
+
+    // snake error and shit afdflol
+    got_user_res.and_then(|user| {
+      user.compare_password(data.password).and_then()
+    })
+
+    got_user_res
+  }
+
   fn hash_password(plaintext: String) -> Result<String, ApiError> {
     let salt: [u8; 32] = rand::thread_rng().gen::<[u8; 32]>();
     let config = Config::default();
@@ -89,10 +117,6 @@ pub struct SignupPayload {
   pub income: f64,
 }
 
-pub trait Validation {
-  fn validate(&self) -> Result<(), String>;
-}
-
 impl Validation for SignupPayload {
   fn validate(&self) -> Result<(), String> {
     return Ok(());
@@ -118,8 +142,44 @@ impl SignupResponse {
   }
 }
 
-use actix_web::HttpResponse;
 impl Into<HttpResponse> for SignupResponse {
+  fn into(self) -> HttpResponse {
+    HttpResponse::Ok().json(self)
+  }
+}
+
+#[derive(Deserialize)]
+pub struct LoginPayload {
+  pub email: String,
+  pub password: String,
+}
+
+impl Validation for LoginPayload {
+  fn validate(&self) -> Result<(), String> {
+    return Ok(());
+  }
+}
+
+#[derive(Serialize)]
+pub struct LoginResponse {
+  pub email: String,
+  pub first_name: String,
+  pub last_name: String,
+  pub income: f64,
+}
+
+impl LoginResponse {
+  pub fn new(u: User) -> LoginResponse {
+    LoginResponse {
+      email: u.email,
+      first_name: u.first_name,
+      last_name: u.last_name,
+      income: u.income,
+    }
+  }
+}
+
+impl Into<HttpResponse> for LoginResponse {
   fn into(self) -> HttpResponse {
     HttpResponse::Ok().json(self)
   }

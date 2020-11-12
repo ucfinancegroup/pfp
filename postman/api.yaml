@@ -1,0 +1,76 @@
+openapi: 3.0.0
+info:
+  version: 0.0.1
+  title: FinchAPI
+servers:
+  - url: 'http://localhost:8888'
+paths:
+  /api/signup:
+    post:
+      summary: 'Sign up a user'
+      operationId: signupUser
+      tags:
+        - user
+      requestBody:
+        required: true
+        content:
+            application/json:
+                schema:
+                    $ref: '#/components/schemas/SignupPayload'
+      responses:
+        '200':
+          description: 'User Info'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+components:
+  schemas:
+    SignupPayload:
+        type: object
+        required:
+            - email
+            - password
+            - first_name
+            - last_name
+            - income
+        properties:
+            email:
+                type: string
+                format: email
+            password:
+                type: string
+            first_name:
+                type: string
+            last_name:
+                type: string
+            income:
+                type: number
+    LoginPayload:
+        type: object
+        required:
+            - email
+            - password
+        properties:
+            email:
+                type: string
+                format: email
+            password:
+                type: string
+    ApiError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

@@ -30,6 +30,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
+    /api/login:
+        post:
+        summary: 'Log in a user'
+        operationId: loginUser
+        tags:
+            - user
+        requestBody:
+            required: true
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/LoginPayload'
+        responses:
+            '200':
+            description: 'User Info'
+            content:
+                application/json:
+                schema:
+                    $ref: '#/components/schemas/LoginResponse'
+            default:
+            description: Unexpected error
+            content:
+                application/json:
+                schema:
+                    $ref: '#/components/schemas/ApiError'
 components:
   schemas:
     SignupPayload:

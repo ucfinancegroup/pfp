@@ -45,9 +45,7 @@ impl Session {
     };
     let _ = session.set("sid", ret._id.to_hex());
     let _ = session.set("user_id", ret.user_id.to_hex());
-
-    let insert_one_res = col.insert_one(bson!(ret.clone()).as_document().unwrap().clone(), None);
-    println!("{:?}", insert_one_res);
+    let _ = col.insert_one(bson!(ret.clone()).as_document().unwrap().clone(), None);
 
     ret
   }
@@ -58,8 +56,7 @@ impl Session {
         Some(bson!(self.clone()).as_document().unwrap().clone()),
         None,
       )
-      .and_then(|got| Ok(got.is_some()))
-      .unwrap()
+      .map_or_else(|_| false, |got| got.is_some())
   }
 
   pub fn invalidate(&self, col: Collection) -> () {

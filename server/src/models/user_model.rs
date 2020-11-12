@@ -27,8 +27,7 @@ pub struct User {
 
 impl User {
   pub fn new_from_signup(data: SignupPayload, col: Collection) -> Result<User, ApiError> {
-    let validated_signup_payload = data.validate();
-    if let Err(e) = validated_signup_payload {
+    if let Err(e) = data.validate() {
       return Err(ApiError::new(400, e));
     }
 
@@ -37,22 +36,23 @@ impl User {
       return Err(ApiError::new(400, "Email is in use".to_string()));
     }
 
-    if let Ok(password_hash) = User::hash_password(data.password) {
-      let user = User {
-        _id: ObjectId::new(),
-        email: data.email,
-        password: password_hash,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        income: data.income,
-      };
+    User::hash_password(data.password.clone())
+      .map_err(|_| ApiError::new(400, "Password hashing failed".to_string()))
+      .and_then(|password_hash| {
+        let user = User {
+          _id: ObjectId::new(),
+          email: data.email,
+          password: password_hash,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          income: data.income,
+        };
 
-      let _ = col.insert_one(bson!(user.clone()).as_document().unwrap().clone(), None);
-
-      Ok(user)
-    } else {
-      Err(ApiError::new(400, "Password hashing failed".to_string()))
-    }
+        col
+          .insert_one(bson!(user.clone()).as_document().unwrap().clone(), None)
+          .and_then(|_| Ok(user))
+          .map_err(|_| ApiError::new(500, "Database Error".to_string()))
+      })
   }
 
   pub fn new_from_login(data: LoginPayload, col: Collection) -> Result<User, ApiError> {
@@ -60,10 +60,12 @@ impl User {
       return Err(ApiError::new(400, e));
     }
 
+    // search db for user
     let search_db_res = col
       .find_one(Some(doc! {"email": data.email.clone()}), None)
       .map_err(|_| ApiError::new(500, "DB Error".to_string()));
 
+    // check if user found and parse to User
     let got_user_res: Result<User, ApiError> = search_db_res.and_then(|user_opt| {
       user_opt
         .ok_or(ApiError::new(500, "User not found".to_string()))
@@ -73,12 +75,18 @@ impl User {
         })
     });
 
-    // snake error and shit afdflol
+    // verify password, return user if good
     got_user_res.and_then(|user| {
-      user.compare_password(data.password).and_then()
+      user
+        .compare_password(data.password)
+        .and_then(|is_correct_password| {
+          if is_correct_password {
+            Ok(user)
+          } else {
+            Err(ApiError::new(401, "Incorrect user or password".to_string()))
+          }
+        })
     })
-
-    got_user_res
   }
 
   fn hash_password(plaintext: String) -> Result<String, ApiError> {

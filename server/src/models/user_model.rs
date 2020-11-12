@@ -12,7 +12,7 @@ use actix_web::HttpResponse;
 
 use crate::common::{errors::ApiError, Validation};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct User {
   pub _id: ObjectId,
   pub email: String,
@@ -116,7 +116,7 @@ impl std::convert::From<User> for mongodb::bson::Bson {
   }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, PartialEq)]
 pub struct SignupPayload {
   pub email: String,
   pub password: String,
@@ -131,7 +131,7 @@ impl Validation for SignupPayload {
   }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, PartialEq)]
 pub struct SignupResponse {
   pub email: String,
   pub first_name: String,
@@ -156,7 +156,7 @@ impl Into<HttpResponse> for SignupResponse {
   }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, PartialEq)]
 pub struct LoginPayload {
   pub email: String,
   pub password: String,
@@ -168,7 +168,7 @@ impl Validation for LoginPayload {
   }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, PartialEq)]
 pub struct LoginResponse {
   pub email: String,
   pub first_name: String,

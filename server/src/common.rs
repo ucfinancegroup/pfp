@@ -1,5 +1,5 @@
 pub mod errors {
-  #[derive(serde::Serialize, Debug)]
+  #[derive(serde::Serialize, Debug, Eq, PartialEq)]
   pub struct ApiError {
     code: u16,
     message: String,

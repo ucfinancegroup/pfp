@@ -1,7 +1,6 @@
 pub mod errors {
   #[derive(serde::Serialize, Debug)]
   pub struct ApiError {
-    #[serde(skip_serializing)]
     code: u16,
     message: String,
   }

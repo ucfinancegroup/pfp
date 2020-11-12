@@ -69,7 +69,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /plaid/link_token:
+  /api/plaid/link_token:
     post:
       summary: "to request link token for PlaidLink"
       operationId: plaidLink
@@ -96,7 +96,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /plaid/access_token:
+  /api/plaid/access_token:
     post:
       summary: "For after a user does PlaidLink thru client"
       operationId: plaidLinkAccess

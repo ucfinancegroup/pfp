@@ -37,89 +37,89 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-    /api/login:
-      post:
-        summary: "Log in a user"
-        operationId: loginUser
-        tags:
-          - user
-        requestBody:
-          required: true
+  /api/login:
+    post:
+      summary: "Log in a user"
+      operationId: loginUser
+      tags:
+        - user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginPayload"
+      responses:
+        "200":
+          description: "User Info"
+          headers:
+            Set-Cookie:
+              description: >
+                Contains the session cookies named `sid` and `user_id`.
+                Pass this cookie back in subsequent requests.
+              schema:
+                type: string
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/LoginPayload"
-        responses:
-          "200":
-            description: "User Info"
-            headers:
-              Set-Cookie:
-                description: >
-                  Contains the session cookies named `sid` and `user_id`.
-                  Pass this cookie back in subsequent requests.
-                schema:
+            schema:
+              $ref: "#/components/schemas/LoginResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+            schema:
+              $ref: "#/components/schemas/ApiError"
+  /plaid/link_token:
+    post:
+      summary: "to request link token for PlaidLink"
+      operationId: plaidLink
+      tags: -plaid
+      security:
+        - sidCookie: []
+          userIdCookie: []
+      responses:
+        "200":
+          description: "Link Token"
+          content:
+            application/json:
+            schema:
+              type: object
+              required: -link_token
+              properties:
+                link_token:
                   type: string
-            content:
-              application/json:
-              schema:
-                $ref: "#/components/schemas/LoginResponse"
-          default:
-            description: Unexpected error
-            content:
-              application/json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-    /plaid/link_token:
-      post:
-        summary: "to request link token for PlaidLink"
-        operationId: plaidLink
-        tags: -plaid
-        security:
-          - sidCookie: []
-            userIdCookie: []
-        responses:
-          "200":
-            description: "Link Token"
-            content:
-              application/json:
-              schema:
-                type: object
-                required: -link_token
-                properties:
-                  link_token:
-                    type: string
-          default:
-            description: Unexpected error
-            content:
-              application/json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-    /plaid/access_token:
-      post:
-        summary: "For after a user does PlaidLink thru client"
-        operationId: plaidLinkAccess
-        tags: -plaid
-        security:
-          - sidCookie: []
-            userIdCookie: []
-        responses:
-          "200":
-            description: "Status"
-            content:
-              application/json:
-              schema:
-                type: object
-                required: -message
-                properties:
-                  message:
-                    type: string
-                    description: "whether it was successful or not"
-          default:
-            description: Unexpected error
-            content:
-              application/json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+            schema:
+              $ref: "#/components/schemas/ApiError"
+  /plaid/access_token:
+    post:
+      summary: "For after a user does PlaidLink thru client"
+      operationId: plaidLinkAccess
+      tags: -plaid
+      security:
+        - sidCookie: []
+          userIdCookie: []
+      responses:
+        "200":
+          description: "Status"
+          content:
+            application/json:
+            schema:
+              type: object
+              required: -message
+              properties:
+                message:
+                  type: string
+                  description: "whether it was successful or not"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+            schema:
+              $ref: "#/components/schemas/ApiError"
 components:
   securitySchemes:
     - sidCookie:

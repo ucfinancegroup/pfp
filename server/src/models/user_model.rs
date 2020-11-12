@@ -192,3 +192,130 @@ impl Into<HttpResponse> for LoginResponse {
     HttpResponse::Ok().json(self)
   }
 }
+
+#[cfg(test)]
+mod test {
+  use super::*;
+
+  #[allow(non_snake_case)]
+  fn test_LoginResponse() {}
+
+  #[allow(non_snake_case)]
+  fn test_SignupResponse() {}
+
+  #[allow(non_snake_case)]
+  fn test_LoginPayload() {
+    assert_eq!(
+      Ok(()),
+      LoginPayload {
+        email: "me@chucknorris.com".to_string(),
+        password: "password".to_string(),
+      }
+      .validate()
+    );
+
+    // eventually should be not ok
+    assert_eq!(
+      Ok(()),
+      LoginPayload {
+        email: "not an email".to_string(),
+        password: "password".to_string(),
+      }
+      .validate()
+    );
+
+    // eventually should be not ok
+    assert_eq!(
+      Ok(()),
+      LoginPayload {
+        email: "me@chucknorris.com".to_string(),
+        password: "".to_string(),
+      }
+      .validate()
+    );
+  }
+
+  #[allow(non_snake_case)]
+  fn test_SignupPayload() {
+    assert_eq!(
+      Ok(()),
+      SignupPayload {
+        email: "me@chucknorris.com".to_string(),
+        password: "fafdfdf".to_string(),
+        first_name: "first name".to_string(),
+        last_name: "last name".to_string(),
+        income: 1000 as f64
+      }
+      .validate()
+    );
+
+    // should eventually fail on Negative Income
+    assert_eq!(
+      Ok(()),
+      SignupPayload {
+        email: "me@chucknorris.com".to_string(),
+        password: "fadfdfda".to_string(),
+        first_name: "first name".to_string(),
+        last_name: "last name".to_string(),
+        income: -1 as f64
+      }
+      .validate()
+    );
+
+    // fail on bad email
+    assert_eq!(
+      Ok(()),
+      SignupPayload {
+        email: "bad email".to_string(),
+        password: "".to_string(),
+        first_name: "first name".to_string(),
+        last_name: "last name".to_string(),
+        income: 1000 as f64
+      }
+      .validate()
+    );
+
+    // eventually fail on empty password
+    assert_eq!(
+      Ok(()),
+      SignupPayload {
+        email: "me@chucknorris.com".to_string(),
+        password: "".to_string(),
+        first_name: "first name".to_string(),
+        last_name: "last name".to_string(),
+        income: 1000 as f64
+      }
+      .validate()
+    );
+
+    // eventually fail on empty name
+    assert_eq!(
+      Ok(()),
+      SignupPayload {
+        email: "me@chucknorris.com".to_string(),
+        password: "fadfdf".to_string(),
+        first_name: "".to_string(),
+        last_name: "".to_string(),
+        income: 1000 as f64
+      }
+      .validate()
+    );
+  }
+
+  #[allow(non_snake_case)]
+  fn test_PasswordHashing() {
+    let hashed = User::hash_password("password".to_string()).unwrap();
+
+    let user = User {
+      _id: ObjectId::new(),
+      email: "email".to_string(),
+      password: hashed,
+      first_name: "first_name".to_string(),
+      last_name: "last_name".to_string(),
+      income: 0.0,
+    };
+
+    assert_eq!(Ok(true), user.compare_password("password".to_string()));
+    assert_eq!(Ok(false), user.compare_password("bad password".to_string()));
+  }
+}

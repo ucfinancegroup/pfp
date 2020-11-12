@@ -95,7 +95,14 @@ paths:
             tags: 
                 -plaid
             parameters:
-                $ref:  '#/components/schemas/SessionCookie'
+                - in: cookie
+                name: sid
+                schema: 
+                    type: string
+            - in: cookie
+                name: user_id
+                schema:
+                    type: string
 components:
   schemas:
     SignupPayload:

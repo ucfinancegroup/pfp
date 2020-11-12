@@ -62,11 +62,11 @@ paths:
         tags:
             -plaid
         parameters:
-            - in: cookie
+          - in: cookie
             name: sid
             schema: 
                 type: string
-            - in: cookie
+          - in: cookie
             name: user_id
             schema:
                 type: string

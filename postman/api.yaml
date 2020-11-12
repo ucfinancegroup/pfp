@@ -55,6 +55,21 @@ paths:
                 application/json:
                 schema:
                     $ref: '#/components/schemas/ApiError'
+    /plaid/link_token:
+        post:
+        summary: "to request link token for PlaidLink"
+        operationId: plaidLink
+        tags:
+            -plaid
+        parameters:
+            - in: cookie
+            name: sid
+            schema: 
+                type: string
+            - in: cookie
+            name: user_id
+            schema:
+                type: string
 components:
   schemas:
     SignupPayload:

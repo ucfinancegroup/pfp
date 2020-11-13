@@ -1,10 +1,15 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
+import Navbar from "react-bootstrap/Navbar";
 
 function App() {
   return (
     <div className="App">
+      <Navbar bg="light">
+        <Navbar.Brand href="#home">Finch App!</Navbar.Brand>
+      </Navbar>
+
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>

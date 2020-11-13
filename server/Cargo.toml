@@ -18,4 +18,8 @@ bson = "*"
 geojson= "*"
 dotenv = "0.15.0"
 futures = "0.3.4"
+cfg-if = "*"
+
+[features]
+development = []
 

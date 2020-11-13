@@ -12,6 +12,30 @@ async fn root_route() -> impl Responder {
   HttpResponse::Ok().body("hello world")
 }
 
+cfg_if::cfg_if! {
+  if #[cfg(feature="development")] {
+    fn create_cookie() -> CookieSession {
+      println!("dev cookie");
+      CookieSession::signed(&[0; 32])
+          .name("sid")
+          .path("/")
+          .secure(false)
+          .http_only(true)
+    }
+  } else {
+    fn create_cookie() -> CookieSession {
+      println!("prod cookie");
+      CookieSession::signed(&[0; 32])
+          .domain("https://finchapp.eastus.cloudapp.azure.com/")
+          .name("sid")
+          .path("/")
+          .secure(true)
+          .http_only(true)
+          .expires_in(60 * 60 * 24 * 30) // 30 days expiration
+    }
+  }
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
   dotenv().ok();
@@ -24,13 +48,7 @@ async fn main() -> std::io::Result<()> {
 
   HttpServer::new(move || {
     App::new()
-      .wrap(
-        CookieSession::signed(&[0; 32])
-          .domain("https://finchapp.eastus.cloudapp.azure.com/")
-          .name("sid")
-          .path("/")
-          .secure(true),
-      )
+      .wrap(create_cookie())
       .wrap(middleware::Logger::default())
       .data(db.clone())
       .configure(controllers::configure)

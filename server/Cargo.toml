@@ -19,6 +19,10 @@ geojson= "*"
 dotenv = "0.15.0"
 futures = "0.3.4"
 cfg-if = "*"
+reqwest = {version="*", features = ["json"]}
+
+[dev-dependencies]
+serde_json = "*"
 
 [features]
 development = []

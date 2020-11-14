@@ -15,7 +15,6 @@ async fn root_route() -> impl Responder {
 cfg_if::cfg_if! {
   if #[cfg(feature="development")] {
     fn create_cookie() -> CookieSession {
-      println!("dev cookie");
       CookieSession::signed(&[0; 32])
           .name("sid")
           .path("/")
@@ -24,7 +23,6 @@ cfg_if::cfg_if! {
     }
   } else {
     fn create_cookie() -> CookieSession {
-      println!("prod cookie");
       CookieSession::signed(&[0; 32])
           .domain("https://finchapp.eastus.cloudapp.azure.com/")
           .name("sid")
@@ -46,11 +44,20 @@ async fn main() -> std::io::Result<()> {
 
   let db = services::db_service::connect_to_mongo(uri, db_user, db_pw, db_name).unwrap();
 
+  use crate::services::plaid;
+  let plaid_client = plaid::Client {
+    client_id: dotenv::var("PLAID_CLIENT_ID").expect("need plaid client id"),
+    secret: dotenv::var("PLAID_SANDBOX_SECRET").expect("need plaid sandbox secret"),
+    client_name: "finch".to_string(),
+    environment: plaid::Environment::Sandbox,
+  };
+
   HttpServer::new(move || {
     App::new()
       .wrap(create_cookie())
       .wrap(middleware::Logger::default())
       .data(db.clone())
+      .data(plaid_client.clone())
       .configure(controllers::configure)
       .service(root_route)
   })

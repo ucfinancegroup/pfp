@@ -168,30 +168,7 @@ impl Validation for LoginPayload {
   }
 }
 
-#[derive(Serialize, PartialEq)]
-pub struct LoginResponse {
-  pub email: String,
-  pub first_name: String,
-  pub last_name: String,
-  pub income: f64,
-}
-
-impl LoginResponse {
-  pub fn new(u: User) -> LoginResponse {
-    LoginResponse {
-      email: u.email,
-      first_name: u.first_name,
-      last_name: u.last_name,
-      income: u.income,
-    }
-  }
-}
-
-impl Into<HttpResponse> for LoginResponse {
-  fn into(self) -> HttpResponse {
-    HttpResponse::Ok().json(self)
-  }
-}
+pub type LoginResponse = SignupResponse;
 
 #[cfg(test)]
 mod test {

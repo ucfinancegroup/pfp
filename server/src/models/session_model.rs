@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Session {
   _id: ObjectId,
-  user_id: ObjectId,
+  pub user_id: ObjectId,
 }
 
 impl Session {

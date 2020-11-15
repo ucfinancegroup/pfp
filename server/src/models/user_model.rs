@@ -1,7 +1,6 @@
+use argon2::{self, Config};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-
-use argon2::{self, Config};
 
 use mongodb::{
   bson::{bson, doc, oid::ObjectId},
@@ -10,7 +9,25 @@ use mongodb::{
 
 use actix_web::HttpResponse;
 
-use crate::common::{errors::ApiError, Validation};
+use crate::{
+  common::{errors::ApiError, Validation},
+  models::session_model,
+};
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct PlaidItem {
+  pub item_id: String,
+  pub access_token: String,
+}
+
+impl PlaidItem {
+  pub fn new(item_id: String, access_token: String) -> PlaidItem {
+    PlaidItem {
+      item_id: item_id,
+      access_token: access_token,
+    }
+  }
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct User {
@@ -22,7 +39,7 @@ pub struct User {
   pub income: f64,
   // recurrings: Vec<ObjectId>,
   // snapshots: Vec<ObjectId>,
-  // accounts: Vec<ObjectId>,
+  accounts: Option<Vec<PlaidItem>>,
 }
 
 impl User {
@@ -46,6 +63,7 @@ impl User {
           first_name: data.first_name,
           last_name: data.last_name,
           income: data.income,
+          accounts: None,
         };
 
         col
@@ -87,6 +105,39 @@ impl User {
           }
         })
     })
+  }
+
+  pub fn new_from_session(
+    session: session_model::Session,
+    col: Collection,
+  ) -> Result<User, ApiError> {
+    col
+      .find_one(Some(doc! {"_id": session.user_id.clone()}), None)
+      .map_err(|_| ApiError::new(500, "DB Error".to_string()))
+      .and_then(|user_opt| {
+        user_opt
+          .ok_or(ApiError::new(500, "User not found".to_string()))
+          .and_then(|user| {
+            bson::from_bson(user.into())
+              .map_err(|_| ApiError::new(500, "user format error".to_string()))
+          })
+      })
+  }
+
+  pub fn add_new_account(
+    &self,
+    access_token: String,
+    item_id: String,
+    col: Collection,
+  ) -> Result<(), ApiError> {
+    col
+      .update_one(
+        doc! {"_id": self._id.clone()},
+        doc! {"$push": doc!{"accounts" : bson::to_bson(&PlaidItem::new(item_id, access_token)).unwrap()}},
+        None,
+      )
+      .map_err(|_| ApiError::new(500, "Database Error".to_string()))
+      .and_then(|_| Ok(()))
   }
 
   fn hash_password(plaintext: String) -> Result<String, ApiError> {
@@ -175,12 +226,15 @@ mod test {
   use super::*;
 
   #[allow(non_snake_case)]
+  #[allow(dead_code)]
   fn test_LoginResponse() {}
 
   #[allow(non_snake_case)]
+  #[allow(dead_code)]
   fn test_SignupResponse() {}
 
   #[allow(non_snake_case)]
+  #[allow(dead_code)]
   fn test_LoginPayload() {
     assert_eq!(
       Ok(()),
@@ -213,6 +267,7 @@ mod test {
   }
 
   #[allow(non_snake_case)]
+  #[allow(dead_code)]
   fn test_SignupPayload() {
     assert_eq!(
       Ok(()),
@@ -280,6 +335,7 @@ mod test {
   }
 
   #[allow(non_snake_case)]
+  #[allow(dead_code)]
   fn test_PasswordHashing() {
     let hashed = User::hash_password("password".to_string()).unwrap();
 
@@ -290,6 +346,7 @@ mod test {
       first_name: "first_name".to_string(),
       last_name: "last_name".to_string(),
       income: 0.0,
+      accounts: None,
     };
 
     assert_eq!(Ok(true), user.compare_password("password".to_string()));

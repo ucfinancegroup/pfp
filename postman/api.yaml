@@ -84,19 +84,14 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - link_token
-                properties:
-                  link_token:
-                    type: string
+                $ref: "#/components/schemas/LinkTokenCreateResponse"
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/plaid/access_token:
+  /api/plaid/public_token_exchange:
     post:
       summary: "For after a user does PlaidLink thru client"
       operationId: plaidLinkAccess
@@ -105,19 +100,19 @@ paths:
       security:
         - sidCookie: []
           userIdCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublicTokenExchangeRequest"
       responses:
         "200":
           description: "Status"
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - message
-                properties:
-                  message:
-                    type: string
-                    description: "whether it was successful or not"
+                $ref: "#/components/schemas/ItemIdResponse"
         default:
           description: Unexpected error
           content:
@@ -185,6 +180,37 @@ components:
           type: number
     LoginResponse:
       $ref: "#/components/schemas/SignupResponse"
+    LinkTokenCreateResponse:
+      type: object
+      required:
+        - link_token
+        - expiration
+      properties:
+        link_token:
+          type: string
+        expiration:
+          type: string
+        request_id:
+          type: string
+    ItemIdResponse:
+      type: object
+      required:
+        - item_id
+      properties:
+        item_id:
+          type: string
+          description: "Item ID for newly added account"
+    PublicTokenExchangeRequest:
+      type: object
+      required:
+        - public_token
+      properties:
+        public_token:
+          type: string
+        client_id:
+          type: string
+        secret:
+          type: string
     ApiError:
       type: object
       required:

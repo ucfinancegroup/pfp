@@ -42,7 +42,7 @@ async fn main() -> std::io::Result<()> {
   let db_pw = dotenv::var("DATABASE_PW").expect("DATABASE_PW is not set in .env file");
   let db_name = dotenv::var("DATABASE_NAME").expect("DATABASE_NAME is not set in .env file");
 
-  let db = services::db_service::connect_to_mongo(uri, db_user, db_pw, db_name).unwrap();
+  let db = services::db::connect_to_mongo(uri, db_user, db_pw, db_name).unwrap();
 
   use crate::services::plaid;
   let plaid_client = plaid::Client {

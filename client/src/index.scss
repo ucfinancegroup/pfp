@@ -1,3 +1,11 @@
+// Variables to theme Bootstrap. See https://getbootstrap.com/docs/4.0/getting-started/theming/
+$theme-colors: (
+        "primary": #21c19c,
+        "danger": #ff4136
+);
+
+@import "node_modules/bootstrap/scss/bootstrap";
+
 .content {
   margin-top: 1em;
 }

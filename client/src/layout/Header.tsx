@@ -1,10 +1,31 @@
 import Navbar from "react-bootstrap/Navbar";
-import React from "react";
+import Nav from "react-bootstrap/Nav";
+import React, {useContext} from "react";
+import {UserContext} from "../contexts/UserContext";
+import Cookies from "js-cookie";
 
 export default function Header() {
+    const {isLoggedIn, setIsLoggedIn} = useContext(UserContext);
+
+    function logout() {
+        Cookies.remove("finch-sid");
+        setIsLoggedIn(false);
+    }
+
     return <header>
-        <Navbar bg="light">
-            <Navbar.Brand href="#home">Finch App</Navbar.Brand>
+        <Navbar bg="dark" variant="dark">
+            <Navbar.Brand href="/">Finch App</Navbar.Brand>
+            <Navbar.Collapse className="justify-content-end">
+                {!isLoggedIn && <>
+                  <Nav.Link href="/login">Log In</Nav.Link>
+                  <Nav.Link href="/register">Sign Up</Nav.Link>
+                </>
+                }
+                {isLoggedIn && <>
+                  <Nav.Link onClick={() => logout()}>Logout</Nav.Link>
+                </>
+                }
+            </Navbar.Collapse>
         </Navbar>
     </header>
 }

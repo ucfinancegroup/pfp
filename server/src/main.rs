@@ -16,19 +16,19 @@ cfg_if::cfg_if! {
   if #[cfg(feature="development")] {
     fn create_cookie() -> CookieSession {
       CookieSession::signed(&[0; 32])
-          .name("sid")
+          .name("finch-sid")
           .path("/")
           .secure(false)
-          .http_only(true)
+          .http_only(false)
     }
   } else {
     fn create_cookie() -> CookieSession {
       CookieSession::signed(&[0; 32])
           .domain("https://finchapp.eastus.cloudapp.azure.com/")
-          .name("sid")
+          .name("finch-sid")
           .path("/")
           .secure(true)
-          .http_only(true)
+          .http_only(false)
           .expires_in(60 * 60 * 24 * 30) // 30 days expiration
     }
   }

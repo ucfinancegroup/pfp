@@ -6,6 +6,7 @@ mod services;
 use actix_session::CookieSession;
 use actix_web::{get, middleware, App, HttpResponse, HttpServer, Responder};
 use dotenv::dotenv;
+use std::sync::{Arc, Mutex};
 
 #[get("/")]
 async fn root_route() -> impl Responder {
@@ -44,13 +45,12 @@ async fn main() -> std::io::Result<()> {
 
   let db = services::db::connect_to_mongo(uri, db_user, db_pw, db_name).unwrap();
 
-  use crate::services::plaid;
-  let plaid_client = plaid::Client {
+  let plaid_client = Arc::new(Mutex::new(services::finchplaid::ApiClient {
     client_id: dotenv::var("PLAID_CLIENT_ID").expect("need plaid client id"),
     secret: dotenv::var("PLAID_SANDBOX_SECRET").expect("need plaid sandbox secret"),
     client_name: "finch".to_string(),
-    environment: plaid::Environment::Sandbox,
-  };
+    configuration: plaid::apis::configuration::Configuration::default(),
+  }));
 
   HttpServer::new(move || {
     App::new()

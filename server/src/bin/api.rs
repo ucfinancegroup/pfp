@@ -1,7 +1,5 @@
-mod common;
-mod controllers;
-mod models;
-mod services;
+extern crate pfp_server;
+use pfp_server::*;
 
 use actix_session::CookieSession;
 use actix_web::{get, middleware, App, HttpResponse, HttpServer, Responder};

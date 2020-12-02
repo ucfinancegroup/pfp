@@ -5,9 +5,20 @@ services:
     image: pfp_server_dev
     build:
       context: ./server
-      dockerfile: Dockerfile-dev
+      dockerfile: Dockerfile.rust.dev
+      args:
+        bin: "api"
     ports:
       - "8080:8080"
+    volumes:
+      - ./server:/app/dev
+  pfp_service_insights:
+    image: pfp_server_insights
+    build:
+      context: ./server
+      dockerfile: Dockerfile.rust.dev
+      args:
+        bin: "service_insights"
     volumes:
       - ./server:/app/dev
   pfp_client:

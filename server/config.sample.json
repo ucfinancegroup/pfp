@@ -1,0 +1,8 @@
+{
+  "database_url": "",
+  "database_user": "",
+  "database_pw": "",
+  "database_name": "",
+  "plaid_client_id": "",
+  "plaid_sandbox_secret": ""
+}

@@ -1,0 +1,12 @@
+# https://hub.docker.com/_/rust
+
+
+FROM rust:latest as builder
+ARG bin="api"
+
+RUN cargo install cargo-watch
+WORKDIR /app/dev
+
+RUN mkdir -p /var/rust; echo ${bin} > /var/rust/bin
+
+CMD ["cargo-watch", "-x run --features development --bin $(cat /var/rust/bin)"]

@@ -1,20 +1,24 @@
 # https://hub.docker.com/_/rust
 
+
 FROM rust:latest as builder
+ARG bin="api"
 
 RUN USER=root cargo new --bin rust-docker-web
 WORKDIR ./rust-docker-web
 COPY ./Cargo.toml ./Cargo.toml
 RUN cargo build --release
-RUN rm src/*.rs && rm ./target/release/deps/pfp_server*
+RUN rm src/*.rs && rm ./target/release/deps/${bin}*
 
 ADD . ./
 
 RUN cargo install --path .
 
 FROM debian:buster-slim
+ARG bin
+
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /usr/local/cargo/bin/pfp_server /usr/local/bin/pfp_server
+COPY --from=builder /usr/local/cargo/bin/${bin} /usr/local/bin/pfp_server_component
 
 EXPOSE 8080
-CMD ["pfp_server"]
+CMD ["pfp_server_component"]

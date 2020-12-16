@@ -17,3 +17,7 @@ To clean up the docker stuff when you're done:
 ```
 $ sudo docker-compose -f docker-compose-dev.yml down
 ```
+
+## Environment Variables
+
+For development, the server needs some configuration variables at runtime (e.g., database url). Put these in a `config.json` file inside the [server](/server) directory. Follow the format of [config.sample.json](/server/config.sample.json)

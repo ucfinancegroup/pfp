@@ -12,6 +12,8 @@ services:
       - "8080:8080"
     volumes:
       - ./server:/app/dev
+    secrets:
+      - config.json
   pfp_service_insights:
     image: pfp_server_insights
     build:
@@ -21,6 +23,8 @@ services:
         bin: "service_insights"
     volumes:
       - ./server:/app/dev
+    secrets:
+      - config.json
   pfp_client:
     image: pfp_client_dev
     build:
@@ -43,3 +47,6 @@ services:
     depends_on:
       - pfp_server
       - pfp_client
+secrets:
+  config.json:
+    file: ./server/config.json

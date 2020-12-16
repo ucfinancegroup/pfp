@@ -3,7 +3,6 @@ use pfp_server::*;
 
 use actix_session::CookieSession;
 use actix_web::{get, middleware, App, HttpResponse, HttpServer, Responder};
-use dotenv::dotenv;
 use std::sync::{Arc, Mutex};
 
 #[get("/")]
@@ -35,17 +34,20 @@ cfg_if::cfg_if! {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-  dotenv().ok();
-  let uri = dotenv::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
-  let db_user = dotenv::var("DATABASE_USER").expect("DATABASE_USER is not set in .env file");
-  let db_pw = dotenv::var("DATABASE_PW").expect("DATABASE_PW is not set in .env file");
-  let db_name = dotenv::var("DATABASE_NAME").expect("DATABASE_NAME is not set in .env file");
+  let env: services::secrets::Environment =
+    services::secrets::Environment::new().expect("Need good env config");
 
-  let db = services::db::connect_to_mongo(uri, db_user, db_pw, db_name).unwrap();
+  let db = services::db::connect_to_mongo(
+    env.database_url,
+    env.database_user,
+    env.database_pw,
+    env.database_name,
+  )
+  .unwrap();
 
   let plaid_client = Arc::new(Mutex::new(services::finchplaid::ApiClient {
-    client_id: dotenv::var("PLAID_CLIENT_ID").expect("need plaid client id"),
-    secret: dotenv::var("PLAID_SANDBOX_SECRET").expect("need plaid sandbox secret"),
+    client_id: env.plaid_client_id,
+    secret: env.plaid_sandbox_secret,
     client_name: "finch".to_string(),
     configuration: plaid::apis::configuration::Configuration::default(),
   }));

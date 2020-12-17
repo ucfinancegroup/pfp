@@ -942,6 +942,7 @@ components:
           description: "Annualised Percentage Performance"
           type: number
 
+    # TODO(c650) -- formal typing for `mapping` below.
     Allocation:
       type: object
       required:
@@ -1125,9 +1126,19 @@ components:
         dismissed:
           type: boolean
 
-    # TODO(c650) -- formally defne timeseries
     TimeSeries:
+      description: "Daily values starting on some day."
       type: object
+      required:
+        - start_day
+        - series
+      properties:
+        start_day:
+          type: integer
+        series:
+          type: array
+          items:
+            type: number
 
     LinkTokenCreateResponse:
       type: object

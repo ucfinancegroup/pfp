@@ -7,7 +7,7 @@ Install docker.io, docker-compose, rustup.
 For Development, in the root of the repo run:
 
 ```
-$ sudo docker-compose -f docker-compose-dev.yml up --build
+$ sudo docker-compose -f docker-compose.yml up --build
 ```
 
 This builds dev containers. The rust container watches for changes and does not need to be rebuild while up.
@@ -15,5 +15,5 @@ This builds dev containers. The rust container watches for changes and does not 
 To clean up the docker stuff when you're done:
 
 ```
-$ sudo docker-compose -f docker-compose-dev.yml down
+$ sudo docker-compose -f docker-compose.yml down
 ```

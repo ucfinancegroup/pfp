@@ -37,13 +37,12 @@ async fn main() -> std::io::Result<()> {
   let env: services::secrets::Environment =
     services::secrets::Environment::new().expect("Need good env config");
 
-  let db = services::db::connect_to_mongo(
+  let db_service = services::db::DatabaseService::new(
     env.database_url,
     env.database_user,
     env.database_pw,
     env.database_name,
-  )
-  .unwrap();
+  );
 
   let plaid_client = Arc::new(Mutex::new(services::finchplaid::ApiClient {
     client_id: env.plaid_client_id,
@@ -52,12 +51,16 @@ async fn main() -> std::io::Result<()> {
     configuration: plaid::apis::configuration::Configuration::default(),
   }));
 
+  let user_service = services::users::UserService::new(&db_service);
+  let session_service = services::sessions::SessionService::new(&db_service);
+
   HttpServer::new(move || {
     App::new()
       .wrap(create_cookie())
       .wrap(middleware::Logger::default())
-      .data(db.clone())
       .data(plaid_client.clone())
+      .data(user_service.clone())
+      .data(session_service.clone())
       .configure(controllers::configure)
       .service(root_route)
   })

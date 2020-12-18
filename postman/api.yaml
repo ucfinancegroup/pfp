@@ -30,7 +30,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SignupResponse"
+                $ref: "#/components/schemas/User"
         default:
           description: Unexpected error
           content:
@@ -62,7 +62,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoginResponse"
+                $ref: "#/components/schemas/User"
         default:
           description: Unexpected error
           content:
@@ -90,7 +90,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UpdateUserResponse"
+                $ref: "#/components/schemas/User"
         default:
           description: Unexpected error
           content:
@@ -749,7 +749,6 @@ components:
       in: cookie
       name: finch-sid
   schemas:
-    # TODO(c650) -- update SignUpResponse to meet User schema
     SignupPayload:
       type: object
       required:
@@ -781,25 +780,36 @@ components:
           format: email
         password:
           type: string
-    SignupResponse:
+
+    User:
       type: object
       required:
         - email
+        # password hash never returned.
+        - location
         - first_name
         - last_name
-        - income
       properties:
         email:
           type: string
           format: email
+        location:
+          type: object # GeoJSON
         first_name:
           type: string
         last_name:
           type: string
         income:
           type: number
-    LoginResponse:
-      $ref: "#/components/schemas/SignupResponse"
+        # recurrings: # not returned
+        # snapshots: # not returned
+        # accounts: # maybe
+        # goals: #
+        # plans: #
+        # insights: #
+        device_url:
+          type: string
+          format: url
 
     UpdateUserRequest:
       type: object
@@ -812,8 +822,6 @@ components:
           type: string
         income:
           type: number
-    UpdateUserResponse:
-      $ref: "#/components/schemas/SignupResponse"
 
     # with serde we wanna #[serde(tag = "t", content = "content")]
     # enum Block {
@@ -938,7 +946,16 @@ components:
           description: "Annualised Percentage Performance"
           type: number
 
-    # TODO(c650) -- formal typing for `mapping` below.
+    AssetToPercentMapping:
+      type: object
+      required:
+        - percentage
+      properties:
+        percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+
     Allocation:
       type: object
       required:
@@ -952,6 +969,8 @@ components:
           type: integer
         mapping: # Asset -> Percent
           type: object
+          additionalProperties:
+            $ref: "#/components/schemas/AssetToPercentMapping"
 
     KnownFinancialProduct:
       type: object
@@ -972,7 +991,6 @@ components:
           type: string
           format: url
 
-    # TODO(c650) -- formal typing for `change` below.
     Transform:
       type: object
       required:
@@ -981,8 +999,10 @@ components:
       properties:
         trigger:
           type: integer
-        change:
-          type: object # Asset -> Percent
+        change: # Asset -> Percent
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/AssetToPercentMapping"
 
     Event:
       type: object

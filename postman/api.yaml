@@ -30,7 +30,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SignupResponse"
+                $ref: "#/components/schemas/User"
         default:
           description: Unexpected error
           content:
@@ -62,13 +62,616 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoginResponse"
+                $ref: "#/components/schemas/User"
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /api/update/user:
+    put:
+      summary: "This route receives a payload with requests to change data of a user"
+      operationId: updateUser
+      tags:
+        - users
+      security:
+        - sidCookie: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: "Status"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/registerIOSDevice:
+    post:
+      summary: "This route will be called once a user logs in on an iOS device and route body will contain the URL of the iOS device, this will be stored in the User model."
+      operationId: registerIOSDevice
+      tags:
+        - users
+      security:
+        - sidCookie: []
+
+      # requestBody:
+      #   required: true
+      #   content:
+      #     application/json:
+      #       schema:
+      #         $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        # "200":
+        #   description: "Status"
+        #   content:
+        #     application/json:
+        #       schema:
+        #         $ref: "#/components/schemas/UpdateUserResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/validate/user:
+    post:
+      summary: "This route lets our clients perform step-by-step signups."
+      operationId: validateUser
+      tags:
+        - validation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidateUserPayload"
+      responses:
+        "200":
+          description: "Status"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  #recurring
+  /api/recurring/new:
+    post:
+      summary: "Creates a new recurring for the user"
+      operationId: newRecurring
+      tags:
+        - recurring
+      security:
+        - sidCookie: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecurringNewPayload"
+      responses:
+        "200":
+          description: "The new recurring"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recurring"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/recurrings:
+    get:
+      summary: "Get all of a user's recurrings"
+      operationId: getRecurrings
+      tags:
+        - recurring
+      security:
+        - sidCookie: []
+
+      responses:
+        "200":
+          description: "Array of recurrings"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Recurring"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/recurring/{id}:
+    get:
+      summary: "Get one specific recurring by id"
+      operationId: getRecurring
+      tags:
+        - recurring
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the Recurring to get
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recurring"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      summary: "Update one specific recurring by id"
+      operationId: updateRecurring
+      tags:
+        - recurring
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the Recurring to update
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recurring"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      summary: "Delete one specific recurring by id"
+      operationId: deleteRecurring
+      tags:
+        - recurring
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the Recurring to delete
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recurring"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  # plans
+  /api/plan/new:
+    post:
+      summary: "Creates a new plan for the user"
+      operationId: newPlan
+      tags:
+        - plan
+      security:
+        - sidCookie: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanNewPayload"
+      responses:
+        "200":
+          description: "The new plan"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/plans:
+    get:
+      summary: "Get all of a user's plans"
+      operationId: getPlans
+      tags:
+        - plan
+      security:
+        - sidCookie: []
+
+      responses:
+        "200":
+          description: "Array of plans"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Plan"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/plan/{id}:
+    get:
+      summary: "Get one specific plan by id"
+      operationId: getPlan
+      tags:
+        - plan
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the Plan to get
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      summary: "Update one specific plan by id"
+      operationId: updatePlan
+      tags:
+        - plan
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the Plan to update
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      summary: "Delete one specific plan by id"
+      operationId: deletePlan
+      tags:
+        - plan
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the Plan to delete
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  # goals
+  /api/goal/new:
+    post:
+      summary: "Creates a new goal for the user"
+      operationId: newGoal
+      tags:
+        - goal
+      security:
+        - sidCookie: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalNewPayload"
+      responses:
+        "200":
+          description: "The new goal"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/goals:
+    get:
+      summary: "Get all of a user's goals"
+      operationId: getGoals
+      tags:
+        - goal
+      security:
+        - sidCookie: []
+
+      responses:
+        "200":
+          description: "Array of goals"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Goal"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/goal/{id}:
+    get:
+      summary: "Get one specific goal by id"
+      operationId: getGoal
+      tags:
+        - goal
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the Goal to get
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      summary: "Update one specific goal by id"
+      operationId: updateGoal
+      tags:
+        - goal
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the Goal to update
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      summary: "Delete one specific goal by id"
+      operationId: deleteGoal
+      tags:
+        - goal
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the Goal to delete
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/leaderboard/{type}:
+    get:
+      summary: "Get a leaderboard"
+      operationId: getLeaderboard
+      tags:
+        - leaderboard
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: type
+          schema:
+            type: string
+            enum: [savings, spending, income]
+          required: true
+          description: Which leaderboard to get
+      responses:
+        "200":
+          description: "Leaderboard response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeaderboardResponse"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/insights:
+    get:
+      summary: "Get all a user's (non-dismissed) insights"
+      operationId: getInsights
+      tags:
+        - insights
+      security:
+        - sidCookie: []
+
+      responses:
+        "200":
+          description: "Insights response"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Insight"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /api/insight/{id}/dismiss:
+    put:
+      summary: "Dismiss an insight"
+      operationId: dismissInsight
+      tags:
+        - insights
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the Insight to dismiss
+      responses:
+        "200":
+          description: "The insight that was dismissed"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Insight"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/timeseries:
+    get:
+      summary: "Get a user's projection timeseries"
+      operationId: getTimeseries
+      tags:
+        - timeseries
+      security:
+        - sidCookie: []
+
+      responses:
+        "200":
+          description: "Timeseries response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimeSeries"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
   /api/plaid/link_token:
     post:
       summary: "to request link token for PlaidLink"
@@ -77,7 +680,7 @@ paths:
         - plaid
       security:
         - sidCookie: []
-          userIdCookie: []
+
       responses:
         "200":
           description: "Link Token"
@@ -99,7 +702,7 @@ paths:
         - plaid
       security:
         - sidCookie: []
-          userIdCookie: []
+
       requestBody:
         required: true
         content:
@@ -119,16 +722,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /api/plaid/webhook:
+    post:
+      summary: "Where Plaid sends updates about items, transactions, etc https://plaid.com/docs/api/webhooks/"
+      operationId: plaidWebhook
+      tags:
+        - plaid
+      parameters:
+        - in: header
+          name: Plaid-Verification
+          schema:
+            $ref: "#/components/schemas/PlaidJWT"
+      responses:
+        "200":
+          description: "Status"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 components:
   securitySchemes:
     sidCookie:
       type: apiKey
       in: cookie
-      name: sid
-    userIdCookie:
-      type: apiKey
-      in: cookie
-      name: user_id
+      name: finch-sid
   schemas:
     SignupPayload:
       type: object
@@ -161,25 +780,382 @@ components:
           format: email
         password:
           type: string
-    SignupResponse:
+
+    User:
       type: object
       required:
         - email
+        # password hash never returned.
+        - location
         - first_name
         - last_name
-        - income
       properties:
         email:
           type: string
           format: email
+        location:
+          type: object # GeoJSON
         first_name:
           type: string
         last_name:
           type: string
         income:
           type: number
-    LoginResponse:
-      $ref: "#/components/schemas/SignupResponse"
+        # recurrings: # not returned
+        # snapshots: # not returned
+        # accounts: # maybe
+        # goals: #
+        # plans: #
+        # insights: #
+        device_url:
+          type: string
+          format: url
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        password:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        income:
+          type: number
+
+    # with serde we wanna #[serde(tag = "t", content = "content")]
+    # enum Block {
+    #     Para(Vec<Inline>),
+    #     Str(String),
+    # }
+    ValidateUserPayload:
+      type: object
+      required:
+        - typ
+        - content
+      properties:
+        typ:
+          type: string
+          enum: [email, password]
+        content:
+          type: string
+
+    TimeInterval:
+      type: object
+      required:
+        - typ
+        - content
+      properties:
+        typ:
+          type: string
+          enum: [monthly, annually, daily, weekly]
+        content:
+          type: integer
+
+    TimePeriod:
+      type: object
+      required:
+        - start
+        - end
+      properties:
+        start:
+          type: integer
+        end:
+          type: integer
+
+    # same as Recurring but no _id
+    RecurringNewPayload:
+      type: object
+      required:
+        - name
+        - start
+        - end
+        - principal
+        - amount
+        - interest
+        - amount_freq
+        - interest_freq
+        - contribution_freq
+      properties:
+        name:
+          type: string
+        start:
+          type: integer
+        end:
+          type: integer
+        principal:
+          type: integer
+        amount:
+          type: integer
+        interest:
+          type: integer
+        amount_freq:
+          $ref: "#/components/schemas/TimeInterval"
+        interest_freq:
+          $ref: "#/components/schemas/TimeInterval"
+        contribution_freq:
+          $ref: "#/components/schemas/TimeInterval"
+
+    Recurring:
+      type: object
+      required:
+        - _id
+        - name
+        - start
+        - end
+        - principal
+        - amount
+        - interest
+        - amount_freq
+        - interest_freq
+        - contribution_freq
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        start:
+          type: integer
+        end:
+          type: integer
+        principal:
+          type: integer
+        amount:
+          type: integer
+        interest:
+          type: integer
+        amount_freq:
+          $ref: "#/components/schemas/TimeInterval"
+        interest_freq:
+          $ref: "#/components/schemas/TimeInterval"
+        contribution_freq:
+          $ref: "#/components/schemas/TimeInterval"
+
+    Asset:
+      type: object
+      required:
+        - name
+        - class
+        - performance
+      properties:
+        name:
+          type: string
+        class:
+          type: string
+        performance:
+          description: "Annualised Percentage Performance"
+          type: number
+
+    AssetToPercentMapping:
+      type: object
+      required:
+        - percentage
+      properties:
+        percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+
+    Allocation:
+      type: object
+      required:
+        - description
+        - date
+        - mapping
+      properties:
+        description:
+          type: string
+        date:
+          type: integer
+        mapping: # Asset -> Percent
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/AssetToPercentMapping"
+
+    KnownFinancialProduct:
+      type: object
+      required:
+        - name
+        - typ
+        - logo
+        - product_url
+      properties:
+        name:
+          type: string
+        typ:
+          type: string
+        logo:
+          type: string
+          format: url
+        product_url:
+          type: string
+          format: url
+
+    Transform:
+      type: object
+      required:
+        - trigger
+        - change
+      properties:
+        trigger:
+          type: integer
+        change: # Asset -> Percent
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/AssetToPercentMapping"
+
+    Event:
+      type: object
+      required:
+        - name
+        - start
+        - transforms
+      properties:
+        name:
+          type: string
+        start:
+          type: integer
+          # format: int64
+        transforms:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transform"
+
+    PlanNewPayload:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        recurrings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Recurring"
+        allocations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transform"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+    Plan:
+      type: object
+      required:
+        - _id
+        - name
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        recurrings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Recurring"
+        allocations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transform"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+
+    GoalNewPayload:
+      type: object
+      required:
+        - name
+        - period
+        - threshold
+        - goal_side
+      properties:
+        name:
+          type: string
+        period:
+          $ref: "#/components/schemas/TimePeriod"
+        threshold:
+          type: number
+        goal_side:
+          type: string
+          enum: [above, below]
+    Goal:
+      type: object
+      required:
+        - _id
+        - name
+        - period
+        - threshold
+        - goal_side
+        - completed
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        period:
+          $ref: "#/components/schemas/TimePeriod"
+        threshold:
+          type: number
+        goal_side:
+          type: string
+          enum: [above, below]
+        completed:
+          type: boolean
+        feasible:
+          type: boolean
+
+    LeaderboardResponse:
+      type: object
+      required:
+        - leaderboard_type
+        - percentile
+      properties:
+        leaderboard_type:
+          type: string
+        description:
+          type: string
+        percentile:
+          type: number
+          minimum: 0
+          maximum: 100
+          exclusiveMaximum: true
+
+    Insight:
+      type: object
+      required:
+        - title
+        - description
+        - typ
+        - dismissed
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        logo:
+          type: string
+          format: url
+        typ:
+          type: string
+        dismissed:
+          type: boolean
+
+    TimeSeries:
+      description: "Daily values starting on some day."
+      type: object
+      required:
+        - start_day
+        - series
+      properties:
+        start_day:
+          type: integer
+        series:
+          type: array
+          items:
+            type: number
+
     LinkTokenCreateResponse:
       type: object
       required:
@@ -210,6 +1186,19 @@ components:
         client_id:
           type: string
         secret:
+          type: string
+    PlaidJWT:
+      type: object
+      required:
+        - alg
+        - kid
+        - typ
+      properties:
+        alg:
+          type: string
+        kid:
+          type: string
+        typ:
           type: string
     ApiError:
       type: object

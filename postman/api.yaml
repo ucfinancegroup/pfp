@@ -794,7 +794,15 @@ components:
           type: string
           format: email
         location:
-          type: object # GeoJSON
+          type: object
+          required:
+            - lat
+            - lon
+          properties:
+            lat:
+              type: number
+            lon:
+              type: number
         first_name:
           type: string
         last_name:

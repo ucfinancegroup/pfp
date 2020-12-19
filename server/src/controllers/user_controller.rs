@@ -1,4 +1,5 @@
-pub use crate::models::{session_model, user_model};
+use crate::models::user_model;
+use crate::services::{sessions::SessionService, users::UserService};
 
 use actix_session::Session;
 use actix_web::{
@@ -11,16 +12,13 @@ use actix_web::{
 pub async fn signup(
   session: Session,
   signup_payload: Json<user_model::SignupPayload>,
-  db: Data<mongodb::sync::Database>,
+  user_service: Data<UserService>,
+  session_service: Data<SessionService>,
 ) -> HttpResponse {
-  let res = user_model::User::new_from_signup(signup_payload.into_inner(), db.collection("Users"))
+  let res = user_service
+    .signup(signup_payload.into_inner())
     .and_then(|user| {
-      let _ = session_model::Session::new_user_session(
-        db.collection("Sessions"),
-        user._id.clone(),
-        &session,
-      );
-
+      let _ = session_service.new_user_session(user._id.clone(), &session);
       Ok(user_model::SignupResponse::new(user))
     });
 
@@ -34,16 +32,13 @@ pub async fn signup(
 pub async fn login(
   session: Session,
   login_payload: Json<user_model::LoginPayload>,
-  db: Data<mongodb::sync::Database>,
+  user_service: Data<UserService>,
+  session_service: Data<SessionService>,
 ) -> HttpResponse {
-  let res = user_model::User::new_from_login(login_payload.into_inner(), db.collection("Users"))
+  let res = user_service
+    .login(login_payload.into_inner())
     .and_then(|user| {
-      let _ = session_model::Session::new_user_session(
-        db.collection("Sessions"),
-        user._id.clone(),
-        &session,
-      );
-
+      let _ = session_service.new_user_session(user._id.clone(), &session);
       Ok(user_model::LoginResponse::new(user))
     });
 

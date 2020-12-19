@@ -1,6 +1,8 @@
 use crate::common::{errors::ApiError, into_response};
-use crate::models::{session_model, user_model};
 use crate::services::finchplaid::{ApiClient, ItemIdResponse, PublicTokenExchangeRequest};
+use crate::services::sessions::SessionService;
+use crate::services::users::UserService;
+
 use std::sync::{Arc, Mutex};
 
 use actix_session::Session;
@@ -9,17 +11,17 @@ use actix_web::{
   web::{Data, Json},
   HttpResponse,
 };
-use mongodb::sync::Database;
 
 #[post("/plaid/link_token")]
 async fn link_token(
   session: Session,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
-  db: Data<Database>,
+  session_service: Data<SessionService>,
 ) -> HttpResponse {
   let pc = plaid_client.lock().unwrap();
   let config = &(pc.configuration);
-  match session_model::Session::get_valid_session(&session, db.collection("Sessions")) {
+
+  match session_service.get_valid_session(&session) {
     Err(e) => e.into(),
     Ok(finch_session) => {
       match plaid::apis::link_tokens_api::create_link_token(
@@ -48,11 +50,12 @@ async fn access_token(
   session: Session,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
   payload: Json<PublicTokenExchangeRequest>,
-  db: Data<Database>,
+  session_service: Data<SessionService>,
+  user_service: Data<UserService>,
 ) -> HttpResponse {
   let pc = plaid_client.lock().unwrap();
   let config = &(pc.configuration);
-  let res = match session_model::Session::get_valid_session(&session, db.collection("Sessions")) {
+  let res = match session_service.get_valid_session(&session) {
     Err(e) => Err(e),
     Ok(finch_session) => plaid::apis::item_creation_api::exchange_token(
       config,
@@ -70,10 +73,9 @@ async fn access_token(
          item_id,
          request_id: _,
        }| {
-        user_model::User::new_from_session(finch_session, db.collection("Users"))
-          .and_then(|user| {
-            user.add_new_account(access_token, item_id.clone(), db.collection("Users"))
-          })
+        user_service
+          .new_from_session(finch_session)
+          .and_then(|user| user_service.add_new_account(&user, access_token, item_id.clone()))
           .and_then(|_| Ok(ItemIdResponse { item_id: item_id }))
       },
     ),

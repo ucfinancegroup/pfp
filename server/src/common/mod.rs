@@ -13,3 +13,14 @@ where
 {
   HttpResponse::Ok().json(m)
 }
+
+pub fn into_bson_document<T>(m: &T) -> mongodb::bson::Document
+where
+  T: Serialize,
+{
+  mongodb::bson::to_bson(&m)
+    .unwrap()
+    .as_document()
+    .unwrap()
+    .clone()
+}

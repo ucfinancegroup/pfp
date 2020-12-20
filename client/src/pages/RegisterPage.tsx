@@ -49,10 +49,12 @@ export default function RegisterPage() {
             const text = await res.text();
             const data = JSON.parse(text);
 
-            console.log(data);
-            setIsLoggedIn(true);
-            router.push("/");
-
+            if (res.ok) {
+                setIsLoggedIn(true);
+                router.push("/");
+            } else {
+                setError(data.message || "An error occurred");
+            }
         } catch (e) {
             setError(e.message);
         } finally {

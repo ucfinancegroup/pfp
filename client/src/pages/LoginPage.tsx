@@ -38,11 +38,13 @@ export default function LoginPage() {
             const text = await res.text();
             const data = JSON.parse(text);
 
-            // Set the user logged in via the user context so the entire application state can be updated.
-            console.log(data);
-            setIsLoggedIn(true);
-            router.push("/");
-
+            if (res.ok) {
+                // Set the user logged in via the user context so the entire application state can be updated.
+                setIsLoggedIn(true);
+                router.push("/");
+            } else {
+                setError(data.message || "An error occurred");
+            }
         } catch (e) {
             setError(e.message);
         } finally {

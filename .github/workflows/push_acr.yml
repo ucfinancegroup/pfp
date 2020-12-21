@@ -1,6 +1,6 @@
 on: [push, workflow_dispatch]
 
-name: Linux_Container_Workflow
+name: Build and Push Images to ACR
 
 jobs:
   build-and-deploy:

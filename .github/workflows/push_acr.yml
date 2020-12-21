@@ -1,4 +1,4 @@
-on: [workflow_dispatch]
+on: [push, workflow_dispatch]
 
 name: Linux_Container_Workflow
 
@@ -22,7 +22,7 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
       - run: |
-          docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/$CONTAINER_NAME:${{ github.sha }}
+          docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/$CONTAINER_NAME:${{ github.sha }} -f Dockerfile-prod
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/$CONTAINER_NAME:${{ github.sha }}
         working-directory: client
         env:
@@ -35,10 +35,10 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
       - run: |
-          docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/$API_CONTAINER:${{ github.sha }} --build-arg bin=api
+          docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/$API_CONTAINER:${{ github.sha }} --build-arg bin=api -f Dockerfile.rust.prod
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/$API_CONTAINER:${{ github.sha }}
 
-          docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/$SRV_INSIGHTS_CONTAINER:${{ github.sha }} --build-arg bin=service_insights
+          docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/$SRV_INSIGHTS_CONTAINER:${{ github.sha }} --build-arg bin=service_insights -f Dockerfile.rust.prod
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/$SRV_INSIGHTS_CONTAINER:${{ github.sha }}
         working-directory: server
         env:

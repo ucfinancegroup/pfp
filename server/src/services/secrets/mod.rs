@@ -15,7 +15,8 @@ pub struct Environment {
 
 impl Environment {
   pub fn new() -> Result<Environment, Box<dyn Error>> {
-    let file = File::open("/run/secrets/config.json")?;
+    let file =
+      File::open("/run/secrets/config.json").or(File::open("/etc/k8s_secrets/config.json"))?;
     let reader = BufReader::new(file);
     let env = serde_json::from_reader(reader)?;
     Ok(env)

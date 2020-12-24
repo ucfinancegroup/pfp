@@ -7,6 +7,6 @@ spec:
     app: pfp-pfp-server
     tier: backend
   ports:
-  - protocol: TCP
-    port: 8080
-    targetPort: http
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

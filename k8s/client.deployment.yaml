@@ -16,7 +16,8 @@ spec:
     spec:
       containers:
         - name: pfp-pfp-client
-          image: finchcontainerregistry.azurecr.io/pfp_pfp_client:latest
+          image: finchcontainerregistry.azurecr.io/pfp_pfp_client:0318559997d4e2fa6e8b208e5df35c6470077941
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 80

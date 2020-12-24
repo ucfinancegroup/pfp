@@ -16,10 +16,15 @@ spec:
     spec:
       containers:
         - name: pfp-pfp-server
-          image: finchcontainerregistry.azurecr.io/pfp_pfp_server:latest
+          # image: finchcontainerregistry.azurecr.io/pfp_pfp_server:latest
+          image: finchcontainerregistry.azurecr.io/pfp_pfp_server:0318559997d4e2fa6e8b208e5df35c6470077941
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 8080
+          volumeMounts:
+            - name: secret-volume
+              mountPath: /etc/k8s_secrets
           resources:
             requests:
               memory: "128Mi"
@@ -27,3 +32,7 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "500m"
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: backend-secret

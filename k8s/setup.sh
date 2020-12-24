@@ -18,6 +18,7 @@ helm install nginx-ingress ingress-nginx/ingress-nginx \
     --set controller.replicaCount=2 \
     --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux \
     --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux
+    # --set controller.publishService.enabled=true # https://github.com/kubernetes/ingress-nginx/issues/4092
 
 # Install the cert-manager Helm chart
 helm install \

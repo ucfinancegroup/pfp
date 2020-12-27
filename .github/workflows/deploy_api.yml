@@ -45,6 +45,6 @@ jobs:
       - uses: azure/k8s-deploy@v1
         with:
           manifests: |
-            k8s/server.deployment.yml
-            k8s/server.service.yml
+            k8s/server.deployment.yaml
+            k8s/server.service.yaml
           namespace: ${{ env.NAMESPACE }}

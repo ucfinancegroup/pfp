@@ -3,9 +3,11 @@ info:
   version: 0.0.1
   title: FinchAPI
 servers:
-  - url: "https://localhost:8888"
+  - url: "https://localhost:8888/api"
+  - url: "https://localhost:8080/"
+  - url: "https://finchapp.eastus.cloudapp.azure.com/api"
 paths:
-  /api/signup:
+  /signup:
     post:
       summary: "Sign up a user"
       operationId: signupUser
@@ -37,7 +39,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/login:
+  /login:
     post:
       summary: "Log in a user"
       operationId: loginUser
@@ -69,7 +71,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/update/user:
+  /update/user:
     put:
       summary: "This route receives a payload with requests to change data of a user"
       operationId: updateUser
@@ -97,7 +99,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/registerIOSDevice:
+  /registerIOSDevice:
     post:
       summary: "This route will be called once a user logs in on an iOS device and route body will contain the URL of the iOS device, this will be stored in the User model."
       operationId: registerIOSDevice
@@ -125,7 +127,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/validate/user:
+  /validate/user:
     post:
       summary: "This route lets our clients perform step-by-step signups."
       operationId: validateUser
@@ -148,7 +150,7 @@ paths:
                 $ref: "#/components/schemas/ApiError"
 
   #recurring
-  /api/recurring/new:
+  /recurring/new:
     post:
       summary: "Creates a new recurring for the user"
       operationId: newRecurring
@@ -176,7 +178,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/recurrings:
+  /recurrings:
     get:
       summary: "Get all of a user's recurrings"
       operationId: getRecurrings
@@ -200,7 +202,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/recurring/{id}:
+  /recurring/{id}:
     get:
       summary: "Get one specific recurring by id"
       operationId: getRecurring
@@ -287,7 +289,7 @@ paths:
                 $ref: "#/components/schemas/ApiError"
 
   # plans
-  /api/plan/new:
+  /plan/new:
     post:
       summary: "Creates a new plan for the user"
       operationId: newPlan
@@ -315,7 +317,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/plans:
+  /plans:
     get:
       summary: "Get all of a user's plans"
       operationId: getPlans
@@ -339,7 +341,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/plan/{id}:
+  /plan/{id}:
     get:
       summary: "Get one specific plan by id"
       operationId: getPlan
@@ -426,7 +428,7 @@ paths:
                 $ref: "#/components/schemas/ApiError"
 
   # goals
-  /api/goal/new:
+  /goal/new:
     post:
       summary: "Creates a new goal for the user"
       operationId: newGoal
@@ -454,7 +456,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/goals:
+  /goals:
     get:
       summary: "Get all of a user's goals"
       operationId: getGoals
@@ -478,7 +480,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/goal/{id}:
+  /goal/{id}:
     get:
       summary: "Get one specific goal by id"
       operationId: getGoal
@@ -564,7 +566,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
-  /api/leaderboard/{type}:
+  /leaderboard/{type}:
     get:
       summary: "Get a leaderboard"
       operationId: getLeaderboard
@@ -595,7 +597,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
-  /api/insights:
+  /insights:
     get:
       summary: "Get all a user's (non-dismissed) insights"
       operationId: getInsights
@@ -619,7 +621,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/insight/{id}/dismiss:
+  /insight/{id}/dismiss:
     put:
       summary: "Dismiss an insight"
       operationId: dismissInsight
@@ -649,7 +651,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
-  /api/timeseries:
+  /timeseries:
     get:
       summary: "Get a user's projection timeseries"
       operationId: getTimeseries
@@ -672,7 +674,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
-  /api/plaid/link_token:
+  /plaid/link_token:
     post:
       summary: "to request link token for PlaidLink"
       operationId: plaidLink
@@ -694,7 +696,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/plaid/public_token_exchange:
+  /plaid/public_token_exchange:
     post:
       summary: "For after a user does PlaidLink thru client"
       operationId: plaidLinkAccess
@@ -722,7 +724,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/plaid/webhook:
+  /plaid/webhook:
     post:
       summary: "Where Plaid sends updates about items, transactions, etc https://plaid.com/docs/api/webhooks/"
       operationId: plaidWebhook

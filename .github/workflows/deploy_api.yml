@@ -4,7 +4,7 @@ name: Deploy API to Azure
 
 env:
   NAMESPACE: ingress-basic
-  DEPLOYMENT: k8s/server.depoyment.yaml
+  DEPLOYMENT: ./k8s/server.depoyment.yaml
 
 jobs:
   build-and-deploy:

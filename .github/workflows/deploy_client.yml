@@ -4,6 +4,7 @@ name: Deploy Client to Azure
 
 env:
   NAMESPACE: ingress-basic
+  APP_NAME: pfp_pfp_client
 
 jobs:
   build-and-deploy:
@@ -24,11 +25,9 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
       - run: |
-          docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/$CONTAINER_NAME:latest -f Dockerfile-prod
-          docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/$CONTAINER_NAME:latest
+          docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ env.APP_NAME }}:${{ github.sha }} -f Dockerfile-prod
+          docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ env.APP_NAME }}:${{ github.sha }}
         working-directory: client
-        env:
-          CONTAINER_NAME: pfp_pfp_client
 
       # Set the target Azure Kubernetes Service (AKS) cluster.
       - uses: azure/aks-set-context@v1
@@ -47,4 +46,6 @@ jobs:
           manifests: |
             k8s/client.deployment.yaml
             k8s/client.service.yaml
+          images: |
+            ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ env.APP_NAME }}:${{ github.sha }}
           namespace: ${{ env.NAMESPACE }}

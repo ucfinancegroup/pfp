@@ -1,0 +1,49 @@
+on: [workflow_dispatch]
+
+name: Deploy Client to Azure
+
+env:
+  NAMESPACE: ingress-basic
+  DEPLOYMENT: k8s/client.depoyment.yaml
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout repo"
+        uses: actions/checkout@main
+
+      - name: "Login via Azure CLI"
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: "Build and push Client"
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - run: |
+          docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/$CONTAINER_NAME:latest -f Dockerfile-prod
+          docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/$CONTAINER_NAME:latest
+        working-directory: client
+        env:
+          CONTAINER_NAME: pfp_pfp_client
+
+      # Set the target Azure Kubernetes Service (AKS) cluster.
+      - uses: azure/aks-set-context@v1
+        with:
+          creds: "${{ secrets.AZURE_CREDENTIALS }}"
+          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+          resource-group: ${{ secrets.RESOURCE_GROUP }}
+
+      # Create namespace if doesn't exist
+      - run: |
+          kubectl create namespace ${{ env.NAMESPACE }} --dry-run -o json | kubectl apply -f -
+
+      # apply then delete then apply in case no deployment was previously applied
+      - run: |
+          kubectl apply -f ${{ env.DEPLOYMENT }} -n ${{ env.NAMESPACE }}
+          kubectl delete -f ${{ env.DEPLOYMENT }} -n ${{ env.NAMESPACE }}
+          kubectl apply -f ${{ env.DEPLOYMENT }} -n ${{ env.NAMESPACE }}

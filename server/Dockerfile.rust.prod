@@ -8,7 +8,7 @@ RUN USER=root cargo new --bin rust-docker-web
 WORKDIR ./rust-docker-web
 COPY ./Cargo.toml ./Cargo.toml
 RUN cargo build --release
-RUN rm src/*.rs && rm ./target/release/deps/${bin}*
+RUN rm src/*.rs && rm ./target/release/deps/pfp_server*
 
 ADD . ./
 

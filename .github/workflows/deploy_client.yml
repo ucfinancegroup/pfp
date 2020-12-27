@@ -4,7 +4,7 @@ name: Deploy Client to Azure
 
 env:
   NAMESPACE: ingress-basic
-  DEPLOYMENT: k8s/client.depoyment.yaml
+  DEPLOYMENT: ./k8s/client.depoyment.yaml
 
 jobs:
   build-and-deploy:

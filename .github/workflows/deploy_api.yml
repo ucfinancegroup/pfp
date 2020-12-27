@@ -42,8 +42,10 @@ jobs:
       - run: |
           kubectl create namespace ${{ env.NAMESPACE }} --dry-run -o json | kubectl apply -f -
 
-      # apply then delete then apply in case no deployment was previously applied
-      - run: |
-          kubectl apply -f ${{ env.DEPLOYMENT }} -n ${{ env.NAMESPACE }}
-          kubectl delete -f ${{ env.DEPLOYMENT }} -n ${{ env.NAMESPACE }}
-          kubectl apply -f ${{ env.DEPLOYMENT }} -n ${{ env.NAMESPACE }}
+      # Deploy app to AKS
+      - uses: azure/k8s-deploy@v1
+        with:
+          manifests: |
+            k8s/server.deployment.yml
+            k8s/server.service.yml
+          namespace: ${{ env.NAMESPACE }}

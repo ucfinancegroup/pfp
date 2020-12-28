@@ -33,6 +33,7 @@ pub struct User {
   pub income: f64,
   // recurrings: Vec<ObjectId>,
   // snapshots: Vec<ObjectId>,
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub accounts: Option<Vec<PlaidItem>>,
 }
 

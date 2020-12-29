@@ -24,11 +24,11 @@ where
   }
 }
 
-pub fn into_bson_document<T>(m: &T) -> mongodb::bson::Document
+pub fn into_bson_document<T>(m: &T) -> wither::mongodb::bson::Document
 where
   T: Serialize,
 {
-  mongodb::bson::to_bson(&m)
+  wither::mongodb::bson::to_bson(&m)
     .unwrap()
     .as_document()
     .unwrap()

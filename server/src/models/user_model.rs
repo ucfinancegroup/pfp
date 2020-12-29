@@ -1,35 +1,26 @@
+use crate::common::errors::ApiError;
 use argon2::{self, Config};
+// use mongodb::bson::{doc, oid::ObjectId};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use wither::Model;
 
-use mongodb::bson::{doc, oid::ObjectId};
-
-use crate::common::errors::ApiError;
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct PlaidItem {
-  pub item_id: String,
-  pub access_token: String,
-}
-
-impl PlaidItem {
-  pub fn new(item_id: String, access_token: String) -> PlaidItem {
-    PlaidItem {
-      item_id: item_id,
-      access_token: access_token,
-    }
-  }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Model, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct User {
-  pub _id: ObjectId,
+  #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+  pub id: Option<wither::mongodb::bson::oid::ObjectId>,
   pub email: String,
   pub password: String,
   pub first_name: String,
   pub last_name: String,
   pub income: f64,
-  pub accounts: Option<Vec<PlaidItem>>,
+  pub accounts: Vec<PlaidItem>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct PlaidItem {
+  pub item_id: String,
+  pub access_token: String,
 }
 
 impl User {
@@ -54,11 +45,20 @@ impl User {
   }
 }
 
-impl std::convert::From<User> for mongodb::bson::Bson {
-  fn from(s: User) -> mongodb::bson::Bson {
-    mongodb::bson::to_bson(&s).unwrap()
-  }
-}
+// impl<'a> wither::Model for User {
+//   /// The name of this model's collection.
+//   const COLLECTION_NAME: &'static str = "Users";
+
+//   /// Implement the getter for the ID of a model instance.
+//   fn id(&self) -> Option<wither::mongodb::bson::oid::ObjectId> {
+//     return self.id.clone();
+//   }
+
+//   /// Implement the setter for the ID of a model instance.
+//   fn set_id(&mut self, oid: wither::mongodb::bson::oid::ObjectId) {
+//     self.id = Some(oid);
+//   }
+// }
 
 #[cfg(test)]
 mod test {
@@ -70,13 +70,13 @@ mod test {
     let hashed = User::hash_password("password".to_string()).unwrap();
 
     let user = User {
-      _id: ObjectId::new(),
+      id: None,
       email: "email".to_string(),
       password: hashed,
       first_name: "first_name".to_string(),
       last_name: "last_name".to_string(),
       income: 0.0,
-      accounts: None,
+      accounts: vec![],
     };
 
     assert_eq!(Ok(true), user.compare_password("password".to_string()));

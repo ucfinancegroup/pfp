@@ -42,7 +42,8 @@ async fn main() -> std::io::Result<()> {
     env.database_user,
     env.database_pw,
     env.database_name,
-  );
+  )
+  .await;
 
   let plaid_client = Arc::new(Mutex::new(services::finchplaid::ApiClient {
     client_id: env.plaid_client_id,

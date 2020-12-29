@@ -6,74 +6,69 @@ use crate::models::{
   user_model::{PlaidItem, User},
 };
 use crate::services::db;
-use mongodb::bson::{doc, oid::ObjectId};
-use mongodb::sync::Collection;
+use wither::{
+  mongodb::{bson::doc, Database},
+  Model,
+};
 
 #[derive(Clone)]
 pub struct UserService {
-  col: Collection,
+  db: Database,
 }
 
 impl UserService {
   pub fn new(db: &db::DatabaseService) -> UserService {
-    UserService {
-      col: db.collection(db::Collections::Users),
-    }
+    UserService { db: db.db.clone() }
   }
 
-  pub fn signup(&self, data: SignupPayload) -> Result<User, ApiError> {
+  pub async fn signup(&self, data: SignupPayload) -> Result<User, ApiError> {
     if let Err(e) = data.validate() {
       return Err(ApiError::new(400, e));
     }
 
     // check for unused email
-    if let Ok(Some(_)) = self
-      .col
-      .find_one(Some(doc! {"email": data.email.clone()}), None)
+    if let Ok(Some(_)) =
+      User::find_one(&self.db, Some(doc! {"email": data.email.clone()}), None).await
     {
       return Err(ApiError::new(400, "Email is in use".to_string()));
     }
 
-    User::hash_password(data.password.clone())
-      .map_err(|_| ApiError::new(400, "Password hashing failed".to_string()))
-      .and_then(|password_hash| {
-        let user = User {
-          _id: ObjectId::new(),
-          email: data.email,
-          password: password_hash,
-          first_name: data.first_name,
-          last_name: data.last_name,
-          income: data.income,
-          accounts: None,
-        };
+    let password_hash = User::hash_password(data.password.clone())
+      .map_err(|_| ApiError::new(400, "Password hashing failed".to_string()))?;
 
-        self
-          .col
-          .insert_one(crate::common::into_bson_document(&user), None)
-          .and_then(|_| Ok(user))
-          .map_err(|_| ApiError::new(500, "Database Error".to_string()))
-      })
+    let mut user = User {
+      id: None,
+      email: data.email,
+      password: password_hash,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      income: data.income,
+      accounts: vec![],
+    };
+
+    user.save(&self.db, None).await.map_or_else(
+      |_| Err(ApiError::new(500, "Database Error".to_string())),
+      |_| Ok(user),
+    )
   }
 
-  pub fn login(&self, data: LoginPayload) -> Result<User, ApiError> {
+  pub async fn login(&self, data: LoginPayload) -> Result<User, ApiError> {
     if let Err(e) = data.validate() {
       return Err(ApiError::new(400, e));
     }
 
     // search db for user
-    let search_db_res = self
-      .col
-      .find_one(Some(doc! {"email": data.email.clone()}), None)
+    let search_db_res = User::find_one(&self.db, Some(doc! {"email": data.email.clone()}), None)
+      .await
       .map_err(|_| ApiError::new(500, "DB Error".to_string()));
 
     // check if user found and parse to User
     let got_user_res: Result<User, ApiError> = search_db_res.and_then(|user_opt| {
-      user_opt
-        .ok_or(ApiError::new(500, "User not found".to_string()))
-        .and_then(|user| {
-          bson::from_bson(user.into())
-            .map_err(|_| ApiError::new(500, "user format error".to_string()))
-        })
+      user_opt.ok_or(ApiError::new(500, "User not found".to_string()))
+      // .and_then(|user| {
+      //   bson::from_bson(user.into())
+      //     .map_err(|_| ApiError::new(500, "user format error".to_string()))
+      // })
     });
 
     // verify password, return user if good
@@ -90,34 +85,33 @@ impl UserService {
     })
   }
 
-  pub fn new_from_session(&self, session: session_model::Session) -> Result<User, ApiError> {
-    self
-      .col
-      .find_one(Some(doc! {"_id": session.user_id.clone()}), None)
+  pub async fn new_from_session(&self, session: session_model::Session) -> Result<User, ApiError> {
+    User::find_one(&self.db, Some(doc! {"_id": session.user_id.clone()}), None)
+      .await
       .map_err(|_| ApiError::new(500, "DB Error".to_string()))
       .and_then(|user_opt| {
-        user_opt
-          .ok_or(ApiError::new(500, "User not found".to_string()))
-          .and_then(|user| {
-            bson::from_bson(user.into())
-              .map_err(|_| ApiError::new(500, "user format error".to_string()))
-          })
+        user_opt.ok_or(ApiError::new(500, "User not found".to_string()))
+        // .and_then(|user| {
+        //   bson::from_bson(user.into())
+        //     .map_err(|_| ApiError::new(500, "user format error".to_string()))
+        // })
       })
   }
 
-  pub fn add_new_account(
+  pub async fn add_new_account(
     &self,
-    user: &User,
+    user: User,
     access_token: String,
     item_id: String,
   ) -> Result<(), ApiError> {
-    self.col
-      .update_one(
-        doc! {"_id": user._id.clone()},
-        doc! {"$push": doc!{"accounts" : bson::to_bson(&PlaidItem::new(item_id, access_token)).unwrap()}},
-        None,
-      )
-      .map_err(|_| ApiError::new(500, "Database Error".to_string()))
-      .and_then(|_| Ok(()))
+    user.update(&self.db, None, doc! {"$push": doc!{"accounts" : crate::common::into_bson_document(&PlaidItem{item_id, access_token})}}, None).await
+    .map_err(|_| ApiError::new(500, "Database Error".to_string()))
+    .and_then(|_| Ok(()))
+    // self.col
+    //   .update_one(
+    //     doc! {"_id": user._id.clone()},
+    //     doc! {"$push": doc!{"accounts" : crate::common::into_bson_document(&PlaidItem{item_id, access_token})}},
+    //     None,
+    //   )
   }
 }

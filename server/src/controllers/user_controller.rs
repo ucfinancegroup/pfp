@@ -64,12 +64,13 @@ pub async fn signup(
   user_service: Data<UserService>,
   session_service: Data<SessionService>,
 ) -> HttpResponse {
-  let res = user_service
-    .signup(signup_payload.into_inner())
-    .and_then(|user| {
-      let _ = session_service.new_user_session(user._id.clone(), &session);
-      Ok(SignupResponse::new(user))
-    });
+  let res = match user_service.signup(signup_payload.into_inner()).await {
+    Ok(user) => session_service
+      .new_user_session(&user, &session)
+      .await
+      .and_then(|_| Ok(SignupResponse::new(user))),
+    Err(e) => Err(e),
+  };
 
   crate::common::into_response_res(res)
 }
@@ -81,12 +82,13 @@ pub async fn login(
   user_service: Data<UserService>,
   session_service: Data<SessionService>,
 ) -> HttpResponse {
-  let res = user_service
-    .login(login_payload.into_inner())
-    .and_then(|user| {
-      let _ = session_service.new_user_session(user._id.clone(), &session);
-      Ok(LoginResponse::new(user))
-    });
+  let res = match user_service.login(login_payload.into_inner()).await {
+    Ok(user) => session_service
+      .new_user_session(&user, &session)
+      .await
+      .and_then(|_| Ok(LoginResponse::new(user))),
+    Err(e) => Err(e),
+  };
 
   crate::common::into_response_res(res)
 }

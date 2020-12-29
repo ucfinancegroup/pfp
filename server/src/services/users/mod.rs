@@ -1,14 +1,13 @@
-use mongodb::sync::Collection;
-
-use crate::common;
 use crate::common::errors::ApiError;
 use crate::common::Validation;
-
+use crate::controllers::user_controller::{LoginPayload, SignupPayload};
+use crate::models::{
+  session_model,
+  user_model::{PlaidItem, User},
+};
 use crate::services::db;
-
-use crate::models::{session_model, user_model::*};
-
 use mongodb::bson::{doc, oid::ObjectId};
+use mongodb::sync::Collection;
 
 #[derive(Clone)]
 pub struct UserService {
@@ -50,7 +49,7 @@ impl UserService {
 
         self
           .col
-          .insert_one(common::into_bson_document(&user), None)
+          .insert_one(crate::common::into_bson_document(&user), None)
           .and_then(|_| Ok(user))
           .map_err(|_| ApiError::new(500, "Database Error".to_string()))
       })

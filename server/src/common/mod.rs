@@ -14,6 +14,16 @@ where
   HttpResponse::Ok().json(m)
 }
 
+pub fn into_response_res<T>(m: Result<T, errors::ApiError>) -> HttpResponse
+where
+  T: Serialize,
+{
+  match m {
+    Ok(success) => HttpResponse::Ok().json(success),
+    Err(error) => error.into(),
+  }
+}
+
 pub fn into_bson_document<T>(m: &T) -> mongodb::bson::Document
 where
   T: Serialize,

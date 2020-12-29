@@ -1,16 +1,25 @@
 use crate::common::{errors::ApiError, into_response};
-use crate::services::finchplaid::{ApiClient, ItemIdResponse, PublicTokenExchangeRequest};
+use crate::services::finchplaid::ApiClient;
 use crate::services::sessions::SessionService;
 use crate::services::users::UserService;
-
-use std::sync::{Arc, Mutex};
-
 use actix_session::Session;
 use actix_web::{
   post,
   web::{Data, Json},
   HttpResponse,
 };
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
+
+#[derive(Deserialize)]
+pub struct PublicTokenExchangeRequest {
+  pub public_token: String,
+}
+
+#[derive(Serialize)]
+pub struct ItemIdResponse {
+  pub item_id: String,
+}
 
 #[post("/plaid/link_token")]
 async fn link_token(
@@ -81,10 +90,7 @@ async fn access_token(
     ),
   };
 
-  match res {
-    Ok(e) => into_response(e),
-    Err(e) => e.into(),
-  }
+  crate::common::into_response_res(res)
 }
 
 pub fn init_routes(config: &mut actix_web::web::ServiceConfig) {

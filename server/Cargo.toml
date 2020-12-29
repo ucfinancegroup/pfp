@@ -21,6 +21,7 @@ cfg-if = "*"
 reqwest = {version="*", features = ["json"]}
 plaid={git="https://github.com/ucfinancegroup/plaid"}
 serde_json = "*"
+wither = "*"
 
 [features]
 development = []

@@ -1,59 +1,64 @@
-use crate::common;
 use crate::common::errors::ApiError;
-use crate::models::session_model::*;
+use crate::models::{session_model::*, user_model::User};
 use crate::services::db;
-
-use mongodb::{
-  bson::{doc, oid::ObjectId},
-  sync::Collection,
-};
+use wither::{mongodb::Database, Model};
 
 #[derive(Clone)]
 pub struct SessionService {
-  col: Collection,
+  db: Database,
 }
 
 impl SessionService {
   pub fn new(db: &db::DatabaseService) -> SessionService {
-    SessionService {
-      col: db.collection(db::Collections::Sessions),
+    SessionService { db: db.db.clone() }
+  }
+
+  pub async fn new_user_session(
+    &self,
+    user: &User,
+    session: &actix_session::Session,
+  ) -> Result<(), ApiError> {
+    let user_id = user.id.clone().unwrap();
+
+    let mut new_session = Session {
+      id: None,
+      user_id: user_id,
+    };
+
+    new_session
+      .save(&self.db, None)
+      .await
+      .map_err(|_| ApiError::new(500, "Database Error".to_string()))?;
+
+    let _ = session.set("sid", new_session.id.unwrap().to_hex());
+    let _ = session.set("user_id", new_session.user_id.to_hex());
+
+    Ok(())
+  }
+
+  pub async fn get_valid_session(
+    &self,
+    session: &actix_session::Session,
+  ) -> Result<Session, ApiError> {
+    let finch_session =
+      Session::new_from_store(&session).ok_or(ApiError::new(401, "No session".to_string()))?;
+    match self.is_valid(&finch_session).await {
+      true => Ok(finch_session),
+      false => Err(ApiError::new(401, "Invalid session".to_string()).into()),
     }
   }
 
-  pub fn new_user_session(&self, user_id: ObjectId, session: &actix_session::Session) -> Session {
-    let new_session = Session {
-      _id: ObjectId::new(),
-      user_id: user_id,
-    };
-    let _ = session.set("sid", new_session._id.to_hex());
-    let _ = session.set("user_id", new_session.user_id.to_hex());
-    let _ = self
-      .col
-      .insert_one(common::into_bson_document(&new_session), None);
-
-    new_session
+  pub async fn invalidate(&self, session: &Session) -> () {
+    let _ = session.delete(&self.db).await;
   }
 
-  pub fn get_valid_session(&self, session: &actix_session::Session) -> Result<Session, ApiError> {
-    Session::new_from_store(&session).map_or_else(
-      || Err(ApiError::new(401, "No session".to_string())),
-      |finch_session| match self.is_valid(&finch_session) {
-        true => Ok(finch_session),
-        false => Err(ApiError::new(401, "Invalid session".to_string()).into()),
-      },
+  async fn is_valid(&self, session: &Session) -> bool {
+    Session::find_one(
+      &self.db,
+      Some(session.document_from_instance().unwrap()),
+      None,
     )
-  }
-
-  pub fn invalidate(&self, session: &Session) -> () {
-    let _ = self
-      .col
-      .delete_one(doc! {"_id" : session._id.clone()}, None);
-  }
-
-  fn is_valid(&self, session: &Session) -> bool {
-    self
-      .col
-      .find_one(Some(common::into_bson_document(session)), None)
-      .map_or_else(|_| false, |got| got.is_some())
+    .await
+    .map_or_else(|_| false, |got| got.is_some())
   }
 }

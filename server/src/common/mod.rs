@@ -14,11 +14,21 @@ where
   HttpResponse::Ok().json(m)
 }
 
-pub fn into_bson_document<T>(m: &T) -> mongodb::bson::Document
+pub fn into_response_res<T>(m: Result<T, errors::ApiError>) -> HttpResponse
 where
   T: Serialize,
 {
-  mongodb::bson::to_bson(&m)
+  match m {
+    Ok(success) => HttpResponse::Ok().json(success),
+    Err(error) => error.into(),
+  }
+}
+
+pub fn into_bson_document<T>(m: &T) -> wither::mongodb::bson::Document
+where
+  T: Serialize,
+{
+  wither::mongodb::bson::to_bson(&m)
     .unwrap()
     .as_document()
     .unwrap()

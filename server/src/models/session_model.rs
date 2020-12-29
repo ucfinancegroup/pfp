@@ -1,10 +1,11 @@
-use mongodb::bson::oid::ObjectId;
+use wither::{mongodb::bson::oid::ObjectId, Model};
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Model, Serialize, Deserialize, Debug, Clone)]
 pub struct Session {
-  pub _id: ObjectId,
+  #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+  pub id: Option<ObjectId>,
   pub user_id: ObjectId,
 }
 
@@ -20,7 +21,7 @@ impl Session {
           ObjectId::with_string(user_id_str.as_str()),
         ) {
           Some(Session {
-            _id: sid_obj,
+            id: Some(sid_obj),
             user_id: user_id_obj,
           })
         } else {

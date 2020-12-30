@@ -17,6 +17,8 @@ actix-session="0.4.0"
 bson = "*"
 geojson= "*"
 futures = "0.3.4"
+validators-derive = "0.22.3"
+validator = { version = "0.11", features = ["derive"] }
 cfg-if = "*"
 reqwest = {version="*", features = ["json"]}
 plaid={git="https://github.com/ucfinancegroup/plaid"}

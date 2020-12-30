@@ -1,4 +1,3 @@
-use crate::common::Validation;
 use crate::models::user_model::User;
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
@@ -8,20 +7,16 @@ use actix_web::{
   HttpResponse,
 };
 use serde::{Deserialize, Serialize};
+use validator::{Validate};
 
-#[derive(Deserialize, PartialEq)]
+#[derive(Validate, Deserialize, PartialEq)]
 pub struct SignupPayload {
+  #[validate(email)]
   pub email: String,
   pub password: String,
   pub first_name: String,
   pub last_name: String,
   pub income: f64,
-}
-
-impl Validation for SignupPayload {
-  fn validate(&self) -> Result<(), String> {
-    return Ok(());
-  }
 }
 
 #[derive(Serialize, PartialEq)]
@@ -47,12 +42,6 @@ impl SignupResponse {
 pub struct LoginPayload {
   pub email: String,
   pub password: String,
-}
-
-impl Validation for LoginPayload {
-  fn validate(&self) -> Result<(), String> {
-    return Ok(());
-  }
 }
 
 type LoginResponse = SignupResponse;
@@ -121,7 +110,6 @@ mod test {
         email: "me@chucknorris.com".to_string(),
         password: "password".to_string(),
       }
-      .validate()
     );
 
     // eventually should be not ok
@@ -131,7 +119,6 @@ mod test {
         email: "not an email".to_string(),
         password: "password".to_string(),
       }
-      .validate()
     );
 
     // eventually should be not ok
@@ -141,7 +128,6 @@ mod test {
         email: "me@chucknorris.com".to_string(),
         password: "".to_string(),
       }
-      .validate()
     );
   }
 
@@ -157,7 +143,6 @@ mod test {
         last_name: "last name".to_string(),
         income: 1000 as f64
       }
-      .validate()
     );
 
     // should eventually fail on Negative Income
@@ -170,7 +155,6 @@ mod test {
         last_name: "last name".to_string(),
         income: -1 as f64
       }
-      .validate()
     );
 
     // fail on bad email
@@ -183,7 +167,6 @@ mod test {
         last_name: "last name".to_string(),
         income: 1000 as f64
       }
-      .validate()
     );
 
     // eventually fail on empty password
@@ -196,7 +179,6 @@ mod test {
         last_name: "last name".to_string(),
         income: 1000 as f64
       }
-      .validate()
     );
 
     // eventually fail on empty name
@@ -209,7 +191,6 @@ mod test {
         last_name: "".to_string(),
         income: 1000 as f64
       }
-      .validate()
     );
   }
 }

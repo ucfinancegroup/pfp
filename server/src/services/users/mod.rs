@@ -1,5 +1,4 @@
 use crate::common::errors::ApiError;
-use crate::common::Validation;
 use crate::controllers::user_controller::{LoginPayload, SignupPayload};
 use crate::models::{
   session_model,
@@ -22,9 +21,9 @@ impl UserService {
   }
 
   pub async fn signup(&self, data: SignupPayload) -> Result<User, ApiError> {
-    if let Err(e) = data.validate() {
+    /*if let Err(e) = data.validate() {
       return Err(ApiError::new(400, e));
-    }
+    }*/
 
     // check for unused email
     if let Ok(Some(_)) =
@@ -53,9 +52,9 @@ impl UserService {
   }
 
   pub async fn login(&self, data: LoginPayload) -> Result<User, ApiError> {
-    if let Err(e) = data.validate() {
+    /*if let Err(e) = data.validate() {
       return Err(ApiError::new(400, e));
-    }
+    }*/
 
     // search db for user
     let search_db_res = User::find_one(&self.db, Some(doc! {"email": data.email.clone()}), None)

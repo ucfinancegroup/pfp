@@ -116,6 +116,7 @@ mod test {
         email: "me@chucknorris.com".to_string(),
         password: "password".to_string(),
       }
+      .validate()
     );
 
     // eventually should be not ok
@@ -125,6 +126,7 @@ mod test {
         email: "not an email".to_string(),
         password: "password".to_string(),
       }
+      .validate()
     );
 
     // eventually should be not ok
@@ -134,6 +136,7 @@ mod test {
         email: "me@chucknorris.com".to_string(),
         password: "".to_string(),
       }
+      .validate()
     );
   }
 
@@ -149,6 +152,7 @@ mod test {
         last_name: "last name".to_string(),
         income: 1000 as f64
       }
+      .validate()
     );
 
     // should eventually fail on Negative Income
@@ -161,6 +165,7 @@ mod test {
         last_name: "last name".to_string(),
         income: -1 as f64
       }
+      .validate()
     );
 
     // fail on bad email
@@ -173,6 +178,7 @@ mod test {
         last_name: "last name".to_string(),
         income: 1000 as f64
       }
+      .validate()
     );
 
     // eventually fail on empty password
@@ -185,6 +191,7 @@ mod test {
         last_name: "last name".to_string(),
         income: 1000 as f64
       }
+      .validate()
     );
 
     // eventually fail on empty name
@@ -197,6 +204,7 @@ mod test {
         last_name: "".to_string(),
         income: 1000 as f64
       }
+      .validate()
     );
   }
 }

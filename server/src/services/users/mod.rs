@@ -9,6 +9,7 @@ use wither::{
   mongodb::{bson::doc, Database},
   Model,
 };
+use validator::{Validate};
 
 #[derive(Clone)]
 pub struct UserService {
@@ -21,9 +22,10 @@ impl UserService {
   }
 
   pub async fn signup(&self, data: SignupPayload) -> Result<User, ApiError> {
-    /*if let Err(e) = data.validate() {
-      return Err(ApiError::new(400, e));
-    }*/
+    match data.validate() {
+      Ok(_) => (),
+      Err(_) => return Err(ApiError::new(400, "Payload Validation Error".to_string())),
+    };
 
     // check for unused email
     if let Ok(Some(_)) =

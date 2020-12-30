@@ -13,9 +13,13 @@ use validator::{Validate};
 pub struct SignupPayload {
   #[validate(email)]
   pub email: String,
+  #[validate(length(min = 1))]
   pub password: String,
+  #[validate(length(min = 1))]
   pub first_name: String,
+  #[validate(length(min = 1))]
   pub last_name: String,
+  #[validate(range(min = 0))]
   pub income: f64,
 }
 
@@ -38,9 +42,11 @@ impl SignupResponse {
   }
 }
 
-#[derive(Deserialize, PartialEq)]
+#[derive(Validate, Deserialize, PartialEq)]
 pub struct LoginPayload {
+  #[validate(email)]
   pub email: String,
+  #[validate(length(min = 1))]
   pub password: String,
 }
 

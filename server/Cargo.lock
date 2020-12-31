@@ -2018,6 +2018,7 @@ dependencies = [
  "bson",
  "cargo-watch",
  "cfg-if 1.0.0",
+ "chrono",
  "futures",
  "geojson",
  "plaid",

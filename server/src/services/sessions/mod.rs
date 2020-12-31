@@ -1,7 +1,7 @@
 use crate::common::errors::ApiError;
 use crate::models::{session_model::*, user_model::User};
 use crate::services::db;
-use wither::{mongodb::Database, Model};
+use wither::{mongodb::Database, prelude::Migrating, Model};
 
 #[derive(Clone)]
 pub struct SessionService {
@@ -9,7 +9,8 @@ pub struct SessionService {
 }
 
 impl SessionService {
-  pub fn new(db: &db::DatabaseService) -> SessionService {
+  pub async fn new(db: &db::DatabaseService) -> SessionService {
+    let _ = Session::migrate(&db.db).await.unwrap();
     SessionService { db: db.db.clone() }
   }
 

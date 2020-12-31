@@ -8,6 +8,7 @@ use crate::models::{
 use crate::services::db;
 use wither::{
   mongodb::{bson::doc, Database},
+  prelude::Migrating,
   Model,
 };
 
@@ -17,7 +18,8 @@ pub struct UserService {
 }
 
 impl UserService {
-  pub fn new(db: &db::DatabaseService) -> UserService {
+  pub async fn new(db: &db::DatabaseService) -> UserService {
+    let _ = User::migrate(&db.db).await.unwrap();
     UserService { db: db.db.clone() }
   }
 

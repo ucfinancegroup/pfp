@@ -49,8 +49,8 @@ async fn main() -> std::io::Result<()> {
     configuration: plaid::apis::configuration::Configuration::default(),
   }));
 
-  let user_service = services::users::UserService::new(&db_service);
-  let session_service = services::sessions::SessionService::new(&db_service);
+  let user_service = services::users::UserService::new(&db_service).await;
+  let session_service = services::sessions::SessionService::new(&db_service).await;
 
   HttpServer::new(move || {
     App::new()

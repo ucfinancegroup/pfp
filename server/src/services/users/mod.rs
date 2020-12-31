@@ -54,9 +54,10 @@ impl UserService {
   }
 
   pub async fn login(&self, data: LoginPayload) -> Result<User, ApiError> {
-    /*if let Err(e) = data.validate() {
-      return Err(ApiError::new(400, e));
-    }*/
+    match data.validate() {
+      Ok(_) => (),
+      Err(_) => return Err(ApiError::new(400, "Payload Validation Error".to_string())),
+    };
 
     // search db for user
     let search_db_res = User::find_one(&self.db, Some(doc! {"email": data.email.clone()}), None)

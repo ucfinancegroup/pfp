@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master]
     paths:
-      - "./server"
+      - "**/*.rs"
 
 env:
   CARGO_TERM_COLOR: always

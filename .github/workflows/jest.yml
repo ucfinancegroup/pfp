@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master]
     paths:
-      - "./client"
+      - "./client/*"
 
 env:
   working-directory: ./client

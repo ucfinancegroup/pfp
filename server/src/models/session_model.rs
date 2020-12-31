@@ -32,3 +32,26 @@ impl Session {
     }
   }
 }
+
+#[allow(unused_imports)]
+use chrono::TimeZone;
+use wither::mongodb::bson::doc;
+use wither::prelude::Migrating;
+
+impl Migrating for Session {
+  // Define any migrations which your model needs in this method.
+  // As this is an interval migration, it will deactivate itself after the given threshold
+  // date, so you could leave it in your code for as long as you would like.
+  fn migrations() -> Vec<Box<dyn wither::Migration>> {
+    // -- EXAMPLE --
+    // vec![Box::new(wither::IntervalMigration {
+    //   name: "remove-oldfield".to_string(),
+    //   // NOTE: use a logical time here. A day after your deployment date, or the like.
+    //   threshold: chrono::Utc.ymd(2100, 1, 1).and_hms(1, 0, 0),
+    //   filter: doc! {"oldfield": doc!{"$exists": true}},
+    //   set: None,
+    //   unset: Some(doc! {"oldfield": ""}),
+    // })]
+    vec![]
+  }
+}

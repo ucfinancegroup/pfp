@@ -24,5 +24,3 @@ impl Into<HttpResponse> for ApiError {
     }
   }
 }
-
-pub type dummy = i32;

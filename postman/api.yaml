@@ -1069,7 +1069,7 @@ components:
         allocations:
           type: array
           items:
-            $ref: "#/components/schemas/Transform"
+            $ref: "#/components/schemas/Allocation"
         events:
           type: array
           items:

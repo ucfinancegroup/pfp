@@ -22,4 +22,7 @@ impl Into<HttpResponse> for ApiError {
     } else {
       HttpResponse::InternalServerError().json(self)
     }
-  }}
+  }
+}
+
+pub type dummy = i32;

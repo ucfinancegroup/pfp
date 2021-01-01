@@ -9,7 +9,6 @@ use wither::{
   mongodb::{bson::doc, Database},
   Model,
 };
-use validator::{Validate};
 
 #[derive(Clone)]
 pub struct UserService {
@@ -50,10 +49,6 @@ impl UserService {
   }
 
   pub async fn login(&self, data: LoginPayload) -> Result<User, ApiError> {
-    match data.validate() {
-      Ok(_) => (),
-      Err(_) => return Err(ApiError::new(400, "Payload Validation Error".to_string())),
-    };
 
     // search db for user
     let search_db_res = User::find_one(&self.db, Some(doc! {"email": data.email.clone()}), None)

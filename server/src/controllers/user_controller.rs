@@ -84,6 +84,12 @@ pub async fn login(
   user_service: Data<UserService>,
   session_service: Data<SessionService>,
 ) -> HttpResponse {
+
+  match login_payload.validate() {
+    Ok(_) => (),
+    Err(_) => return ApiError::new(400, "Payload Validation Error".to_string()).into()
+  }
+
   let res = match user_service.login(login_payload.into_inner()).await {
     Ok(user) => session_service
       .new_user_session(&user, &session)

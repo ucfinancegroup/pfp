@@ -3,9 +3,11 @@ use crate::common::Validation;
 use crate::controllers::user_controller::{LoginPayload, SignupPayload};
 use crate::models::{
   session_model,
-  user_model::{PlaidItem, User},
+  user_model::{PlaidItem, Snapshot, User},
 };
-use crate::services::db;
+use crate::services::{db, finchplaid::ApiClient, snapshots::SnapshotService};
+use actix_web::web::Data;
+use std::sync::{Arc, Mutex};
 use wither::{
   mongodb::{bson::doc, Database},
   prelude::Migrating,
@@ -46,6 +48,7 @@ impl UserService {
       last_name: data.last_name,
       income: data.income,
       accounts: vec![],
+      snapshots: vec![],
     };
 
     user.save(&self.db, None).await.map_or_else(
@@ -115,5 +118,22 @@ impl UserService {
     //     doc! {"$push": doc!{"accounts" : crate::common::into_bson_document(&PlaidItem{item_id, access_token})}},
     //     None,
     //   )
+  }
+
+  pub async fn get_snapshots(
+    &self,
+    user: &mut User,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+  ) -> Result<Vec<Snapshot>, ApiError> {
+    if SnapshotService::need_new_snapshot(&user.snapshots) {
+      SnapshotService::add_new_snapshot(user, plaid_client).await?;
+      user.save(&self.db, None).await.map_err(|_| {
+        ApiError::new(
+          500,
+          "Could not save user to database after Snapshot".to_string(),
+        )
+      })?;
+    }
+    Ok(user.snapshots.clone())
   }
 }

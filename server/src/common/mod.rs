@@ -1,9 +1,5 @@
 pub mod errors;
 
-pub trait Validation {
-  fn validate(&self) -> Result<(), String>;
-}
-
 use actix_web::HttpResponse;
 use serde::Serialize;
 

@@ -1,5 +1,5 @@
-use crate::common::Validation;
 use crate::models::user_model::User;
+use crate::common::errors::ApiError;
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
 use actix_web::{
@@ -8,20 +8,20 @@ use actix_web::{
   HttpResponse,
 };
 use serde::{Deserialize, Serialize};
+use validator::{Validate};
 
-#[derive(Deserialize, PartialEq)]
+#[derive(Validate, Deserialize, PartialEq)]
 pub struct SignupPayload {
+  #[validate(email)]
   pub email: String,
+  #[validate(length(min = 1))]
   pub password: String,
+  #[validate(length(min = 1))]
   pub first_name: String,
+  #[validate(length(min = 1))]
   pub last_name: String,
+  #[validate(range(min = 0))]
   pub income: f64,
-}
-
-impl Validation for SignupPayload {
-  fn validate(&self) -> Result<(), String> {
-    return Ok(());
-  }
 }
 
 #[derive(Serialize, PartialEq)]
@@ -43,16 +43,12 @@ impl SignupResponse {
   }
 }
 
-#[derive(Deserialize, PartialEq)]
+#[derive(Validate, Deserialize, PartialEq)]
 pub struct LoginPayload {
+  #[validate(email)]
   pub email: String,
+  #[validate(length(min = 1))]
   pub password: String,
-}
-
-impl Validation for LoginPayload {
-  fn validate(&self) -> Result<(), String> {
-    return Ok(());
-  }
 }
 
 type LoginResponse = SignupResponse;
@@ -64,6 +60,12 @@ pub async fn signup(
   user_service: Data<UserService>,
   session_service: Data<SessionService>,
 ) -> HttpResponse {
+
+  match signup_payload.validate() {
+    Ok(_) => (),
+    Err(_) => return ApiError::new(400, "Payload Validation Error".to_string()).into()
+  }
+
   let res = match user_service.signup(signup_payload.into_inner()).await {
     Ok(user) => session_service
       .new_user_session(&user, &session)
@@ -82,6 +84,12 @@ pub async fn login(
   user_service: Data<UserService>,
   session_service: Data<SessionService>,
 ) -> HttpResponse {
+
+  match login_payload.validate() {
+    Ok(_) => (),
+    Err(_) => return ApiError::new(400, "Payload Validation Error".to_string()).into()
+  }
+
   let res = match user_service.login(login_payload.into_inner()).await {
     Ok(user) => session_service
       .new_user_session(&user, &session)

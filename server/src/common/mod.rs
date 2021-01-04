@@ -5,7 +5,26 @@ pub trait Validation {
 }
 
 use actix_web::HttpResponse;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
+pub struct Money {
+  amount: i64,
+}
+
+impl From<f64> for Money {
+  fn from(f: f64) -> Money {
+    Money {
+      amount: (f * 100.0).floor() as i64,
+    }
+  }
+}
+
+impl Into<f64> for Money {
+  fn into(self) -> f64 {
+    (self.amount as f64) / 100.0
+  }
+}
 
 pub fn into_response<T>(m: T) -> HttpResponse
 where

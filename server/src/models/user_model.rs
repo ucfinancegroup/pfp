@@ -1,4 +1,4 @@
-use crate::common::errors::ApiError;
+use crate::common::{errors::ApiError, Money};
 use argon2::{self, Config};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -25,11 +25,11 @@ pub struct PlaidItem {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Snapshot {
-  pub net_worth: f64,
+  pub net_worth: Money,
 
-  pub running_savings: f64,
-  pub running_spending: f64,
-  pub running_income: f64,
+  pub running_savings: Money,
+  pub running_spending: Money,
+  pub running_income: Money,
 
   pub snapshot_time: i64,
 }
@@ -59,10 +59,10 @@ impl User {
 impl Default for Snapshot {
   fn default() -> Snapshot {
     Snapshot {
-      net_worth: 0.0,
-      running_savings: 0.0,
-      running_spending: 0.0,
-      running_income: 0.0,
+      net_worth: Money { amount: 0 },
+      running_savings: Money { amount: 0 },
+      running_spending: Money { amount: 0 },
+      running_income: Money { amount: 0 },
       snapshot_time: 0,
     }
   }

@@ -7,9 +7,9 @@ pub trait Validation {
 use actix_web::HttpResponse;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Money {
-  amount: i64,
+  pub amount: i64,
 }
 
 impl From<f64> for Money {

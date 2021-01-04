@@ -37,14 +37,21 @@ impl SnapshotService {
     // for rolling sums
     let prev = Self::get_last_snapshot(&user.snapshots);
 
-    // add the new snapshot
-    user.snapshots.push(Snapshot {
-      net_worth: total_net,
-      running_savings: total_money_in - total_money_out + prev.running_savings,
-      running_spending: total_money_out + prev.running_spending,
-      running_income: total_money_in + prev.running_income,
+    // create the new snapshot
+    let mut curr = Snapshot {
+      net_worth: total_net.into(),
+      running_savings: (total_money_in - total_money_out).into(),
+      running_spending: total_money_out.into(),
+      running_income: total_money_in.into(),
       snapshot_time: Utc::now().timestamp(),
-    });
+    };
+
+    // make it a cumulative sum
+    curr.running_savings.amount += prev.running_savings.amount;
+    curr.running_spending.amount += prev.running_spending.amount;
+    curr.running_income.amount += prev.running_income.amount;
+
+    user.snapshots.push(curr);
 
     Ok(())
   }

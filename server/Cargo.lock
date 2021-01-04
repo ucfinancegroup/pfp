@@ -926,8 +926,8 @@ checksum = "7260c7e6e656fc7702a1aa8d5b498a1a69aa84ac4ffcd5501b7d26939f368a93"
 dependencies = [
  "enum-ordinalize",
  "proc-macro2 1.0.24",
- "quote 1.0.7",
- "syn 1.0.53",
+ "quote 1.0.8",
+ "syn 1.0.57",
 ]
 
 [[package]]
@@ -966,8 +966,8 @@ dependencies = [
  "num-bigint",
  "num-traits",
  "proc-macro2 1.0.24",
- "quote 1.0.7",
- "syn 1.0.53",
+ "quote 1.0.8",
+ "syn 1.0.57",
 ]
 
 [[package]]
@@ -3501,9 +3501,9 @@ dependencies = [
  "lazy_static 1.4.0",
  "proc-macro-error",
  "proc-macro2 1.0.24",
- "quote 1.0.7",
+ "quote 1.0.8",
  "regex",
- "syn 1.0.53",
+ "syn 1.0.57",
  "validator_types",
 ]
 
@@ -3541,9 +3541,9 @@ dependencies = [
  "enum-ordinalize",
  "phonenumber",
  "proc-macro2 1.0.24",
- "quote 1.0.7",
+ "quote 1.0.8",
  "regex",
- "syn 1.0.53",
+ "syn 1.0.57",
  "validators",
  "validators-options",
 ]

@@ -96,9 +96,8 @@ impl Migrating for User {
 mod test {
   use super::*;
 
-  #[allow(non_snake_case)]
-  #[allow(dead_code)]
-  fn test_PasswordHashing() {
+  #[test]
+  fn test_password_hashing() {
     let hashed = User::hash_password("password".to_string()).unwrap();
 
     let user = User {

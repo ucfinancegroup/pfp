@@ -1,5 +1,5 @@
-use crate::models::user_model::User;
 use crate::common::errors::ApiError;
+use crate::models::user_model::User;
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
 use actix_web::{
@@ -8,7 +8,7 @@ use actix_web::{
   HttpResponse,
 };
 use serde::{Deserialize, Serialize};
-use validator::{Validate};
+use validator::Validate;
 
 #[derive(Validate, Deserialize, PartialEq)]
 pub struct SignupPayload {
@@ -60,10 +60,9 @@ pub async fn signup(
   user_service: Data<UserService>,
   session_service: Data<SessionService>,
 ) -> HttpResponse {
-
   match signup_payload.validate() {
     Ok(_) => (),
-    Err(_) => return ApiError::new(400, "Payload Validation Error".to_string()).into()
+    Err(_) => return ApiError::new(400, "Payload Validation Error".to_string()).into(),
   }
 
   let res = match user_service.signup(signup_payload.into_inner()).await {
@@ -84,10 +83,9 @@ pub async fn login(
   user_service: Data<UserService>,
   session_service: Data<SessionService>,
 ) -> HttpResponse {
-
   match login_payload.validate() {
     Ok(_) => (),
-    Err(_) => return ApiError::new(400, "Payload Validation Error".to_string()).into()
+    Err(_) => return ApiError::new(400, "Payload Validation Error".to_string()).into(),
   }
 
   let res = match user_service.login(login_payload.into_inner()).await {
@@ -112,17 +110,8 @@ pub fn init_routes(config: &mut ServiceConfig) {
 mod test {
   use super::*;
 
-  #[allow(non_snake_case)]
-  #[allow(dead_code)]
-  fn test_LoginResponse() {}
-
-  #[allow(non_snake_case)]
-  #[allow(dead_code)]
-  fn test_SignupResponse() {}
-
-  #[allow(non_snake_case)]
-  #[allow(dead_code)]
-  fn test_LoginPayload() {
+  #[test]
+  fn test_login_payload() {
     assert_eq!(
       Ok(()),
       LoginPayload {
@@ -153,9 +142,8 @@ mod test {
     );
   }
 
-  #[allow(non_snake_case)]
-  #[allow(dead_code)]
-  fn test_SignupPayload() {
+  #[test]
+  fn test_signup_payload() {
     assert_eq!(
       Ok(()),
       SignupPayload {

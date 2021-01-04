@@ -8,7 +8,7 @@ pub struct ApiClient {
   pub configuration: plaid::apis::configuration::Configuration,
 }
 
-pub fn get_account_coefficients(accounts: &Vec<Account>) -> HashMap<String, f64> {
+pub fn get_account_balance_coefficients(accounts: &Vec<Account>) -> HashMap<String, f64> {
   accounts
     .iter()
     .map(|account: &Account| {
@@ -16,6 +16,24 @@ pub fn get_account_coefficients(accounts: &Vec<Account>) -> HashMap<String, f64>
         account.account_id.clone(),
         match account._type.as_str() {
           "depository" => 1.0,
+          "credit" => -1.0,
+          "loan" => -1.0,
+          "investment" => 1.0,
+          _ => 0.0,
+        },
+      )
+    })
+    .collect()
+}
+
+pub fn get_account_transaction_coefficients(accounts: &Vec<Account>) -> HashMap<String, f64> {
+  accounts
+    .iter()
+    .map(|account: &Account| {
+      (
+        account.account_id.clone(),
+        match account._type.as_str() {
+          "depository" => -1.0,
           "credit" => -1.0,
           "loan" => 0.0,
           "investment" => 1.0,

@@ -3,10 +3,6 @@ use crate::models::user_model::{PlaidItem, Snapshot, User};
 use crate::services::finchplaid::ApiClient;
 use actix_web::web::Data;
 use chrono::{Duration, Utc};
-use futures::{
-  future::join_all,
-  stream::{self, StreamExt},
-};
 use plaid::models::{
   Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse,
   RetrieveTransactionsRequest, RetrieveTransactionsResponse, Transaction,
@@ -26,16 +22,10 @@ impl SnapshotService {
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<(), ApiError> {
     // handle each item connected to user
-
-    let work = join_all(
-      stream::iter(user.accounts.iter())
-        .map(|item| Self::handle_item(item, plaid_client.clone()))
-        .collect::<Vec<_>>()
-        .await,
-    )
-    .await;
-
-    let per_item_stats = work.into_iter().collect::<Result<Vec<_>, _>>()?;
+    let mut per_item_stats = Vec::new();
+    for item in user.accounts.iter() {
+      per_item_stats.push(Self::handle_item(item, plaid_client.clone()).await?);
+    }
 
     // accumulate each item to a total
     let (total_money_in, total_money_out, total_net) = per_item_stats
@@ -78,12 +68,17 @@ impl SnapshotService {
   ) -> Result<(f64, f64), ApiError> {
     let transactions = Self::get_item_transactions_for_new_snapshot(item, plaid_client).await?;
 
+    Ok(Self::calculate_money_in_out(&transactions))
+  }
+
+  fn calculate_money_in_out(transactions_response: &RetrieveTransactionsResponse) -> (f64, f64) {
     // map each account to a coefficient for each transaction.
-    let account_id_to_coeff =
-      crate::services::finchplaid::get_account_coefficients(&transactions.accounts);
+    let account_id_to_coeff = crate::services::finchplaid::get_account_transaction_coefficients(
+      &transactions_response.accounts,
+    );
 
     // accumulate money_in and money_out for transactions
-    let (money_in, money_out): (f64, f64) = transactions.transactions.iter().fold(
+    transactions_response.transactions.iter().fold(
       (0.0, 0.0),
       |(money_in, money_out), transaction: &Transaction| {
         let s: f64 = (transaction.amount as f64)
@@ -93,9 +88,7 @@ impl SnapshotService {
             .unwrap();
         (money_in + s.max(0.0), money_out + s.min(0.0))
       },
-    );
-
-    Ok((money_in, money_out))
+    )
   }
 
   async fn get_net_worth(
@@ -106,20 +99,23 @@ impl SnapshotService {
       .await?
       .accounts;
 
+    Ok(Self::calculate_net_worth(&accounts))
+  }
+
+  fn calculate_net_worth(accounts: &Vec<Account>) -> f64 {
     // map each account to a coefficient for each transaction.
-    let account_id_to_coeff = crate::services::finchplaid::get_account_coefficients(&accounts);
+    let account_id_to_coeff =
+      crate::services::finchplaid::get_account_balance_coefficients(&accounts);
 
     //  calculate "net worth" of the item's accounts.
-    let net_worth: f64 = accounts.iter().fold(0.0, |net, account: &Account| {
+    accounts.iter().fold(0.0, |net, account: &Account| {
       let contribution: f64 = (account.balances.current as f64)
         * *account_id_to_coeff
           .get(&account.account_id)
           .or(Some(&0.0))
           .unwrap();
       net + contribution
-    });
-
-    Ok(net_worth)
+    })
   }
 
   async fn get_item_transactions_for_new_snapshot(
@@ -187,5 +183,40 @@ impl SnapshotService {
       return Snapshot::default();
     }
     snapshots[snapshots.len() - 1].clone()
+  }
+}
+
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
+
+#[allow(unused)]
+fn load_test_data() -> Result<RetrieveTransactionsResponse, Box<dyn Error>> {
+  let file = File::open("./tests/test_snapshots.json")?;
+  let reader = BufReader::new(file);
+  let transactions = serde_json::from_reader(reader)?;
+  Ok(transactions)
+}
+
+#[cfg(test)]
+mod test {
+  use super::*;
+
+  #[test]
+  fn test_calculate_money_in_money_out() {
+    let transactions = load_test_data().unwrap();
+    assert_eq!(
+      (0.0, -10965.230000019073) as (f64, f64),
+      SnapshotService::calculate_money_in_out(&transactions)
+    );
+  }
+
+  #[test]
+  fn test_calculate_net_worth() {
+    let transactions = load_test_data().unwrap();
+    assert_eq!(
+      -53501.318115234375 as f64,
+      SnapshotService::calculate_net_worth(&transactions.accounts)
+    );
   }
 }

@@ -121,25 +121,19 @@ mod test {
       .validate()
     );
 
-    // eventually should be not ok
-    assert_eq!(
-      Ok(()),
-      LoginPayload {
-        email: "not an email".to_string(),
-        password: "password".to_string(),
-      }
-      .validate()
-    );
+    assert!(LoginPayload {
+      email: "not an email".to_string(),
+      password: "password".to_string(),
+    }
+    .validate()
+    .is_err());
 
-    // eventually should be not ok
-    assert_eq!(
-      Ok(()),
-      LoginPayload {
-        email: "me@chucknorris.com".to_string(),
-        password: "".to_string(),
-      }
-      .validate()
-    );
+    assert!(LoginPayload {
+      email: "me@chucknorris.com".to_string(),
+      password: "".to_string(),
+    }
+    .validate()
+    .is_err());
   }
 
   #[test]
@@ -156,56 +150,48 @@ mod test {
       .validate()
     );
 
-    // should eventually fail on Negative Income
-    assert_eq!(
-      Ok(()),
-      SignupPayload {
-        email: "me@chucknorris.com".to_string(),
-        password: "fadfdfda".to_string(),
-        first_name: "first name".to_string(),
-        last_name: "last name".to_string(),
-        income: -1 as f64
-      }
-      .validate()
-    );
+    // should fail on Negative Income
+    assert!(SignupPayload {
+      email: "me@chucknorris.com".to_string(),
+      password: "fadfdfda".to_string(),
+      first_name: "first name".to_string(),
+      last_name: "last name".to_string(),
+      income: -1 as f64
+    }
+    .validate()
+    .is_err());
 
     // fail on bad email
-    assert_eq!(
-      Ok(()),
-      SignupPayload {
-        email: "bad email".to_string(),
-        password: "".to_string(),
-        first_name: "first name".to_string(),
-        last_name: "last name".to_string(),
-        income: 1000 as f64
-      }
-      .validate()
-    );
+    assert!(SignupPayload {
+      email: "bad email".to_string(),
+      password: "".to_string(),
+      first_name: "first name".to_string(),
+      last_name: "last name".to_string(),
+      income: 1000 as f64
+    }
+    .validate()
+    .is_err());
 
-    // eventually fail on empty password
-    assert_eq!(
-      Ok(()),
-      SignupPayload {
-        email: "me@chucknorris.com".to_string(),
-        password: "".to_string(),
-        first_name: "first name".to_string(),
-        last_name: "last name".to_string(),
-        income: 1000 as f64
-      }
-      .validate()
-    );
+    // fail on empty password
+    assert!(SignupPayload {
+      email: "me@chucknorris.com".to_string(),
+      password: "".to_string(),
+      first_name: "first name".to_string(),
+      last_name: "last name".to_string(),
+      income: 1000 as f64
+    }
+    .validate()
+    .is_err());
 
     // eventually fail on empty name
-    assert_eq!(
-      Ok(()),
-      SignupPayload {
-        email: "me@chucknorris.com".to_string(),
-        password: "fadfdf".to_string(),
-        first_name: "".to_string(),
-        last_name: "".to_string(),
-        income: 1000 as f64
-      }
-      .validate()
-    );
+    assert!(SignupPayload {
+      email: "me@chucknorris.com".to_string(),
+      password: "fadfdf".to_string(),
+      first_name: "".to_string(),
+      last_name: "".to_string(),
+      income: 1000 as f64
+    }
+    .validate()
+    .is_err());
   }
 }

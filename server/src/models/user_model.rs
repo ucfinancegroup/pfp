@@ -1,4 +1,4 @@
-use crate::common::errors::ApiError;
+use crate::common::{errors::ApiError, Money};
 use argon2::{self, Config};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -14,12 +14,24 @@ pub struct User {
   pub last_name: String,
   pub income: f64,
   pub accounts: Vec<PlaidItem>,
+  pub snapshots: Vec<Snapshot>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct PlaidItem {
   pub item_id: String,
   pub access_token: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct Snapshot {
+  pub net_worth: Money,
+
+  pub running_savings: Money,
+  pub running_spending: Money,
+  pub running_income: Money,
+
+  pub snapshot_time: i64,
 }
 
 impl User {
@@ -44,6 +56,18 @@ impl User {
   }
 }
 
+impl Default for Snapshot {
+  fn default() -> Snapshot {
+    Snapshot {
+      net_worth: Money { amount: 0 },
+      running_savings: Money { amount: 0 },
+      running_spending: Money { amount: 0 },
+      running_income: Money { amount: 0 },
+      snapshot_time: 0,
+    }
+  }
+}
+
 #[allow(unused_imports)]
 use chrono::TimeZone;
 use wither::mongodb::bson::doc;
@@ -55,15 +79,16 @@ impl Migrating for User {
   // date, so you could leave it in your code for as long as you would like.
   fn migrations() -> Vec<Box<dyn wither::Migration>> {
     // -- EXAMPLE --
-    // vec![Box::new(wither::IntervalMigration {
-    //   name: "remove-oldfield".to_string(),
-    //   // NOTE: use a logical time here. A day after your deployment date, or the like.
-    //   threshold: chrono::Utc.ymd(2100, 1, 1).and_hms(1, 0, 0),
-    //   filter: doc! {"oldfield": doc!{"$exists": true}},
-    //   set: None,
-    //   unset: Some(doc! {"oldfield": ""}),
-    // })]
-    vec![]
+    vec![Box::new(wither::IntervalMigration {
+      name: "add snapshots field".to_string(),
+      // NOTE: use a logical time here. A day after your deployment date, or the like.
+      threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+      filter: doc! {"snapshots": doc!{"$exists": false}},
+      set: Some(
+        doc! {"snapshots": wither::mongodb::bson::to_bson(&Vec::<Snapshot>::new()).unwrap()},
+      ),
+      unset: None,
+    })]
   }
 }
 
@@ -84,6 +109,7 @@ mod test {
       last_name: "last_name".to_string(),
       income: 0.0,
       accounts: vec![],
+      snapshots: vec![],
     };
 
     assert_eq!(Ok(true), user.compare_password("password".to_string()));

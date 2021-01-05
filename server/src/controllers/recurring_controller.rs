@@ -1,6 +1,5 @@
 use crate::models::{recurring_model::*, user_model::User};
-use crate::services::{recurrings::RecurringService, sessions::SessionService, users::UserService};
-use actix_session::Session;
+use crate::services::{recurrings::RecurringService, users::UserService};
 use actix_web::{
   delete, get, post, put,
   web::{Data, Path},
@@ -64,84 +63,48 @@ impl Into<Recurring> for RecurringNewPayload {
 }
 
 #[get("/recurring/{id}")]
-pub async fn get_recurring(
-  session: Session,
-  Path(recurring_id): Path<String>,
-  user_service: Data<UserService>,
-  session_service: Data<SessionService>,
-) -> HttpResponse {
-  crate::common::into_response_res(match session_service.get_valid_session(&session).await {
-    Err(e) => Err(e),
-    Ok(finch_session) => {
-      let user: User = user_service.new_from_session(finch_session).await.unwrap();
-      RecurringService::get_recurring(recurring_id, user).await
-    }
-  })
+pub async fn get_recurring(Path(recurring_id): Path<String>, user: User) -> HttpResponse {
+  crate::common::into_response_res(RecurringService::get_recurring(recurring_id, user).await)
 }
 
 #[get("/recurrings")]
-pub async fn get_recurrings(
-  session: Session,
-  user_service: Data<UserService>,
-  session_service: Data<SessionService>,
-) -> HttpResponse {
-  crate::common::into_response_res(match session_service.get_valid_session(&session).await {
-    Err(e) => Err(e),
-    Ok(finch_session) => {
-      let user: User = user_service.new_from_session(finch_session).await.unwrap();
-      Ok(user.recurrings)
-    }
-  })
+pub async fn get_recurrings(user: User) -> HttpResponse {
+  crate::common::into_response(user.recurrings)
 }
 
 #[post("/recurring/new")]
 pub async fn new_recurring(
-  session: Session,
   payload: Json<RecurringNewPayload>,
+  user: User,
   user_service: Data<UserService>,
-  session_service: Data<SessionService>,
 ) -> HttpResponse {
-  crate::common::into_response_res(match session_service.get_valid_session(&session).await {
-    Err(e) => Err(e),
-    Ok(finch_session) => {
-      let user: User = user_service.new_from_session(finch_session).await.unwrap();
-      RecurringService::new_recurring(payload.into_inner(), user, user_service).await
-    }
-  })
+  crate::common::into_response_res(
+    RecurringService::new_recurring(payload.into_inner(), user, user_service).await,
+  )
 }
 
 #[put("/recurring/{id}")]
 pub async fn update_recurring(
-  session: Session,
   payload: Json<RecurringNewPayload>,
   Path(recurring_id): Path<String>,
+  user: User,
   user_service: Data<UserService>,
-  session_service: Data<SessionService>,
 ) -> HttpResponse {
-  crate::common::into_response_res(match session_service.get_valid_session(&session).await {
-    Err(e) => Err(e),
-    Ok(finch_session) => {
-      let user: User = user_service.new_from_session(finch_session).await.unwrap();
-      RecurringService::update_recurring(recurring_id, payload.into_inner(), user, user_service)
-        .await
-    }
-  })
+  crate::common::into_response_res(
+    RecurringService::update_recurring(recurring_id, payload.into_inner(), user, user_service)
+      .await,
+  )
 }
 
 #[delete("/recurring/{id}")]
 pub async fn delete_recurring(
-  session: Session,
   Path(recurring_id): Path<String>,
+  user: User,
   user_service: Data<UserService>,
-  session_service: Data<SessionService>,
 ) -> HttpResponse {
-  crate::common::into_response_res(match session_service.get_valid_session(&session).await {
-    Err(e) => Err(e),
-    Ok(finch_session) => {
-      let user: User = user_service.new_from_session(finch_session).await.unwrap();
-      RecurringService::delete_recurring(recurring_id, user, user_service).await
-    }
-  })
+  crate::common::into_response_res(
+    RecurringService::delete_recurring(recurring_id, user, user_service).await,
+  )
 }
 
 use actix_web::web::ServiceConfig;

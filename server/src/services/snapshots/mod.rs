@@ -1,21 +1,15 @@
-use crate::common::errors::ApiError;
-use crate::models::user_model::{PlaidItem, Snapshot, User};
-use crate::services::finchplaid::ApiClient;
-use actix_web::web::Data;
-use chrono::{Duration, Utc};
-use plaid::models::{
-  Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse,
-  RetrieveTransactionsRequest, RetrieveTransactionsResponse, Transaction,
-};
-use std::sync::{Arc, Mutex};
-
-#[derive(Clone)]
-pub struct SnapshotService {}
-
-impl SnapshotService {
-  pub async fn new() -> SnapshotService {
-    SnapshotService {}
-  }
+#[allow(non_snake_case)]
+pub mod SnapshotService {
+  use crate::common::errors::ApiError;
+  use crate::models::user_model::{PlaidItem, Snapshot, User};
+  use crate::services::finchplaid::ApiClient;
+  use actix_web::web::Data;
+  use chrono::{Duration, Utc};
+  use plaid::models::{
+    Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse,
+    RetrieveTransactionsRequest, RetrieveTransactionsResponse, Transaction,
+  };
+  use std::sync::{Arc, Mutex};
 
   pub async fn add_new_snapshot(
     user: &mut User,
@@ -24,7 +18,7 @@ impl SnapshotService {
     // handle each item connected to user
     let mut per_item_stats = Vec::new();
     for item in user.accounts.iter() {
-      per_item_stats.push(Self::handle_item(item, plaid_client.clone()).await?);
+      per_item_stats.push(handle_item(item, plaid_client.clone()).await?);
     }
 
     // accumulate each item to a total
@@ -35,7 +29,7 @@ impl SnapshotService {
       });
 
     // for rolling sums
-    let prev = Self::get_last_snapshot(&user.snapshots);
+    let prev = get_last_snapshot(&user.snapshots);
 
     // create the new snapshot
     let mut curr = Snapshot {
@@ -61,10 +55,10 @@ impl SnapshotService {
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<(f64, f64, f64), ApiError> {
     // accumulate money_in and money_out for items' transactions
-    let (money_in, money_out) = Self::get_money_in_out(item, plaid_client.clone()).await?;
+    let (money_in, money_out) = get_money_in_out(item, plaid_client.clone()).await?;
 
     // get net worth of items accounts
-    let net_worth: f64 = Self::get_net_worth(item, plaid_client).await?;
+    let net_worth: f64 = get_net_worth(item, plaid_client).await?;
 
     Ok((money_in, money_out, net_worth))
   }
@@ -73,12 +67,14 @@ impl SnapshotService {
     item: &PlaidItem,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<(f64, f64), ApiError> {
-    let transactions = Self::get_item_transactions_for_new_snapshot(item, plaid_client).await?;
+    let transactions = get_item_transactions_for_new_snapshot(item, plaid_client).await?;
 
-    Ok(Self::calculate_money_in_out(&transactions))
+    Ok(calculate_money_in_out(&transactions))
   }
 
-  fn calculate_money_in_out(transactions_response: &RetrieveTransactionsResponse) -> (f64, f64) {
+  pub fn calculate_money_in_out(
+    transactions_response: &RetrieveTransactionsResponse,
+  ) -> (f64, f64) {
     // map each account to a coefficient for each transaction.
     let account_id_to_coeff = crate::services::finchplaid::get_account_transaction_coefficients(
       &transactions_response.accounts,
@@ -102,14 +98,14 @@ impl SnapshotService {
     item: &PlaidItem,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<f64, ApiError> {
-    let accounts = Self::get_item_accounts_for_new_snapshot(item, plaid_client)
+    let accounts = get_item_accounts_for_new_snapshot(item, plaid_client)
       .await?
       .accounts;
 
-    Ok(Self::calculate_net_worth(&accounts))
+    Ok(calculate_net_worth(&accounts))
   }
 
-  fn calculate_net_worth(accounts: &Vec<Account>) -> f64 {
+  pub fn calculate_net_worth(accounts: &Vec<Account>) -> f64 {
     // map each account to a coefficient for each transaction.
     let account_id_to_coeff =
       crate::services::finchplaid::get_account_balance_coefficients(&accounts);
@@ -177,7 +173,7 @@ impl SnapshotService {
 
   pub fn need_new_snapshot(snapshots: &Vec<Snapshot>) -> bool {
     let now = Utc::now().timestamp();
-    let last_time = Self::get_last_snapshot(snapshots).snapshot_time;
+    let last_time = get_last_snapshot(snapshots).snapshot_time;
 
     println!("Last snapshot at {}. Currently it is {}", last_time, now);
 
@@ -193,21 +189,22 @@ impl SnapshotService {
   }
 }
 
-use std::error::Error;
-use std::fs::File;
-use std::io::BufReader;
-
-#[allow(unused)]
-fn load_test_data() -> Result<RetrieveTransactionsResponse, Box<dyn Error>> {
-  let file = File::open("./tests/test_snapshots.json")?;
-  let reader = BufReader::new(file);
-  let transactions = serde_json::from_reader(reader)?;
-  Ok(transactions)
-}
-
 #[cfg(test)]
 mod test {
   use super::*;
+
+  use std::error::Error;
+  use std::fs::File;
+  use std::io::BufReader;
+
+  use plaid::models::RetrieveTransactionsResponse;
+
+  fn load_test_data() -> Result<RetrieveTransactionsResponse, Box<dyn Error>> {
+    let file = File::open("./tests/test_snapshots.json")?;
+    let reader = BufReader::new(file);
+    let transactions = serde_json::from_reader(reader)?;
+    Ok(transactions)
+  }
 
   #[test]
   fn test_calculate_money_in_money_out() {

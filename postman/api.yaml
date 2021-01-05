@@ -212,7 +212,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Recurring to get
       responses:
@@ -239,7 +239,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Recurring to update
       requestBody:
@@ -272,7 +272,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Recurring to delete
       responses:
@@ -355,7 +355,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Plan to get
       responses:
@@ -383,7 +383,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Plan to update
       responses:
@@ -411,7 +411,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Plan to delete
       responses:
@@ -494,7 +494,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Goal to get
       responses:
@@ -522,7 +522,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Goal to update
       responses:
@@ -550,7 +550,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Goal to delete
       responses:
@@ -635,7 +635,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Insight to dismiss
       responses:
@@ -725,6 +725,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+
+  /snapshots:
+    get:
+      summary: "Get all a user's snapshots"
+      operationId: getSnapshots
+      tags:
+        - snapshots
+      security:
+        - sidCookie: []
+      responses:
+        "200":
+          description: "Snapshots response"
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
   # Begin remove for iOS (Swift)
   /plaid/webhook:
     post:

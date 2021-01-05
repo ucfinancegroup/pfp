@@ -1,4 +1,4 @@
-#[derive(serde::Serialize, Debug, Eq, PartialEq)]
+#[derive(serde::Serialize, Debug, Eq, PartialEq, Clone)]
 pub struct ApiError {
   code: u16,
   message: String,

@@ -1,4 +1,5 @@
 use crate::common::{errors::ApiError, Money};
+use crate::models::recurring_model::Recurring;
 use argon2::{self, Config};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -15,6 +16,7 @@ pub struct User {
   pub income: f64,
   pub accounts: Vec<PlaidItem>,
   pub snapshots: Vec<Snapshot>,
+  pub recurrings: Vec<Recurring>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -79,16 +81,28 @@ impl Migrating for User {
   // date, so you could leave it in your code for as long as you would like.
   fn migrations() -> Vec<Box<dyn wither::Migration>> {
     // -- EXAMPLE --
-    vec![Box::new(wither::IntervalMigration {
-      name: "add snapshots field".to_string(),
-      // NOTE: use a logical time here. A day after your deployment date, or the like.
-      threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
-      filter: doc! {"snapshots": doc!{"$exists": false}},
-      set: Some(
-        doc! {"snapshots": wither::mongodb::bson::to_bson(&Vec::<Snapshot>::new()).unwrap()},
-      ),
-      unset: None,
-    })]
+    vec![
+      Box::new(wither::IntervalMigration {
+        name: "add snapshots field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"snapshots": doc!{"$exists": false}},
+        set: Some(
+          doc! {"snapshots": wither::mongodb::bson::to_bson(&Vec::<Snapshot>::new()).unwrap()},
+        ),
+        unset: None,
+      }),
+      Box::new(wither::IntervalMigration {
+        name: "add recurrings field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"recurrings": doc!{"$exists": false}},
+        set: Some(
+          doc! {"recurrings": wither::mongodb::bson::to_bson(&Vec::<Recurring>::new()).unwrap()},
+        ),
+        unset: None,
+      }),
+    ]
   }
 }
 
@@ -109,6 +123,7 @@ mod test {
       income: 0.0,
       accounts: vec![],
       snapshots: vec![],
+      recurrings: vec![],
     };
 
     assert_eq!(Ok(true), user.compare_password("password".to_string()));

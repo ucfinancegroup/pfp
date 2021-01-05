@@ -1,4 +1,5 @@
 pub mod plaid_controller;
+pub mod recurring_controller;
 pub mod snapshot_controller;
 pub mod user_controller;
 
@@ -7,4 +8,5 @@ pub fn configure(config: &mut ServiceConfig) {
   user_controller::init_routes(config);
   plaid_controller::init_routes(config);
   snapshot_controller::init_routes(config);
+  recurring_controller::init_routes(config);
 }

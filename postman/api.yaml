@@ -158,7 +158,6 @@ paths:
         - recurring
       security:
         - sidCookie: []
-
       requestBody:
         required: true
         content:
@@ -186,7 +185,6 @@ paths:
         - recurring
       security:
         - sidCookie: []
-
       responses:
         "200":
           description: "Array of recurrings"
@@ -210,12 +208,11 @@ paths:
         - recurring
       security:
         - sidCookie: []
-
       parameters:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Recurring to get
       responses:
@@ -238,14 +235,19 @@ paths:
         - recurring
       security:
         - sidCookie: []
-
       parameters:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Recurring to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecurringNewPayload"
       responses:
         "200":
           description: ""
@@ -266,12 +268,11 @@ paths:
         - recurring
       security:
         - sidCookie: []
-
       parameters:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Recurring to delete
       responses:
@@ -354,7 +355,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Plan to get
       responses:
@@ -382,7 +383,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Plan to update
       responses:
@@ -410,7 +411,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Plan to delete
       responses:
@@ -493,7 +494,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Goal to get
       responses:
@@ -521,7 +522,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Goal to update
       responses:
@@ -549,7 +550,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Goal to delete
       responses:
@@ -634,7 +635,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Insight to dismiss
       responses:
@@ -724,6 +725,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+
+  /snapshots:
+    get:
+      summary: "Get all a user's snapshots"
+      operationId: getSnapshots
+      tags:
+        - snapshots
+      security:
+        - sidCookie: []
+      responses:
+        "200":
+          description: "Snapshots response"
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
   # Begin remove for iOS (Swift)
   /plaid/webhook:
     post:
@@ -885,29 +909,29 @@ components:
         - principal
         - amount
         - interest
-        - amount_freq
-        - interest_freq
-        - contribution_freq
+        - frequency
       properties:
         name:
           type: string
         start:
           type: integer
+          format: int64
         end:
           type: integer
+          format: int64
         principal:
           type: integer
+          format: int64
         amount:
           type: integer
+          format: int64
         interest:
-          type: integer
-        amount_freq:
-          $ref: "#/components/schemas/TimeInterval"
-        interest_freq:
-          $ref: "#/components/schemas/TimeInterval"
-        contribution_freq:
+          type: number
+        frequency:
           $ref: "#/components/schemas/TimeInterval"
 
+    # can be either *principal and interest rate* OR a recurring income/expense *amount*
+    # for debt, principal can be negative
     Recurring:
       type: object
       required:
@@ -918,9 +942,7 @@ components:
         - principal
         - amount
         - interest
-        - amount_freq
-        - interest_freq
-        - contribution_freq
+        - frequency
       properties:
         _id:
           type: string
@@ -928,19 +950,19 @@ components:
           type: string
         start:
           type: integer
+          format: int64
         end:
           type: integer
+          format: int64
         principal:
           type: integer
+          format: int64
         amount:
           type: integer
+          format: int64
         interest:
-          type: integer
-        amount_freq:
-          $ref: "#/components/schemas/TimeInterval"
-        interest_freq:
-          $ref: "#/components/schemas/TimeInterval"
-        contribution_freq:
+          type: number
+        frequency:
           $ref: "#/components/schemas/TimeInterval"
 
     Asset:

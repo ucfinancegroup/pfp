@@ -886,27 +886,25 @@ components:
         - principal
         - amount
         - interest
-        - amount_freq
-        - interest_freq
-        - contribution_freq
+        - frequency
       properties:
         name:
           type: string
         start:
           type: integer
+          format: int64
         end:
           type: integer
+          format: int64
         principal:
           type: integer
+          format: int64
         amount:
           type: integer
+          format: int64
         interest:
-          type: integer
-        amount_freq:
-          $ref: "#/components/schemas/TimeInterval"
-        interest_freq:
-          $ref: "#/components/schemas/TimeInterval"
-        contribution_freq:
+          type: number
+        frequency:
           $ref: "#/components/schemas/TimeInterval"
 
     # can be either *principal and interest rate* OR a recurring income/expense *amount*

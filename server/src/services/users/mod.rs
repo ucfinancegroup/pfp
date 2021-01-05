@@ -60,13 +60,8 @@ impl UserService {
       .map_err(|_| ApiError::new(500, "DB Error".to_string()));
 
     // check if user found and parse to User
-    let got_user_res: Result<User, ApiError> = search_db_res.and_then(|user_opt| {
-      user_opt.ok_or(ApiError::new(500, "User not found".to_string()))
-      // .and_then(|user| {
-      //   bson::from_bson(user.into())
-      //     .map_err(|_| ApiError::new(500, "user format error".to_string()))
-      // })
-    });
+    let got_user_res: Result<User, ApiError> = search_db_res
+      .and_then(|user_opt| user_opt.ok_or(ApiError::new(500, "User not found".to_string())));
 
     // verify password, return user if good
     got_user_res.and_then(|user| {
@@ -86,13 +81,7 @@ impl UserService {
     User::find_one(&self.db, Some(doc! {"_id": session.user_id.clone()}), None)
       .await
       .map_err(|_| ApiError::new(500, "DB Error".to_string()))
-      .and_then(|user_opt| {
-        user_opt.ok_or(ApiError::new(500, "User not found".to_string()))
-        // .and_then(|user| {
-        //   bson::from_bson(user.into())
-        //     .map_err(|_| ApiError::new(500, "user format error".to_string()))
-        // })
-      })
+      .and_then(|user_opt| user_opt.ok_or(ApiError::new(500, "User not found".to_string())))
   }
 
   pub async fn add_new_account(
@@ -104,12 +93,6 @@ impl UserService {
     user.update(&self.db, None, doc! {"$push": doc!{"accounts" : crate::common::into_bson_document(&PlaidItem{item_id, access_token})}}, None).await
     .map_err(|_| ApiError::new(500, "Database Error".to_string()))
     .and_then(|_| Ok(()))
-    // self.col
-    //   .update_one(
-    //     doc! {"_id": user._id.clone()},
-    //     doc! {"$push": doc!{"accounts" : crate::common::into_bson_document(&PlaidItem{item_id, access_token})}},
-    //     None,
-    //   )
   }
 
   pub async fn get_snapshots(

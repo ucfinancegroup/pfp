@@ -25,7 +25,6 @@ impl UserService {
   }
 
   pub async fn signup(&self, data: SignupPayload) -> Result<User, ApiError> {
-
     // check for unused email
     if let Ok(Some(_)) =
       User::find_one(&self.db, Some(doc! {"email": data.email.clone()}), None).await
@@ -45,6 +44,7 @@ impl UserService {
       income: data.income,
       accounts: vec![],
       snapshots: vec![],
+      recurrings: vec![],
     };
 
     user.save(&self.db, None).await.map_or_else(
@@ -54,7 +54,6 @@ impl UserService {
   }
 
   pub async fn login(&self, data: LoginPayload) -> Result<User, ApiError> {
-
     // search db for user
     let search_db_res = User::find_one(&self.db, Some(doc! {"email": data.email.clone()}), None)
       .await
@@ -128,5 +127,11 @@ impl UserService {
       })?;
     }
     Ok(user.snapshots.clone())
+  }
+
+  pub async fn save(&self, mut u: User) -> Result<(), ApiError> {
+    u.save(&self.db, None)
+      .await
+      .map_err(|_| ApiError::new(500, "Database Error".to_string()))
   }
 }

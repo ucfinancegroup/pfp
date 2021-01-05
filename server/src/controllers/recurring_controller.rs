@@ -1,6 +1,5 @@
-use crate::common::errors::ApiError;
 use crate::models::{recurring_model::*, user_model::User};
-use crate::services::{sessions::SessionService, users::UserService};
+use crate::services::{recurrings::RecurringService, sessions::SessionService, users::UserService};
 use actix_session::Session;
 use actix_web::{
   delete, get, post, put,
@@ -10,7 +9,6 @@ use actix_web::{
 use actix_web_validator::Json;
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
-use wither::{mongodb::bson::oid::ObjectId, Model};
 
 #[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[validate(schema(
@@ -76,22 +74,7 @@ pub async fn get_recurring(
     Err(e) => Err(e),
     Ok(finch_session) => {
       let user: User = user_service.new_from_session(finch_session).await.unwrap();
-
-      let recurring_id_opt = ObjectId::with_string(recurring_id.as_str()).ok();
-
-      let found = user
-        .recurrings
-        .into_iter()
-        .find(|rec| rec.id == recurring_id_opt)
-        .clone();
-
-      found.ok_or(ApiError::new(
-        400,
-        format!(
-          "No recurring with id {} found in current user",
-          recurring_id
-        ),
-      ))
+      RecurringService::get_recurring(recurring_id, user).await
     }
   })
 }
@@ -121,14 +104,8 @@ pub async fn new_recurring(
   crate::common::into_response_res(match session_service.get_valid_session(&session).await {
     Err(e) => Err(e),
     Ok(finch_session) => {
-      let mut user: User = user_service.new_from_session(finch_session).await.unwrap();
-
-      let mut recurring: Recurring = payload.into_inner().into();
-      recurring.set_id(ObjectId::new());
-
-      user.recurrings.push(recurring.clone());
-
-      user_service.save(user).await.and_then(|_| Ok(recurring))
+      let user: User = user_service.new_from_session(finch_session).await.unwrap();
+      RecurringService::new_recurring(payload.into_inner(), user, user_service).await
     }
   })
 }
@@ -144,35 +121,9 @@ pub async fn update_recurring(
   crate::common::into_response_res(match session_service.get_valid_session(&session).await {
     Err(e) => Err(e),
     Ok(finch_session) => {
-      let mut user: User = user_service.new_from_session(finch_session).await.unwrap();
-
-      let recurring_id_opt = ObjectId::with_string(recurring_id.as_str()).ok();
-
-      match recurring_id_opt {
-        Some(_) => (),
-        None => return ApiError::new(400, "Malformed object id".to_string()).into(),
-      };
-
-      let mut recurring: Recurring = payload.into_inner().into();
-      recurring.set_id(recurring_id_opt.unwrap().clone());
-
-      let updated = user
-        .recurrings
-        .iter_mut()
-        .find(|rec| rec.id == recurring.id)
-        .ok_or(ApiError::new(
-          400,
-          format!(
-            "No recurring with id {} found in current user",
-            recurring_id
-          ),
-        ))
-        .and_then(|rec| {
-          *rec = recurring.clone();
-          Ok(recurring)
-        });
-
-      user_service.save(user).await.and_then(move |_| updated)
+      let user: User = user_service.new_from_session(finch_session).await.unwrap();
+      RecurringService::update_recurring(recurring_id, payload.into_inner(), user, user_service)
+        .await
     }
   })
 }
@@ -187,24 +138,8 @@ pub async fn delete_recurring(
   crate::common::into_response_res(match session_service.get_valid_session(&session).await {
     Err(e) => Err(e),
     Ok(finch_session) => {
-      let mut user: User = user_service.new_from_session(finch_session).await.unwrap();
-
-      let recurring_id_opt = ObjectId::with_string(recurring_id.as_str()).ok();
-
-      let removed = user
-        .recurrings
-        .iter()
-        .position(|rec| rec.id == recurring_id_opt)
-        .ok_or(ApiError::new(
-          400,
-          format!(
-            "No recurring with id {} found in current user",
-            recurring_id
-          ),
-        ))
-        .and_then(|pos| Ok(user.recurrings.swap_remove(pos)));
-
-      user_service.save(user).await.and_then(move |_| removed)
+      let user: User = user_service.new_from_session(finch_session).await.unwrap();
+      RecurringService::delete_recurring(recurring_id, user, user_service).await
     }
   })
 }

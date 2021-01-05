@@ -1,8 +1,16 @@
 use crate::common::{errors::ApiError, Money};
 use crate::models::recurring_model::Recurring;
+use crate::services::{sessions::SessionService, users::UserService};
+use actix_session::Session;
+use actix_web::{
+  dev::Payload, error::ErrorServiceUnavailable, error::ErrorUnauthorized, web::Data, Error,
+  FromRequest, HttpRequest,
+};
 use argon2::{self, Config};
+use futures::future::Future;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use std::pin::Pin;
 use wither::Model;
 
 #[derive(Model, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -103,6 +111,43 @@ impl Migrating for User {
         unset: None,
       }),
     ]
+  }
+}
+
+// https://stackoverflow.com/questions/62269278/how-can-i-make-protected-routes-in-actix-web
+impl FromRequest for User {
+  type Config = ();
+  type Error = Error;
+  type Future = Pin<Box<dyn Future<Output = Result<User, Error>>>>;
+
+  fn from_request(req: &HttpRequest, pl: &mut Payload) -> Self::Future {
+    let session = Session::from_request(req, pl);
+    let session_service_opt = req.app_data::<Data<SessionService>>();
+    let user_service_opt = req.app_data::<Data<UserService>>();
+
+    if session_service_opt.is_none() || user_service_opt.is_none() {
+      return Box::pin(async {
+        Err(ErrorServiceUnavailable(
+          "SessionService or UserService unavailable",
+        ))
+      });
+    }
+
+    let session_service = session_service_opt.unwrap().clone();
+    let user_service = user_service_opt.unwrap().clone();
+
+    Box::pin(async move {
+      let finch_session = session_service
+        .get_valid_session(&session.await?)
+        .await
+        .or(Err(ErrorUnauthorized("")))?;
+      let user: User = user_service
+        .new_from_session(finch_session)
+        .await
+        .or(Err(ErrorUnauthorized("")))?;
+
+      Ok(user)
+    })
   }
 }
 

@@ -4,9 +4,10 @@ use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
 use actix_web::{
   post,
-  web::{Data, Json},
+  web::{Data},
   HttpResponse,
 };
+use actix_web_validator::Json;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -60,10 +61,6 @@ pub async fn signup(
   user_service: Data<UserService>,
   session_service: Data<SessionService>,
 ) -> HttpResponse {
-  match signup_payload.validate() {
-    Ok(_) => (),
-    Err(_) => return ApiError::new(400, "Payload Validation Error".to_string()).into(),
-  }
 
   let res = match user_service.signup(signup_payload.into_inner()).await {
     Ok(user) => session_service
@@ -83,10 +80,6 @@ pub async fn login(
   user_service: Data<UserService>,
   session_service: Data<SessionService>,
 ) -> HttpResponse {
-  match login_payload.validate() {
-    Ok(_) => (),
-    Err(_) => return ApiError::new(400, "Payload Validation Error".to_string()).into(),
-  }
 
   let res = match user_service.login(login_payload.into_inner()).await {
     Ok(user) => session_service

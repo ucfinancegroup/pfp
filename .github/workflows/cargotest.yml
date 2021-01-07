@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - "**/*.rs"
+      - "**/Cargo.*"
 
 env:
   CARGO_TERM_COLOR: always

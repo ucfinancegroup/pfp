@@ -51,6 +51,11 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/LoginPayload"
+            examples:
+              bob:
+                value:
+                  email: "ligma2@gmail.com"
+                  password: "testtest"
       responses:
         "200":
           description: "User Info"
@@ -150,6 +155,29 @@ paths:
                 $ref: "#/components/schemas/ApiError"
 
   #recurring
+  /recurring/examples:
+    get:
+      summary: "Get example Recurrings"
+      operationId: getRecurringExamples
+      tags:
+        - recurring
+      security:
+        - sidCookie: []
+      responses:
+        "200":
+          description: "List of example recurrngs"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecurringNewPayload"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /recurring/new:
     post:
       summary: "Creates a new recurring for the user"
@@ -929,6 +957,16 @@ components:
           type: number
         frequency:
           $ref: "#/components/schemas/TimeInterval"
+      example:
+        name: "Unemployment Benefits"
+        start: 1609977600
+        end: 1617753600
+        principal: 0
+        interest: 0.0
+        amount: 300
+        frequency:
+          typ: monthly
+          content: 1 # *once* per month.
 
     # can be either *principal and interest rate* OR a recurring income/expense *amount*
     # for debt, principal can be negative
@@ -945,7 +983,7 @@ components:
         - frequency
       properties:
         _id:
-          type: string
+          $ref: "#/components/schemas/MongoObjectID"
         name:
           type: string
         start:
@@ -1081,7 +1119,7 @@ components:
         - name
       properties:
         _id:
-          type: string
+          $ref: "#/components/schemas/MongoObjectID"
         name:
           type: string
         recurrings:
@@ -1125,7 +1163,7 @@ components:
         - completed
       properties:
         _id:
-          type: string
+          $ref: "#/components/schemas/MongoObjectID"
         name:
           type: string
         period:
@@ -1221,6 +1259,14 @@ components:
           type: string
         secret:
           type: string
+    MongoObjectID:
+      type: object
+      required:
+        - "$oid"
+      properties:
+        "$oid":
+          type: string
+          example: "5ff7361e0027e8ac003af400"
     PlaidJWT:
       type: object
       required:

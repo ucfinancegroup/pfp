@@ -1,12 +1,31 @@
+use crate::common::{errors::ApiError, Money};
+use crate::models::recurring_model::Recurring;
+use crate::services::{sessions::SessionService, users::UserService};
+use actix_session::Session;
+use actix_web::{
+  dev::Payload, error::ErrorServiceUnavailable, error::ErrorUnauthorized, web::Data, Error,
+  FromRequest, HttpRequest,
+};
 use argon2::{self, Config};
+use futures::future::Future;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use std::pin::Pin;
+use wither::Model;
 
-use mongodb::bson::{doc, oid::ObjectId};
-
-use actix_web::HttpResponse;
-
-use crate::common::{errors::ApiError, Validation};
+#[derive(Model, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct User {
+  #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+  pub id: Option<wither::mongodb::bson::oid::ObjectId>,
+  pub email: String,
+  pub password: String,
+  pub first_name: String,
+  pub last_name: String,
+  pub income: f64,
+  pub accounts: Vec<PlaidItem>,
+  pub snapshots: Vec<Snapshot>,
+  pub recurrings: Vec<Recurring>,
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct PlaidItem {
@@ -14,26 +33,15 @@ pub struct PlaidItem {
   pub access_token: String,
 }
 
-impl PlaidItem {
-  pub fn new(item_id: String, access_token: String) -> PlaidItem {
-    PlaidItem {
-      item_id: item_id,
-      access_token: access_token,
-    }
-  }
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct User {
-  pub _id: ObjectId,
-  pub email: String,
-  pub password: String,
-  pub first_name: String,
-  pub last_name: String,
-  pub income: f64,
-  // recurrings: Vec<ObjectId>,
-  // snapshots: Vec<ObjectId>,
-  pub accounts: Option<Vec<PlaidItem>>,
+pub struct Snapshot {
+  pub net_worth: Money,
+
+  pub running_savings: Money,
+  pub running_spending: Money,
+  pub running_income: Money,
+
+  pub snapshot_time: i64,
 }
 
 impl User {
@@ -58,192 +66,109 @@ impl User {
   }
 }
 
-impl std::convert::From<User> for mongodb::bson::Bson {
-  fn from(s: User) -> mongodb::bson::Bson {
-    mongodb::bson::to_bson(&s).unwrap()
-  }
-}
-
-#[derive(Deserialize, PartialEq)]
-pub struct SignupPayload {
-  pub email: String,
-  pub password: String,
-  pub first_name: String,
-  pub last_name: String,
-  pub income: f64,
-}
-
-impl Validation for SignupPayload {
-  fn validate(&self) -> Result<(), String> {
-    return Ok(());
-  }
-}
-
-#[derive(Serialize, PartialEq)]
-pub struct SignupResponse {
-  pub email: String,
-  pub first_name: String,
-  pub last_name: String,
-  pub income: f64,
-}
-
-impl SignupResponse {
-  pub fn new(u: User) -> SignupResponse {
-    SignupResponse {
-      email: u.email,
-      first_name: u.first_name,
-      last_name: u.last_name,
-      income: u.income,
+impl Default for Snapshot {
+  fn default() -> Snapshot {
+    Snapshot {
+      net_worth: Money { amount: 0 },
+      running_savings: Money { amount: 0 },
+      running_spending: Money { amount: 0 },
+      running_income: Money { amount: 0 },
+      snapshot_time: 0,
     }
   }
 }
 
-impl Into<HttpResponse> for SignupResponse {
-  fn into(self) -> HttpResponse {
-    HttpResponse::Ok().json(self)
+#[allow(unused_imports)]
+use chrono::TimeZone;
+use wither::mongodb::bson::doc;
+use wither::prelude::Migrating;
+
+impl Migrating for User {
+  // Define any migrations which your model needs in this method.
+  // As this is an interval migration, it will deactivate itself after the given threshold
+  // date, so you could leave it in your code for as long as you would like.
+  fn migrations() -> Vec<Box<dyn wither::Migration>> {
+    // -- EXAMPLE --
+    vec![
+      Box::new(wither::IntervalMigration {
+        name: "add snapshots field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"snapshots": doc!{"$exists": false}},
+        set: Some(
+          doc! {"snapshots": wither::mongodb::bson::to_bson(&Vec::<Snapshot>::new()).unwrap()},
+        ),
+        unset: None,
+      }),
+      Box::new(wither::IntervalMigration {
+        name: "add recurrings field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"recurrings": doc!{"$exists": false}},
+        set: Some(
+          doc! {"recurrings": wither::mongodb::bson::to_bson(&Vec::<Recurring>::new()).unwrap()},
+        ),
+        unset: None,
+      }),
+    ]
   }
 }
 
-#[derive(Deserialize, PartialEq)]
-pub struct LoginPayload {
-  pub email: String,
-  pub password: String,
-}
+// https://stackoverflow.com/questions/62269278/how-can-i-make-protected-routes-in-actix-web
+impl FromRequest for User {
+  type Config = ();
+  type Error = Error;
+  type Future = Pin<Box<dyn Future<Output = Result<User, Error>>>>;
 
-impl Validation for LoginPayload {
-  fn validate(&self) -> Result<(), String> {
-    return Ok(());
+  fn from_request(req: &HttpRequest, pl: &mut Payload) -> Self::Future {
+    let session = Session::from_request(req, pl);
+    let session_service_opt = req.app_data::<Data<SessionService>>();
+    let user_service_opt = req.app_data::<Data<UserService>>();
+
+    if session_service_opt.is_none() || user_service_opt.is_none() {
+      return Box::pin(async {
+        Err(ErrorServiceUnavailable(
+          "SessionService or UserService unavailable",
+        ))
+      });
+    }
+
+    let session_service = session_service_opt.unwrap().clone();
+    let user_service = user_service_opt.unwrap().clone();
+
+    Box::pin(async move {
+      let finch_session = session_service
+        .get_valid_session(&session.await?)
+        .await
+        .or(Err(ErrorUnauthorized("")))?;
+      let user: User = user_service
+        .new_from_session(finch_session)
+        .await
+        .or(Err(ErrorUnauthorized("")))?;
+
+      Ok(user)
+    })
   }
 }
-
-pub type LoginResponse = SignupResponse;
 
 #[cfg(test)]
 mod test {
   use super::*;
 
-  #[allow(non_snake_case)]
-  #[allow(dead_code)]
-  fn test_LoginResponse() {}
-
-  #[allow(non_snake_case)]
-  #[allow(dead_code)]
-  fn test_SignupResponse() {}
-
-  #[allow(non_snake_case)]
-  #[allow(dead_code)]
-  fn test_LoginPayload() {
-    assert_eq!(
-      Ok(()),
-      LoginPayload {
-        email: "me@chucknorris.com".to_string(),
-        password: "password".to_string(),
-      }
-      .validate()
-    );
-
-    // eventually should be not ok
-    assert_eq!(
-      Ok(()),
-      LoginPayload {
-        email: "not an email".to_string(),
-        password: "password".to_string(),
-      }
-      .validate()
-    );
-
-    // eventually should be not ok
-    assert_eq!(
-      Ok(()),
-      LoginPayload {
-        email: "me@chucknorris.com".to_string(),
-        password: "".to_string(),
-      }
-      .validate()
-    );
-  }
-
-  #[allow(non_snake_case)]
-  #[allow(dead_code)]
-  fn test_SignupPayload() {
-    assert_eq!(
-      Ok(()),
-      SignupPayload {
-        email: "me@chucknorris.com".to_string(),
-        password: "fafdfdf".to_string(),
-        first_name: "first name".to_string(),
-        last_name: "last name".to_string(),
-        income: 1000 as f64
-      }
-      .validate()
-    );
-
-    // should eventually fail on Negative Income
-    assert_eq!(
-      Ok(()),
-      SignupPayload {
-        email: "me@chucknorris.com".to_string(),
-        password: "fadfdfda".to_string(),
-        first_name: "first name".to_string(),
-        last_name: "last name".to_string(),
-        income: -1 as f64
-      }
-      .validate()
-    );
-
-    // fail on bad email
-    assert_eq!(
-      Ok(()),
-      SignupPayload {
-        email: "bad email".to_string(),
-        password: "".to_string(),
-        first_name: "first name".to_string(),
-        last_name: "last name".to_string(),
-        income: 1000 as f64
-      }
-      .validate()
-    );
-
-    // eventually fail on empty password
-    assert_eq!(
-      Ok(()),
-      SignupPayload {
-        email: "me@chucknorris.com".to_string(),
-        password: "".to_string(),
-        first_name: "first name".to_string(),
-        last_name: "last name".to_string(),
-        income: 1000 as f64
-      }
-      .validate()
-    );
-
-    // eventually fail on empty name
-    assert_eq!(
-      Ok(()),
-      SignupPayload {
-        email: "me@chucknorris.com".to_string(),
-        password: "fadfdf".to_string(),
-        first_name: "".to_string(),
-        last_name: "".to_string(),
-        income: 1000 as f64
-      }
-      .validate()
-    );
-  }
-
-  #[allow(non_snake_case)]
-  #[allow(dead_code)]
-  fn test_PasswordHashing() {
+  #[test]
+  fn test_password_hashing() {
     let hashed = User::hash_password("password".to_string()).unwrap();
 
     let user = User {
-      _id: ObjectId::new(),
+      id: None,
       email: "email".to_string(),
       password: hashed,
       first_name: "first_name".to_string(),
       last_name: "last_name".to_string(),
       income: 0.0,
-      accounts: None,
+      accounts: vec![],
+      snapshots: vec![],
+      recurrings: vec![],
     };
 
     assert_eq!(Ok(true), user.compare_password("password".to_string()));

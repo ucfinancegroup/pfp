@@ -3,6 +3,8 @@ name: Jest Tests
 on:
   pull_request:
     branches: [master]
+    paths:
+      - "client/**"
 
 env:
   working-directory: ./client
@@ -30,5 +32,3 @@ jobs:
 
       - run: npm run test
         working-directory: ${{env.working-directory}}
-
-

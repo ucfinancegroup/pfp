@@ -1,6 +1,6 @@
 # Public IP address of your ingress controller
 # IP="MY_EXTERNAL_IP"
-IP="52.146.69.73"
+IP="52.188.78.28"
 
 # Name to associate with public IP address
 DNSNAME="finchapp"

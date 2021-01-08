@@ -18,7 +18,7 @@ export default function Header() {
             <Navbar.Collapse className="justify-content-end">
                 {!isLoggedIn && <>
                   <Nav.Link href="/login">Log In</Nav.Link>
-                  <Nav.Link href="/register">Sign Up</Nav.Link>
+                  <Nav.Link className="btn btn-primary" href="/register">Get Started</Nav.Link>
                 </>
                 }
                 {isLoggedIn && <>

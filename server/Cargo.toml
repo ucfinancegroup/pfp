@@ -8,19 +8,23 @@ edition = "2018"
 
 [dependencies]
 actix-web = "3"
+actix-session="0.4.0"
+actix-web-validator="2"
 cargo-watch = "7.5.0"
 serde = "1.0.117"
 rust-argon2="0.8.2"
 rand = "0.5.0"
-actix-session="0.4.0"
-mongodb = {version = "1.1.1", default-features = false, features=["sync"]}
+# mongodb = {version = "1.1.1", default-features = false, features=["sync"]}
 bson = "*"
 geojson= "*"
 futures = "0.3.4"
+validator = { version = "0.12", features = ["derive"] }
 cfg-if = "*"
 reqwest = {version="*", features = ["json"]}
 plaid={git="https://github.com/ucfinancegroup/plaid"}
 serde_json = "*"
+wither = "0.9.0-alpha.2"
+chrono="*"
 
 [features]
 development = []

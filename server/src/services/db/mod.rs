@@ -1,9 +1,10 @@
-use mongodb::bson::doc;
-use mongodb::sync::{Client, Collection, Database};
+use futures::TryFutureExt;
+use wither::mongodb::bson::doc;
+use wither::mongodb::{Client, Collection, Database};
 
 #[derive(Clone)]
 pub struct DatabaseService {
-  db: Database,
+  pub db: Database,
 }
 
 pub enum Collections {
@@ -13,25 +14,32 @@ pub enum Collections {
 }
 
 impl DatabaseService {
-  pub fn new(uri: String, db_user: String, db_pw: String, db_name: String) -> DatabaseService {
+  pub async fn new(
+    uri: String,
+    db_user: String,
+    db_pw: String,
+    db_name: String,
+  ) -> DatabaseService {
     let connection_str = format!(
       "mongodb+srv://{}:{}@{}/{}?w=majority",
       db_user, db_pw, uri, db_name
     );
 
-    Client::with_uri_str(&connection_str)
-      .map_or_else(
+    let db = Client::with_uri_str(&connection_str)
+      .map_ok_or_else(
         |_| Err("Failed to resolve connection string to database".to_string()),
-        |client| {
-          let db = client.database(&db_name);
-
-          db.run_command(doc! {"ping": 1}, None).map_or_else(
-            |_| Err("Failed to run command ping".to_string()),
-            |_| Ok(db),
-          )
-        },
+        |client| Ok(client.database(&db_name)),
       )
-      .map_or_else(|error| panic!(error), |db: Database| DatabaseService { db })
+      .await
+      .unwrap();
+
+    db.run_command(doc! {"ping": 1}, None)
+      .map_ok_or_else(
+        |_| Err("Failed to run command ping".to_string()),
+        |_| Ok(DatabaseService { db: db.clone() }),
+      )
+      .await
+      .unwrap()
   }
 
   // Lets you safely access a collection using an enum so that access collections

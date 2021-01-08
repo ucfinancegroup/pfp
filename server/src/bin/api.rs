@@ -15,16 +15,13 @@ cfg_if::cfg_if! {
     fn create_cookie() -> CookieSession {
       CookieSession::signed(&[0; 32])
           .name("finch-sid")
-          .path("/")
           .secure(false)
           .http_only(false)
     }
   } else {
     fn create_cookie() -> CookieSession {
       CookieSession::signed(&[0; 32])
-          .domain("https://finchapp.eastus.cloudapp.azure.com/")
           .name("finch-sid")
-          .path("/")
           .secure(true)
           .http_only(false)
           .expires_in(60 * 60 * 24 * 30) // 30 days expiration
@@ -42,7 +39,8 @@ async fn main() -> std::io::Result<()> {
     env.database_user,
     env.database_pw,
     env.database_name,
-  );
+  )
+  .await;
 
   let plaid_client = Arc::new(Mutex::new(services::finchplaid::ApiClient {
     client_id: env.plaid_client_id,
@@ -51,8 +49,8 @@ async fn main() -> std::io::Result<()> {
     configuration: plaid::apis::configuration::Configuration::default(),
   }));
 
-  let user_service = services::users::UserService::new(&db_service);
-  let session_service = services::sessions::SessionService::new(&db_service);
+  let user_service = services::users::UserService::new(&db_service).await;
+  let session_service = services::sessions::SessionService::new(&db_service).await;
 
   HttpServer::new(move || {
     App::new()

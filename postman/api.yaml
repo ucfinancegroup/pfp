@@ -3,9 +3,11 @@ info:
   version: 0.0.1
   title: FinchAPI
 servers:
-  - url: "https://localhost:8888"
+  - url: "https://finchapp.eastus.cloudapp.azure.com/api"
+  - url: "https://localhost:8888/api"
+  - url: "https://localhost:8080/"
 paths:
-  /api/signup:
+  /signup:
     post:
       summary: "Sign up a user"
       operationId: signupUser
@@ -37,7 +39,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/login:
+  /login:
     post:
       summary: "Log in a user"
       operationId: loginUser
@@ -49,6 +51,11 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/LoginPayload"
+            examples:
+              bob:
+                value:
+                  email: "ligma2@gmail.com"
+                  password: "testtest"
       responses:
         "200":
           description: "User Info"
@@ -69,7 +76,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/update/user:
+  /update/user:
     put:
       summary: "This route receives a payload with requests to change data of a user"
       operationId: updateUser
@@ -97,7 +104,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/registerIOSDevice:
+  /registerIOSDevice:
     post:
       summary: "This route will be called once a user logs in on an iOS device and route body will contain the URL of the iOS device, this will be stored in the User model."
       operationId: registerIOSDevice
@@ -125,7 +132,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/validate/user:
+  /validate/user:
     post:
       summary: "This route lets our clients perform step-by-step signups."
       operationId: validateUser
@@ -148,7 +155,30 @@ paths:
                 $ref: "#/components/schemas/ApiError"
 
   #recurring
-  /api/recurring/new:
+  /recurring/examples:
+    get:
+      summary: "Get example Recurrings"
+      operationId: getRecurringExamples
+      tags:
+        - recurring
+      security:
+        - sidCookie: []
+      responses:
+        "200":
+          description: "List of example recurrngs"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecurringNewPayload"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /recurring/new:
     post:
       summary: "Creates a new recurring for the user"
       operationId: newRecurring
@@ -156,7 +186,6 @@ paths:
         - recurring
       security:
         - sidCookie: []
-
       requestBody:
         required: true
         content:
@@ -176,7 +205,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/recurrings:
+  /recurrings:
     get:
       summary: "Get all of a user's recurrings"
       operationId: getRecurrings
@@ -184,7 +213,6 @@ paths:
         - recurring
       security:
         - sidCookie: []
-
       responses:
         "200":
           description: "Array of recurrings"
@@ -200,7 +228,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/recurring/{id}:
+  /recurring/{id}:
     get:
       summary: "Get one specific recurring by id"
       operationId: getRecurring
@@ -208,12 +236,11 @@ paths:
         - recurring
       security:
         - sidCookie: []
-
       parameters:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Recurring to get
       responses:
@@ -236,14 +263,19 @@ paths:
         - recurring
       security:
         - sidCookie: []
-
       parameters:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Recurring to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecurringNewPayload"
       responses:
         "200":
           description: ""
@@ -264,12 +296,11 @@ paths:
         - recurring
       security:
         - sidCookie: []
-
       parameters:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Recurring to delete
       responses:
@@ -287,7 +318,7 @@ paths:
                 $ref: "#/components/schemas/ApiError"
 
   # plans
-  /api/plan/new:
+  /plan/new:
     post:
       summary: "Creates a new plan for the user"
       operationId: newPlan
@@ -315,7 +346,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/plans:
+  /plans:
     get:
       summary: "Get all of a user's plans"
       operationId: getPlans
@@ -339,7 +370,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/plan/{id}:
+  /plan/{id}:
     get:
       summary: "Get one specific plan by id"
       operationId: getPlan
@@ -352,7 +383,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Plan to get
       responses:
@@ -380,7 +411,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Plan to update
       responses:
@@ -408,7 +439,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Plan to delete
       responses:
@@ -426,7 +457,7 @@ paths:
                 $ref: "#/components/schemas/ApiError"
 
   # goals
-  /api/goal/new:
+  /goal/new:
     post:
       summary: "Creates a new goal for the user"
       operationId: newGoal
@@ -454,7 +485,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/goals:
+  /goals:
     get:
       summary: "Get all of a user's goals"
       operationId: getGoals
@@ -478,7 +509,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/goal/{id}:
+  /goal/{id}:
     get:
       summary: "Get one specific goal by id"
       operationId: getGoal
@@ -491,7 +522,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Goal to get
       responses:
@@ -519,7 +550,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Goal to update
       responses:
@@ -547,7 +578,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Goal to delete
       responses:
@@ -564,7 +595,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
-  /api/leaderboard/{type}:
+  /leaderboard/{type}:
     get:
       summary: "Get a leaderboard"
       operationId: getLeaderboard
@@ -595,7 +626,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
-  /api/insights:
+  /insights:
     get:
       summary: "Get all a user's (non-dismissed) insights"
       operationId: getInsights
@@ -619,7 +650,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/insight/{id}/dismiss:
+  /insight/{id}/dismiss:
     put:
       summary: "Dismiss an insight"
       operationId: dismissInsight
@@ -632,7 +663,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: Numeric ID of the Insight to dismiss
       responses:
@@ -649,7 +680,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
-  /api/timeseries:
+  /timeseries:
     get:
       summary: "Get a user's projection timeseries"
       operationId: getTimeseries
@@ -672,7 +703,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
-  /api/plaid/link_token:
+  /plaid/link_token:
     post:
       summary: "to request link token for PlaidLink"
       operationId: plaidLink
@@ -694,7 +725,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/plaid/public_token_exchange:
+  /plaid/public_token_exchange:
     post:
       summary: "For after a user does PlaidLink thru client"
       operationId: plaidLinkAccess
@@ -722,7 +753,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /api/plaid/webhook:
+
+  /snapshots:
+    get:
+      summary: "Get all a user's snapshots"
+      operationId: getSnapshots
+      tags:
+        - snapshots
+      security:
+        - sidCookie: []
+      responses:
+        "200":
+          description: "Snapshots response"
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  # Begin remove for iOS (Swift)
+  /plaid/webhook:
     post:
       summary: "Where Plaid sends updates about items, transactions, etc https://plaid.com/docs/api/webhooks/"
       operationId: plaidWebhook
@@ -742,6 +797,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  # End remove for iOS
 components:
   securitySchemes:
     sidCookie:
@@ -881,29 +937,39 @@ components:
         - principal
         - amount
         - interest
-        - amount_freq
-        - interest_freq
-        - contribution_freq
+        - frequency
       properties:
         name:
           type: string
         start:
           type: integer
+          format: int64
         end:
           type: integer
+          format: int64
         principal:
           type: integer
+          format: int64
         amount:
           type: integer
+          format: int64
         interest:
-          type: integer
-        amount_freq:
+          type: number
+        frequency:
           $ref: "#/components/schemas/TimeInterval"
-        interest_freq:
-          $ref: "#/components/schemas/TimeInterval"
-        contribution_freq:
-          $ref: "#/components/schemas/TimeInterval"
+      example:
+        name: "Unemployment Benefits"
+        start: 1609977600
+        end: 1617753600
+        principal: 0
+        interest: 0.0
+        amount: 300
+        frequency:
+          typ: monthly
+          content: 1 # *once* per month.
 
+    # can be either *principal and interest rate* OR a recurring income/expense *amount*
+    # for debt, principal can be negative
     Recurring:
       type: object
       required:
@@ -914,29 +980,27 @@ components:
         - principal
         - amount
         - interest
-        - amount_freq
-        - interest_freq
-        - contribution_freq
+        - frequency
       properties:
         _id:
-          type: string
+          $ref: "#/components/schemas/MongoObjectID"
         name:
           type: string
         start:
           type: integer
+          format: int64
         end:
           type: integer
+          format: int64
         principal:
           type: integer
+          format: int64
         amount:
           type: integer
+          format: int64
         interest:
-          type: integer
-        amount_freq:
-          $ref: "#/components/schemas/TimeInterval"
-        interest_freq:
-          $ref: "#/components/schemas/TimeInterval"
-        contribution_freq:
+          type: number
+        frequency:
           $ref: "#/components/schemas/TimeInterval"
 
     Asset:
@@ -1055,7 +1119,7 @@ components:
         - name
       properties:
         _id:
-          type: string
+          $ref: "#/components/schemas/MongoObjectID"
         name:
           type: string
         recurrings:
@@ -1065,7 +1129,7 @@ components:
         allocations:
           type: array
           items:
-            $ref: "#/components/schemas/Transform"
+            $ref: "#/components/schemas/Allocation"
         events:
           type: array
           items:
@@ -1099,7 +1163,7 @@ components:
         - completed
       properties:
         _id:
-          type: string
+          $ref: "#/components/schemas/MongoObjectID"
         name:
           type: string
         period:
@@ -1195,6 +1259,14 @@ components:
           type: string
         secret:
           type: string
+    MongoObjectID:
+      type: object
+      required:
+        - "$oid"
+      properties:
+        "$oid":
+          type: string
+          example: "5ff7361e0027e8ac003af400"
     PlaidJWT:
       type: object
       required:

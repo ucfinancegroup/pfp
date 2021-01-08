@@ -7,12 +7,16 @@ import React from "react";
 import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
+import DashboardPage from "./pages/DashboardPage";
 
 export default function Routes() {
     return <Router>
         <Switch>
             <Route exact path="/">
                 <HomePage/>
+            </Route>
+            <Route exact path="/dashboard">
+                <DashboardPage/>
             </Route>
             <Route exact path="/login">
                 <LoginPage/>

@@ -1,3 +1,5 @@
+api.yaml
+
 # VSCode
 .vscode/*
 !.vscode/settings.json

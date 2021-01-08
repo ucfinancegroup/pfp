@@ -4,7 +4,8 @@ import {ErrorMessage, Field, Form, Formik} from "formik";
 import classNames from "classnames/bind";
 import {UserContext} from "../contexts/UserContext";
 import { useHistory } from "react-router-dom";
-import {UserApi, UserApiFp} from "../api";
+import {UserApi} from "../api";
+import handleFetchError from "../hooks/handleFetchError";
 
 const cx = classNames;
 
@@ -28,14 +29,16 @@ export default function LoginPage() {
 
         try {
             await userApi.loginUser({
-                email,
-                password
+                loginPayload: {
+                    email,
+                    password,
+                }
             });
 
             setIsLoggedIn(true);
-            router.push("/");
+            router.push("/dashboard");
         } catch (e) {
-            setError(e.message);
+            setError(await handleFetchError(e));
         } finally {
             setLoading(false);
         }

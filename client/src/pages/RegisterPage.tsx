@@ -4,6 +4,8 @@ import {ErrorMessage, Field, Form, Formik} from "formik";
 import classNames from "classnames/bind";
 import {UserContext} from "../contexts/UserContext";
 import {useHistory} from "react-router-dom";
+import {UserApi} from "../api";
+import handleFetchError from "../hooks/handleFetchError";
 
 const cx = classNames;
 
@@ -19,6 +21,8 @@ const RegisterSchema = Yup.object().shape({
     lastName: Yup.string().required('Last name is required'),
 });
 
+const userApi = new UserApi();
+
 export default function RegisterPage() {
     const [error, setError] = useState<string>();
     const [loading, setLoading] = useState<boolean>();
@@ -29,34 +33,22 @@ export default function RegisterPage() {
                               { email: string, password: string, firstName: string, lastName: string }) {
         // Prevent submitting the form twice.
         if (loading) return;
+        setLoading(true);
 
         try {
-            setLoading(true);
-
-            const res = await fetch("/api/signup", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
+            await userApi.signupUser({
+                signupPayload: {
                     email,
                     password,
                     first_name: firstName,
                     last_name: lastName,
-                    income: 10, // TODO REMOVE THIS
-                }),
-            });
-            const text = await res.text();
-            const data = JSON.parse(text);
-
-            if (res.ok) {
-                setIsLoggedIn(true);
-                router.push("/");
-            } else {
-                setError(data.message || "An error occurred");
-            }
+                    income: 100 // TODO remove this
+                }
+            })
+            setIsLoggedIn(true);
+            router.push("/dashboard");
         } catch (e) {
-            setError(e.message);
+            setError(await handleFetchError(e));
         } finally {
             setLoading(false);
         }

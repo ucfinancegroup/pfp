@@ -4,6 +4,7 @@ import {ErrorMessage, Field, Form, Formik} from "formik";
 import classNames from "classnames/bind";
 import {UserContext} from "../contexts/UserContext";
 import { useHistory } from "react-router-dom";
+import {UserApi, UserApiFp} from "../api";
 
 const cx = classNames;
 
@@ -11,6 +12,8 @@ const LoginSchema = Yup.object().shape({
     password: Yup.string().required('Password is required.'),
     email: Yup.string().required('Email is required.'),
 });
+
+const userApi = new UserApi();
 
 export default function LoginPage() {
     const [error, setError] = useState<string>();
@@ -21,30 +24,16 @@ export default function LoginPage() {
     async function submit({email, password}: { email: string, password: string }) {
         // Prevent submitting the form twice.
         if (loading) return;
+        setLoading(true);
 
         try {
-            setLoading(true);
-
-            const res = await fetch("/api/login", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email,
-                    password
-                }),
+            await userApi.loginUser({
+                email,
+                password
             });
-            const text = await res.text();
-            const data = JSON.parse(text);
 
-            if (res.ok) {
-                // Set the user logged in via the user context so the entire application state can be updated.
-                setIsLoggedIn(true);
-                router.push("/");
-            } else {
-                setError(data.message || "An error occurred");
-            }
+            setIsLoggedIn(true);
+            router.push("/");
         } catch (e) {
             setError(e.message);
         } finally {

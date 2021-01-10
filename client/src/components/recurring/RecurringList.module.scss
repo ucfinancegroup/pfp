@@ -1,1 +1,10 @@
+.actions {
+  i {
+    cursor: pointer;
+    margin-right: 1em;
 
+    &:hover {
+      opacity: 0.75;
+    }
+  }
+}

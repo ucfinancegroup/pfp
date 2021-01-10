@@ -1,11 +1,11 @@
 import styles from "./RecurringList.module.scss";
 import classNames from "classnames";
 import React, {useEffect, useState} from "react";
-import {Recurring, RecurringApi} from "../../api";
+import {Recurring, RecurringApi, RecurringNewPayload} from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
 import {RecurringDialog} from "./RecurringDialog";
 import {RecurringType} from "./RecurringType";
-import {getRecurringType} from "./RecurringHelpers";
+import {getRecurringFrequencyName, getRecurringType} from "./RecurringHelpers";
 
 const cx = classNames.bind(styles);
 
@@ -19,6 +19,7 @@ export function RecurringList(props: RecurringListProps) {
     const [recurrings, setRecurrings] = useState<Recurring[]>();
     const [error, setError] = useState<string>();
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+    const [dialogEditing, setDialogEditing] = useState<Recurring>(null);
     const [dialogMode, setDialogMode] = useState<RecurringType>();
 
     useEffect(() => {
@@ -44,7 +45,23 @@ export function RecurringList(props: RecurringListProps) {
         setDialogOpen(true);
     }
 
-    function dialogClosed() {
+    async function dialogClosed(recurring: RecurringNewPayload) {
+        if (recurring) {
+            if (dialogEditing) {
+                await recurringApi.updateRecurring({
+                    recurringNewPayload: recurring,
+                    id: dialogEditing._id.$oid,
+                });
+                Object.assign(dialogEditing, recurring);
+                setRecurrings([...recurrings]);
+            } else {
+                const result = await recurringApi.newRecurring({
+                    recurringNewPayload: recurring
+                });
+                setRecurrings([...recurrings, result]);
+            }
+        }
+        setDialogEditing(null);
         setDialogOpen(false);
     }
 
@@ -56,19 +73,41 @@ export function RecurringList(props: RecurringListProps) {
         setRecurrings([...recurrings.filter(r => r !== recurring)]);
     }
 
+    async function editRecurring(recurring: Recurring) {
+        setDialogMode(recurring.amount < 0 ? RecurringType.Expense : RecurringType.Income);
+        setDialogEditing(recurring);
+        setDialogOpen(true);
+    }
+
     if (!recurrings) return <>Loading...</>;
 
     const incomes = recurrings && recurrings.filter(r => getRecurringType(r) === RecurringType.Income);
     const expenses = recurrings && recurrings.filter(r => getRecurringType(r) === RecurringType.Expense);
 
+    function formatDate(ms: number) {
+        var d = new Date(ms),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2)
+            month = '0' + month;
+        if (day.length < 2)
+            day = '0' + day;
+
+        return [year, month, day].join('-');
+    }
+
     function renderTable(recurrings: Recurring[]) {
-        if (recurrings.length === 0) return <span>None</span>
+        if (recurrings.length === 0) return <p>None yet</p>
         return <table className="table">
             <thead>
             <tr>
                 <th scope="col">Name</th>
                 <th scope="col">Amount</th>
                 <th scope="col">Frequency</th>
+                <th scope="col">From</th>
+                <th scope="col">Until</th>
                 <th scope="col">Actions</th>
             </tr>
             </thead>
@@ -76,12 +115,13 @@ export function RecurringList(props: RecurringListProps) {
             {
                 recurrings.map(r => <tr>
                     <td>{r.name}</td>
-                    <td>${r.amount}</td>
-                    <td>{r.frequency.typ}</td>
-                    <td>
-                        <button onClick={() => deleteRecurring(r)}>
-                            Remove
-                        </button>
+                    <td>${Math.abs(r.amount)}</td>
+                    <td>{getRecurringFrequencyName(r.frequency.content, r.frequency.typ)}</td>
+                    <td>{formatDate(r.start)}</td>
+                    <td>{formatDate(r.end)}</td>
+                    <td className={styles.actions}>
+                        <i className="fa fa-times" aria-hidden="true" onClick={() => deleteRecurring(r)}/>
+                        <i className="fa fa-pencil" aria-hidden="true" onClick={() => editRecurring(r)}/>
                     </td>
                 </tr>)
             }
@@ -90,7 +130,7 @@ export function RecurringList(props: RecurringListProps) {
     }
 
     return <>
-        <RecurringDialog show={dialogOpen} mode={dialogMode} onClose={() => dialogClosed()}/>
+        <RecurringDialog show={dialogOpen} mode={dialogMode} onClose={r => dialogClosed(r)} editing={dialogEditing}/>
         {
             error && <div className="alert alert-danger" role="alert">
                 {error}
@@ -100,21 +140,18 @@ export function RecurringList(props: RecurringListProps) {
             Finch predicts your finances using your connected bank account, as well as income and expenses that you enter.
         </div>
         <div className="d-grid gap-4 d-md-block mb-4">
-            <button type="button" className="btn btn-success" onClick={() => addIncome()}>Add Income</button>
+
             {' '}
-            <button type="button" className="btn btn-danger" onClick={() => addExpense()}>Add Expense</button>
+
         </div>
         <div>
             {
-                recurrings.length === 0 &&
-                <p>You have no incomes or expenses yet.</p>
-            }
-            {
-                recurrings.length > 0 &&
                 <>
                   <h3>Expenses</h3>
+                  <button type="button" className="btn btn-danger mb-2" onClick={() => addExpense()}>Add Expense</button>
                     {renderTable(expenses)}
                   <h3 className="mt-4">Income</h3>
+                  <button type="button" className="btn btn-success mb-2" onClick={() => addIncome()}>Add Income</button>
                     {renderTable(incomes)}
                 </>
             }

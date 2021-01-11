@@ -45,6 +45,7 @@ impl UserService {
       accounts: vec![],
       snapshots: vec![],
       recurrings: vec![],
+      goals: vec![],
     };
 
     user.save(&self.db, None).await.map_or_else(

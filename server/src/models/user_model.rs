@@ -1,5 +1,5 @@
 use crate::common::{errors::ApiError, Money};
-use crate::models::recurring_model::Recurring;
+use crate::models::{goal_model::Goal, recurring_model::Recurring};
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
 use actix_web::{
@@ -25,6 +25,7 @@ pub struct User {
   pub accounts: Vec<PlaidItem>,
   pub snapshots: Vec<Snapshot>,
   pub recurrings: Vec<Recurring>,
+  pub goals: Vec<Goal>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -169,6 +170,7 @@ mod test {
       accounts: vec![],
       snapshots: vec![],
       recurrings: vec![],
+      goals: vec![],
     };
 
     assert_eq!(Ok(true), user.compare_password("password".to_string()));

@@ -1,7 +1,7 @@
 use crate::models::user_model::User;
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
-use actix_web::{post, web::Data, HttpResponse};
+use actix_web::{post, put, web::Data, HttpResponse};
 use actix_web_validator::{Json, Validate};
 use serde::{Deserialize, Serialize};
 
@@ -48,6 +48,22 @@ pub struct LoginPayload {
 
 type LoginResponse = SignupResponse;
 
+#[derive(Validate, Deserialize, PartialEq)]
+pub struct UpdatePayload {
+  #[validate(email)]
+  pub email: Option<String>,
+  #[validate(length(min = 1))]
+  pub password: Option<String>,
+  #[validate(length(min = 1))]
+  pub first_name: Option<String>,
+  #[validate(length(min = 1))]
+  pub last_name: Option<String>,
+  #[validate(range(min = 0))]
+  pub income: Option<f64>,
+}
+
+type UpdateResponse = SignupResponse;
+
 #[post("/signup")]
 pub async fn signup(
   session: Session,
@@ -84,11 +100,33 @@ pub async fn login(
   crate::common::into_response_res(res)
 }
 
+#[put("/update/user")]
+pub async fn update_user(
+  session: Session,
+  update_payload: Json<UpdatePayload>,
+  user_service: Data<UserService>,
+  session_service: Data<SessionService>,
+) -> HttpResponse {
+  let res = match session_service.get_valid_session(&session).await {
+    Ok(finch_session) => match user_service.new_from_session(finch_session).await {
+      Ok(user) => user_service
+        .update(user, update_payload.into_inner())
+        .await
+        .and_then(|updated| Ok(UpdateResponse::new(updated))),
+      Err(e) => Err(e),
+    },
+    Err(e) => Err(e),
+  };
+
+  crate::common::into_response_res(res)
+}
+
 // you add the services here.
 use actix_web::web::ServiceConfig;
 pub fn init_routes(config: &mut ServiceConfig) {
   config.service(signup);
   config.service(login);
+  config.service(update_user);
 }
 
 #[cfg(test)]

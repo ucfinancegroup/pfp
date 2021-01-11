@@ -111,6 +111,14 @@ impl Migrating for User {
         ),
         unset: None,
       }),
+      Box::new(wither::IntervalMigration {
+        name: "add goals field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"goals": doc!{"$exists": false}},
+        set: Some(doc! {"goals": wither::mongodb::bson::to_bson(&Vec::<Goal>::new()).unwrap()}),
+        unset: None,
+      }),
     ]
   }
 }

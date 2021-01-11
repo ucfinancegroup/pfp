@@ -13,17 +13,8 @@ pub struct Goal {
   pub end: i64,
   #[serde(rename = "threshold")]
   pub threshold: i64,
-  #[serde(rename = "side")]
-  pub side: AboveOrBelow,
-
   #[serde(rename = "metric")]
   pub metric: GoalMetrics,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum AboveOrBelow {
-  Above,
-  Below,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

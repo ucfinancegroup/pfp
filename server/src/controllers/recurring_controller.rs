@@ -111,18 +111,32 @@ pub async fn delete_recurring(
 // currently, we take a User to make this an authorised route... Should we?
 #[get("/recurring/examples")]
 pub async fn get_recurring_examples(_: User) -> HttpResponse {
-  crate::common::into_response(vec![RecurringNewPayload {
-    name: "Unemployment Benefits".to_string(),
-    start: 1609977600,
-    end: 1617753600,
-    principal: 0,
-    interest: 0.0,
-    amount: 30000, // remember amount is multiplied by 100 so its' $.cc -> $cc
-    frequency: TimeInterval {
-      typ: Typ::Monthly,
-      content: 1,
+  crate::common::into_response(vec![
+    RecurringNewPayload {
+      name: "Unemployment Benefits".to_string(),
+      start: 1609977600,
+      end: 1617753600,
+      principal: 0,
+      interest: 0.0,
+      amount: 30000, // remember amount is multiplied by 100 so its' $.cc -> $cc
+      frequency: TimeInterval {
+        typ: Typ::Monthly,
+        content: 1,
+      },
     },
-  }])
+    RecurringNewPayload {
+      name: "Pay Babysitter".to_string(),
+      start: 1609977600,
+      end: 1617753600,
+      principal: 0,
+      interest: 0.0,
+      amount: -6000,
+      frequency: TimeInterval {
+        typ: Typ::Monthly,
+        content: 1,
+      },
+    },
+  ])
 }
 
 use actix_web::web::ServiceConfig;

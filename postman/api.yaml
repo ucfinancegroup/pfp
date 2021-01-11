@@ -768,7 +768,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/Snapshot"
         default:
           description: "Server error or validation error"
           content:
@@ -1267,6 +1267,35 @@ components:
         "$oid":
           type: string
           example: "5ff7361e0027e8ac003af400"
+    # stores money as the raw amount times 100: $$.cc -> $$cc.00, but integer
+    Money:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: integer
+          format: int64
+    Snapshot:
+      type: object
+      required:
+        - net_worth
+        - running_savings
+        - running_spending
+        - running_income
+        - snapshot_time
+      properties:
+        net_worth:
+          $ref: "#/components/schemas/Money"
+        running_savings:
+          $ref: "#/components/schemas/Money"
+        running_spending:
+          $ref: "#/components/schemas/Money"
+        running_income:
+          $ref: "#/components/schemas/Money"
+        snapshot_time:
+          type: integer
+          format: int64
     PlaidJWT:
       type: object
       required:

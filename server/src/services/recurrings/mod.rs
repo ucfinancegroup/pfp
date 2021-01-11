@@ -41,7 +41,7 @@ pub mod RecurringService {
 
     user.recurrings.push(recurring.clone());
 
-    user_service.save(user).await?;
+    user_service.save(&mut user).await?;
 
     Ok(recurring)
   }
@@ -76,7 +76,7 @@ pub mod RecurringService {
         Ok(recurring)
       })?;
 
-    user_service.save(user).await?;
+    user_service.save(&mut user).await?;
 
     Ok(updated)
   }
@@ -103,7 +103,7 @@ pub mod RecurringService {
       ))
       .and_then(|pos| Ok(user.recurrings.swap_remove(pos)))?;
 
-    user_service.save(user).await?;
+    user_service.save(&mut user).await?;
 
     Ok(removed)
   }

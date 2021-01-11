@@ -113,7 +113,7 @@ impl UserService {
     Ok(user.snapshots.clone())
   }
 
-  pub async fn save(&self, mut u: User) -> Result<(), ApiError> {
+  pub async fn save(&self, u: &mut User) -> Result<(), ApiError> {
     u.save(&self.db, None)
       .await
       .map_err(|_| ApiError::new(500, "Database Error".to_string()))

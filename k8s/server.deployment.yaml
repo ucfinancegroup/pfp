@@ -8,6 +8,7 @@ spec:
       app: pfp-pfp-server
       tier: backend
   replicas: 2
+  progressDeadlineSeconds: 2400
   template:
     metadata:
       labels:

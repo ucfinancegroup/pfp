@@ -1,5 +1,5 @@
 use crate::common::{errors::ApiError, Money};
-use crate::models::recurring_model::Recurring;
+use crate::models::{goal_model::Goal, recurring_model::Recurring};
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
 use actix_web::{
@@ -25,6 +25,7 @@ pub struct User {
   pub accounts: Vec<PlaidItem>,
   pub snapshots: Vec<Snapshot>,
   pub recurrings: Vec<Recurring>,
+  pub goals: Vec<Goal>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -110,6 +111,14 @@ impl Migrating for User {
         ),
         unset: None,
       }),
+      Box::new(wither::IntervalMigration {
+        name: "add goals field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"goals": doc!{"$exists": false}},
+        set: Some(doc! {"goals": wither::mongodb::bson::to_bson(&Vec::<Goal>::new()).unwrap()}),
+        unset: None,
+      }),
     ]
   }
 }
@@ -169,6 +178,7 @@ mod test {
       accounts: vec![],
       snapshots: vec![],
       recurrings: vec![],
+      goals: vec![],
     };
 
     assert_eq!(Ok(true), user.compare_password("password".to_string()));

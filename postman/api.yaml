@@ -465,7 +465,6 @@ paths:
         - goal
       security:
         - sidCookie: []
-
       requestBody:
         required: true
         content:
@@ -478,7 +477,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Goal"
+                $ref: "#/components/schemas/GoalAndStatus"
         default:
           description: "Server error or validation error"
           content:
@@ -493,7 +492,6 @@ paths:
         - goal
       security:
         - sidCookie: []
-
       responses:
         "200":
           description: "Array of goals"
@@ -502,7 +500,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Goal"
+                  $ref: "#/components/schemas/GoalAndStatus"
         default:
           description: "Server error or validation error"
           content:
@@ -517,7 +515,6 @@ paths:
         - goal
       security:
         - sidCookie: []
-
       parameters:
         - in: path
           name: id
@@ -531,7 +528,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Goal"
+                $ref: "#/components/schemas/GoalAndStatus"
         default:
           description: "Server error or validation error"
           content:
@@ -545,7 +542,12 @@ paths:
         - goal
       security:
         - sidCookie: []
-
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalNewPayload"
       parameters:
         - in: path
           name: id
@@ -559,7 +561,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Goal"
+                $ref: "#/components/schemas/GoalAndStatus"
         default:
           description: "Server error or validation error"
           content:
@@ -573,7 +575,6 @@ paths:
         - goal
       security:
         - sidCookie: []
-
       parameters:
         - in: path
           name: id
@@ -587,7 +588,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Goal"
+                $ref: "#/components/schemas/GoalAndStatus"
         default:
           description: "Server error or validation error"
           content:
@@ -1139,44 +1140,64 @@ components:
       type: object
       required:
         - name
-        - period
+        - start
+        - end
         - threshold
-        - goal_side
+        - metric
       properties:
         name:
           type: string
-        period:
-          $ref: "#/components/schemas/TimePeriod"
+        start:
+          type: integer
+          format: int64
+        end:
+          type: integer
+          format: int64
         threshold:
           type: number
-        goal_side:
-          type: string
-          enum: [above, below]
+        metric:
+          $ref: "#/components/schemas/GoalMetric"
+
     Goal:
       type: object
       required:
         - _id
         - name
-        - period
+        - start
+        - end
         - threshold
-        - goal_side
-        - completed
+        - metric
       properties:
         _id:
           $ref: "#/components/schemas/MongoObjectID"
         name:
           type: string
-        period:
-          $ref: "#/components/schemas/TimePeriod"
+        start:
+          type: integer
+          format: int64
+        end:
+          type: integer
+          format: int64
         threshold:
           type: number
-        goal_side:
-          type: string
-          enum: [above, below]
-        completed:
-          type: boolean
-        feasible:
-          type: boolean
+        metric:
+          $ref: "#/components/schemas/GoalMetric"
+
+    GoalMetric:
+      type: string
+      enum: [Savings, Spending, Income]
+
+    GoalAndStatus:
+      type: object
+      required:
+        - goal
+        - progress
+      properties:
+        goal:
+          $ref: "#/components/schemas/Goal"
+        progress:
+          type: number
+          format: float64
 
     LeaderboardResponse:
       type: object

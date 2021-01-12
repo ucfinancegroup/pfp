@@ -1,5 +1,6 @@
 pub mod db;
 pub mod finchplaid;
+pub mod goals;
 pub mod recurrings;
 pub mod secrets;
 pub mod sessions;

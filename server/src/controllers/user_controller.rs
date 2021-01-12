@@ -1,15 +1,9 @@
-use crate::common::errors::ApiError;
 use crate::models::user_model::User;
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
-use actix_web::{
-  post,
-  web::{Data},
-  HttpResponse,
-};
-use actix_web_validator::Json;
+use actix_web::{post, web::Data, HttpResponse};
+use actix_web_validator::{Json, Validate};
 use serde::{Deserialize, Serialize};
-use validator::Validate;
 
 #[derive(Validate, Deserialize, PartialEq)]
 pub struct SignupPayload {
@@ -61,7 +55,6 @@ pub async fn signup(
   user_service: Data<UserService>,
   session_service: Data<SessionService>,
 ) -> HttpResponse {
-
   let res = match user_service.signup(signup_payload.into_inner()).await {
     Ok(user) => session_service
       .new_user_session(&user, &session)
@@ -80,7 +73,6 @@ pub async fn login(
   user_service: Data<UserService>,
   session_service: Data<SessionService>,
 ) -> HttpResponse {
-
   let res = match user_service.login(login_payload.into_inner()).await {
     Ok(user) => session_service
       .new_user_session(&user, &session)

@@ -5,9 +5,9 @@ use actix_web::{
   web::{Data, Path},
   HttpResponse,
 };
-use actix_web_validator::Json;
+use actix_web_validator::{Json, Validate};
 use serde::{Deserialize, Serialize};
-use validator::{Validate, ValidationError};
+use validator::ValidationError;
 
 #[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[validate(schema(

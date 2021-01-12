@@ -176,9 +176,44 @@ mod tests {
       Snapshot {
         net_worth: Money { amount: 0 },
         running_spending: Money { amount: 0 },
+        running_savings: Money { amount: 0 },
+        running_income: Money { amount: 0 },
+        snapshot_time: 2,
+      },
+      Snapshot {
+        net_worth: Money { amount: 0 },
+        running_spending: Money { amount: 0 },
+        running_savings: Money { amount: 0 },
+        running_income: Money { amount: 0 },
+        snapshot_time: 4,
+      },
+      Snapshot {
+        net_worth: Money { amount: 0 },
+        running_spending: Money { amount: -1000 },
         running_savings: Money { amount: 5000 },
         running_income: Money { amount: 0 },
         snapshot_time: 6,
+      },
+      Snapshot {
+        net_worth: Money { amount: 0 },
+        running_spending: Money { amount: -1000 },
+        running_savings: Money { amount: 5000 },
+        running_income: Money { amount: 0 },
+        snapshot_time: 7,
+      },
+      Snapshot {
+        net_worth: Money { amount: 0 },
+        running_spending: Money { amount: -1000 },
+        running_savings: Money { amount: 5000 },
+        running_income: Money { amount: 0 },
+        snapshot_time: 10,
+      },
+      Snapshot {
+        net_worth: Money { amount: 0 },
+        running_spending: Money { amount: -21000 },
+        running_savings: Money { amount: 5000 },
+        running_income: Money { amount: 0 },
+        snapshot_time: 11,
       },
     ];
 
@@ -197,6 +232,20 @@ mod tests {
 
     let progress2 = GoalService::calculate_goal_progress(spending_goal, snapshots.clone()).unwrap();
 
-    assert_eq!(0.0 as f64, progress2.progress);
+    assert_eq!(0.1 as f64, progress2.progress);
+
+    let spending_goal2 = Goal {
+      id: None,
+      name: "Spend under 100 Dollars".to_string(),
+      start: 6,
+      end: 12,
+      threshold: -10000, // dollars times 100
+      metric: GoalMetrics::Spending,
+    };
+
+    let progress3 =
+      GoalService::calculate_goal_progress(spending_goal2, snapshots.clone()).unwrap();
+
+    assert_eq!(2.1 as f64, progress3.progress);
   }
 }

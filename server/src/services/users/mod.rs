@@ -96,6 +96,13 @@ impl UserService {
     .and_then(|_| Ok(()))
   }
 
+  pub async fn get_accounts(
+    &self,
+    user: &mut User,
+  ) -> Result<Vec<PlaidItem>, ApiError> {
+
+  }
+
   pub async fn get_snapshots(
     &self,
     user: &mut User,

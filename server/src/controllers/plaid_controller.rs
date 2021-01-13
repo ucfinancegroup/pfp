@@ -3,10 +3,11 @@ use crate::models::user_model::User;
 use crate::services::finchplaid::ApiClient;
 use crate::services::users::UserService;
 use actix_web::{
-  post,
-  web::{Data, Json},
+  post, get, put,
+  web::{Data, Path},
   HttpResponse,
 };
+use actix_web_validator::{Json, Validate};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
@@ -53,7 +54,7 @@ async fn link_token(plaid_client: Data<Arc<Mutex<ApiClient>>>, user: User) -> Ht
 #[post("/plaid/public_token_exchange")]
 async fn access_token(
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
-  payload: Json<PublicTokenExchangeRequest>,
+  payload: actix_web::web::Json<PublicTokenExchangeRequest>,
   user: User,
   user_service: Data<UserService>,
 ) -> HttpResponse {

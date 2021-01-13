@@ -91,6 +91,24 @@ async fn help_access_token(
     .and_then(|_| Ok(ItemIdResponse { item_id: item_id }))
 }
 
+#[get("/plaid/accounts")]
+pub async fn get_accounts(
+    user: User,
+    user_service: Data<UserService>,
+) -> HttpResponse {
+    crate::common::into_response_res(user_service.get_accounts(user).await)
+}
+
+#[put("/plaid/accounts/{id}")]
+pub async fn update_accounts(
+    user: User,
+    user_service: Data<UserService>,
+    id: Path<String>,
+    payload: Json<AccountNewPayload>,
+) -> HttpResponse {
+    crate::common::into_response_res(user_service.update_accounts(user, id.into_inner(), payload.into_inner()).await)
+}
+
 pub fn init_routes(config: &mut actix_web::web::ServiceConfig) {
   config.service(link_token);
   config.service(access_token);

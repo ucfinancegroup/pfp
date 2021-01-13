@@ -97,20 +97,14 @@ impl UserService {
     .and_then(|_| Ok(()))
   }
 
-  pub async fn update_account(
+  /*
+  pub async fn update_accounts(
     account_id: String,
     payload: AccountNewPayload,
     mut user: User,
   ) -> Result<ItemIdResponse, ApiError> {
-
-  }
-
-  pub async fn get_accounts(
-    &self,
-    user: &mut User,
-  ) -> Result<Vec<PlaidItem>, ApiError> {
-    Ok(user.accounts.clone())
-  }
+    
+  }*/
 
   pub async fn get_snapshots(
     &self,

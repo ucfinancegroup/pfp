@@ -11,10 +11,20 @@ use validator::ValidationError;
 
 #[get("/accounts")]
 pub async fn get_accounts(
-    mut user: User,
+    user: User,
     user_service: Data<UserService>,
 ) -> HttpResponse {
-    crate::common::into_response_res(user_service.get_accounts(&mut user).await)
+    crate::common::into_response_res(user_service.get_accounts(user).await)
+}
+
+#[put("/accounts/{id}")]
+pub async fn update_accounts(
+    user: User,
+    user_service: Data<UserService>,
+    id: Path<String>,
+    payload: Json<AccountNewPayload>,
+) -> HttpResponse {
+    crate::common::into_response_res(user_service.update_accounts(user, id.into_inner(), payload.into_inner()).await)
 }
 
 // you add the services here.

@@ -457,6 +457,29 @@ paths:
                 $ref: "#/components/schemas/ApiError"
 
   # goals
+  /goal/examples:
+    get:
+      summary: "Get example Goals"
+      operationId: getGoalExamples
+      tags:
+        - goal
+      security:
+        - sidCookie: []
+      responses:
+        "200":
+          description: "List of example recurrngs"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GoalNewPayload"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /goal/new:
     post:
       summary: "Creates a new goal for the user"

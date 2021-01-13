@@ -85,17 +85,6 @@ impl UserService {
       .and_then(|user_opt| user_opt.ok_or(ApiError::new(500, "User not found".to_string())))
   }
 
-  pub async fn add_new_account(
-    &self,
-    user: User,
-    access_token: String,
-    item_id: String,
-  ) -> Result<(), ApiError> {
-    user.update(&self.db, None, doc! {"$push": doc!{"accounts" : crate::common::into_bson_document(&PlaidItem{item_id, access_token})}}, None).await
-    .map_err(|_| ApiError::new(500, "Database Error".to_string()))
-    .and_then(|_| Ok(()))
-  }
-
   pub async fn get_accounts(
     &self,
     user: &mut User,

@@ -1,5 +1,5 @@
 use crate::common::errors::ApiError;
-use crate::controllers::user_controller::{LoginPayload, SignupPayload};
+use crate::controllers::user_controller::{LoginPayload, SignupPayload, UpdatePayload};
 use crate::models::{
   session_model,
   user_model::{PlaidItem, Snapshot, User},
@@ -76,6 +76,32 @@ impl UserService {
           }
         })
     })
+  }
+
+  pub async fn update(&self, mut user: User, data: UpdatePayload) -> Result<User, ApiError> {
+    if let Some(email) = data.email {
+      user.email = email;
+    }
+    if let Some(password) = data.password {
+      let password_hash = User::hash_password(password.clone())
+        .map_err(|_| ApiError::new(400, "Password hashing failed".to_string()))?;
+
+      user.password = password_hash;
+    }
+    if let Some(first_name) = data.first_name {
+      user.first_name = first_name;
+    }
+    if let Some(last_name) = data.last_name {
+      user.last_name = last_name;
+    }
+    if let Some(income) = data.income {
+      user.income = income;
+    }
+
+    user.save(&self.db, None).await.map_or_else(
+      |_| Err(ApiError::new(500, "Database Error".to_string())),
+      |_| Ok(user),
+    )
   }
 
   pub async fn new_from_session(&self, session: session_model::Session) -> Result<User, ApiError> {

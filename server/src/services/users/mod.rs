@@ -1,5 +1,6 @@
 use crate::common::errors::ApiError;
 use crate::controllers::user_controller::{LoginPayload, SignupPayload};
+use crate::controllers::plaid_controller::{ItemIdResponse, AccountNewPayload};
 use crate::models::{
   session_model,
   user_model::{PlaidItem, Snapshot, User},
@@ -94,6 +95,14 @@ impl UserService {
     user.update(&self.db, None, doc! {"$push": doc!{"accounts" : crate::common::into_bson_document(&PlaidItem{item_id, access_token})}}, None).await
     .map_err(|_| ApiError::new(500, "Database Error".to_string()))
     .and_then(|_| Ok(()))
+  }
+
+  pub async fn update_account(
+    account_id: String,
+    payload: AccountNewPayload,
+    mut user: User,
+  ) -> Result<ItemIdResponse, ApiError> {
+
   }
 
   pub async fn get_accounts(

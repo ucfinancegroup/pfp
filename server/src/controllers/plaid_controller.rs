@@ -20,6 +20,13 @@ pub struct ItemIdResponse {
   pub item_id: String,
 }
 
+// probably not right fields
+#[derive(Validate, Deserialize)]
+pub struct AccountNewPayload {
+  pub access_token: String,
+  pub item_id: String,
+}
+
 #[post("/plaid/link_token")]
 async fn link_token(plaid_client: Data<Arc<Mutex<ApiClient>>>, user: User) -> HttpResponse {
   let pc = plaid_client.lock().unwrap();

@@ -102,21 +102,14 @@ pub async fn login(
 
 #[put("/update/user")]
 pub async fn update_user(
-  session: Session,
+  user: User,
   update_payload: Json<UpdatePayload>,
   user_service: Data<UserService>,
-  session_service: Data<SessionService>,
 ) -> HttpResponse {
-  let res = match session_service.get_valid_session(&session).await {
-    Ok(finch_session) => match user_service.new_from_session(finch_session).await {
-      Ok(user) => user_service
-        .update(user, update_payload.into_inner())
-        .await
-        .and_then(|updated| Ok(UpdateResponse::new(updated))),
-      Err(e) => Err(e),
-    },
-    Err(e) => Err(e),
-  };
+  let res = user_service
+    .update(user, update_payload.into_inner())
+    .await
+    .and_then(|updated| Ok(UpdateResponse::new(updated)));
 
   crate::common::into_response_res(res)
 }

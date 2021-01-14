@@ -128,14 +128,14 @@ impl UserService {
   pub async fn get_accounts(
     &self,
     user: User,
-  ) -> Result<Vec<String>, ApiError> {
-
-    let mut res: Vec<String> = Vec::new();
+  ) -> Result<Vec<ItemIdResponse>, ApiError> {
+    
+    let mut res: Vec<ItemIdResponse> = Vec::new();
     user
       .accounts
       .iter()
       .for_each(|rec| {
-        res.push(rec.item_id.clone());
+        res.push(ItemIdResponse { item_id: rec.item_id.clone() });
       });
 
     Ok(res)

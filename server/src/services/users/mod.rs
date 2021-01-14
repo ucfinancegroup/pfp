@@ -1,6 +1,6 @@
 use crate::common::errors::ApiError;
 use crate::controllers::user_controller::{LoginPayload, SignupPayload};
-use crate::controllers::plaid_controller::{ItemIdResponse, AccountNewPayload};
+use crate::controllers::plaid_controller::{ItemIdResponse};
 use crate::models::{
   session_model,
   user_model::{PlaidItem, Snapshot, User},
@@ -9,7 +9,7 @@ use crate::services::{db, finchplaid::ApiClient, snapshots::SnapshotService};
 use actix_web::web::Data;
 use std::sync::{Arc, Mutex};
 use wither::{
-  mongodb::{bson::doc, Database, bson::oid::ObjectId},
+  mongodb::{bson::doc, Database},
   prelude::Migrating,
   Model,
 };
@@ -102,18 +102,16 @@ impl UserService {
     account_id: String,
     payload: PlaidItem,
     mut user: User,
-  ) -> Result<(), ApiError> {
+  ) -> Result<ItemIdResponse, ApiError> {
     
     let mut account: PlaidItem = payload.into();
-    account.item_id = account_id;
+    let id = account.item_id.clone();
 
-    let updated = user
-      .accounts
-      .iter_mut()
-      .find(|rec| rec.item_id == account.item_id)
+    user.accounts.iter_mut()
+      .find(|rec| rec.item_id == account_id)
       .ok_or(ApiError::new(
         400,
-        format!("No account with id {} found in current user", account.item_id),
+        format!("No account with id {} found in current user", account_id),
       ))
       .and_then(|rec| {
         *rec = account.clone();
@@ -122,7 +120,7 @@ impl UserService {
 
       user.save(&self.db, None).await
       .map_err(|_| ApiError::new(500, "Database Error".to_string()))
-      .and_then(|_| Ok(()))
+      .and_then(|_| Ok(ItemIdResponse { item_id: id }))
   }
 
   pub async fn get_accounts(
@@ -131,9 +129,8 @@ impl UserService {
   ) -> Result<Vec<ItemIdResponse>, ApiError> {
     
     let mut res: Vec<ItemIdResponse> = Vec::new();
-    user
-      .accounts
-      .iter()
+
+    user.accounts.iter()
       .for_each(|rec| {
         res.push(ItemIdResponse { item_id: rec.item_id.clone() });
       });
@@ -147,9 +144,7 @@ impl UserService {
     mut user: User,
   ) -> Result<(), ApiError> {
 
-    let removed = user
-      .accounts
-      .iter()
+    user.accounts.iter()
       .position(|rec| rec.item_id == account_id)
       .ok_or(ApiError::new(
         400,

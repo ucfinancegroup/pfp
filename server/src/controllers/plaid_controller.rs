@@ -7,7 +7,6 @@ use actix_web::{
   web::{Data, Path},
   HttpResponse,
 };
-use actix_web_validator::{Json, Validate};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
@@ -19,13 +18,6 @@ pub struct PublicTokenExchangeRequest {
 #[derive(Serialize)]
 pub struct ItemIdResponse {
   pub item_id: String,
-}
-
-// probably not right fields
-#[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct AccountNewPayload {
-  pub item_id: String,
-  pub access_token: String,
 }
 
 #[post("/plaid/link_token")]
@@ -128,8 +120,7 @@ pub async fn update_accounts(
     user_service: Data<UserService>,
 ) -> HttpResponse {
   let res = user_service.update_accounts(accounts_id.clone(), payload.into_inner(), user)
-    .await
-    .and_then(|_| Ok(ItemIdResponse { item_id: accounts_id }));
+    .await;
 
   crate::common::into_response_res(res)
 }

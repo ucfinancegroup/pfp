@@ -3,7 +3,7 @@ use crate::models::user_model::{PlaidItem, User};
 use crate::services::finchplaid::ApiClient;
 use crate::services::users::UserService;
 use actix_web::{
-  post, get, put,
+  post, get, put, delete,
   web::{Data, Path},
   HttpResponse,
 };
@@ -106,6 +106,18 @@ pub async fn get_accounts(
     crate::common::into_response(user.accounts)
 }
 
+#[delete("plaid/accounts/{id}")]
+pub async fn delete_accounts(
+  Path(accounts_id): Path<String>,
+  user: User,
+  user_service: Data<UserService>,
+) -> HttpResponse {
+  let res = user_service.delete_accounts(accounts_id.clone(), user)
+    .await
+    .and_then(|_| Ok(ItemIdResponse { item_id: accounts_id }));
+
+  crate::common::into_response_res(res)
+}
 
 #[put("/plaid/accounts/{id}")]
 pub async fn update_accounts(
@@ -126,4 +138,5 @@ pub fn init_routes(config: &mut actix_web::web::ServiceConfig) {
   config.service(access_token);
   config.service(get_accounts);
   config.service(update_accounts);
+  config.service(delete_accounts);
 }

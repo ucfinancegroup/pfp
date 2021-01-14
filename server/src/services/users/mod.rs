@@ -96,7 +96,6 @@ impl UserService {
     .map_err(|_| ApiError::new(500, "Database Error".to_string()))
     .and_then(|_| Ok(()))
   }
-
   
   pub async fn update_accounts(
     &self,
@@ -124,6 +123,30 @@ impl UserService {
       user.save(&self.db, None).await
       .map_err(|_| ApiError::new(500, "Database Error".to_string()))
       .and_then(|_| Ok(()))
+  }
+
+  pub async fn delete_accounts(
+    &self,
+    account_id: String,
+    mut user: User,
+  ) -> Result<(), ApiError> {
+
+    let removed = user
+      .accounts
+      .iter()
+      .position(|rec| rec.item_id == account_id)
+      .ok_or(ApiError::new(
+        400,
+        format!(
+          "No account with id {} found in current user",
+          account_id
+        ),
+      ))
+      .and_then(|pos| Ok(user.accounts.swap_remove(pos)))?;
+
+    user.save(&self.db, None).await
+    .map_err(|_| ApiError::new(500, "Database Error".to_string()))
+    .and_then(|_| Ok(()))
   }
 
   pub async fn get_snapshots(

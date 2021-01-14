@@ -102,8 +102,9 @@ async fn help_access_token(
 #[get("/plaid/accounts")]
 pub async fn get_accounts(
     user: User,
+    user_service: Data<UserService>,
 ) -> HttpResponse {
-    crate::common::into_response(user.accounts)
+    crate::common::into_response(user_service.get_accounts(user).await)
 }
 
 #[delete("plaid/accounts/{id}")]

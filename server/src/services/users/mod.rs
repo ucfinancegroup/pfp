@@ -125,6 +125,22 @@ impl UserService {
       .and_then(|_| Ok(()))
   }
 
+  pub async fn get_accounts(
+    &self,
+    user: User,
+  ) -> Result<Vec<String>, ApiError> {
+
+    let mut res: Vec<String> = Vec::new();
+    user
+      .accounts
+      .iter()
+      .for_each(|rec| {
+        res.push(rec.item_id.clone());
+      });
+
+    Ok(res)
+  }
+
   pub async fn delete_accounts(
     &self,
     account_id: String,

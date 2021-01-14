@@ -94,7 +94,7 @@ pub mod SnapshotService {
     )
   }
 
-  async fn get_net_worth(
+  pub async fn get_net_worth(
     item: &PlaidItem,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<f64, ApiError> {
@@ -152,7 +152,7 @@ pub mod SnapshotService {
     .map_err(|_| ApiError::new(500, "Error while getting transactions".to_string()))
   }
 
-  async fn get_item_accounts_for_new_snapshot(
+  pub async fn get_item_accounts_for_new_snapshot(
     item: &PlaidItem,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<RetrieveAnItemsAccountsResponse, ApiError> {

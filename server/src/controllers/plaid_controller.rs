@@ -20,6 +20,12 @@ pub struct ItemIdResponse {
   pub item_id: String,
 }
 
+#[derive(Serialize)]
+pub struct AccountResponse {
+  pub item_id: String,
+  pub balance: f64,
+}
+
 #[post("/plaid/link_token")]
 async fn link_token(plaid_client: Data<Arc<Mutex<ApiClient>>>, user: User) -> HttpResponse {
   let pc = plaid_client.lock().unwrap();
@@ -95,8 +101,9 @@ async fn help_access_token(
 pub async fn get_accounts(
     user: User,
     user_service: Data<UserService>,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> HttpResponse {
-    crate::common::into_response_res(user_service.get_accounts(user).await)
+    crate::common::into_response_res(user_service.get_accounts(user, plaid_client).await)
 }
 
 #[delete("plaid/accounts/{id}")]

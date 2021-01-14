@@ -1,6 +1,6 @@
 use crate::common::errors::ApiError;
 use crate::controllers::user_controller::{LoginPayload, SignupPayload};
-use crate::controllers::plaid_controller::{ItemIdResponse};
+use crate::controllers::plaid_controller::{ItemIdResponse, AccountResponse};
 use crate::models::{
   session_model,
   user_model::{PlaidItem, Snapshot, User},
@@ -126,15 +126,20 @@ impl UserService {
   pub async fn get_accounts(
     &self,
     user: User,
-  ) -> Result<Vec<ItemIdResponse>, ApiError> {
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+  ) -> Result<Vec<AccountResponse>, ApiError> {
     
-    let mut res: Vec<ItemIdResponse> = Vec::new();
-
+    let mut res: Vec<AccountResponse> = Vec::new();
+    for item in user.accounts.iter() {
+      let balance: f64 = SnapshotService::get_net_worth(item, plaid_client.clone()).await?;
+      res.push(AccountResponse { item_id: item.item_id.clone(), balance:  balance});
+    }
+    /*
     user.accounts.iter()
       .for_each(|rec| {
         res.push(ItemIdResponse { item_id: rec.item_id.clone() });
       });
-
+      */
     Ok(res)
   }
 

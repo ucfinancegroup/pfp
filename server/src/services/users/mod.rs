@@ -9,7 +9,7 @@ use crate::services::{db, finchplaid::ApiClient, snapshots::SnapshotService};
 use actix_web::web::Data;
 use std::sync::{Arc, Mutex};
 use wither::{
-  mongodb::{bson::doc, Database},
+  mongodb::{bson::doc, Database, bson::oid::ObjectId},
   prelude::Migrating,
   Model,
 };
@@ -97,14 +97,34 @@ impl UserService {
     .and_then(|_| Ok(()))
   }
 
-  /*
+  
   pub async fn update_accounts(
+    &self,
     account_id: String,
-    payload: AccountNewPayload,
+    payload: PlaidItem,
     mut user: User,
-  ) -> Result<ItemIdResponse, ApiError> {
+  ) -> Result<(), ApiError> {
     
-  }*/
+    let mut account: PlaidItem = payload.into();
+    account.item_id = account_id;
+
+    let updated = user
+      .accounts
+      .iter_mut()
+      .find(|rec| rec.item_id == account.item_id)
+      .ok_or(ApiError::new(
+        400,
+        format!("No account with id {} found in current user", account.item_id),
+      ))
+      .and_then(|rec| {
+        *rec = account.clone();
+        Ok(account)
+      })?;
+
+      user.save(&self.db, None).await
+      .map_err(|_| ApiError::new(500, "Database Error".to_string()))
+      .and_then(|_| Ok(()))
+  }
 
   pub async fn get_snapshots(
     &self,

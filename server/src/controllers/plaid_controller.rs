@@ -1,5 +1,5 @@
 use crate::common::errors::ApiError;
-use crate::models::user_model::User;
+use crate::models::user_model::{PlaidItem, User};
 use crate::services::finchplaid::ApiClient;
 use crate::services::users::UserService;
 use actix_web::{
@@ -22,10 +22,10 @@ pub struct ItemIdResponse {
 }
 
 // probably not right fields
-#[derive(Validate, Deserialize)]
+#[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AccountNewPayload {
-  pub access_token: String,
   pub item_id: String,
+  pub access_token: String,
 }
 
 #[post("/plaid/link_token")]
@@ -106,19 +106,24 @@ pub async fn get_accounts(
     crate::common::into_response(user.accounts)
 }
 
-/*
+
 #[put("/plaid/accounts/{id}")]
 pub async fn update_accounts(
+    Path(accounts_id): Path<String>,
+    payload: actix_web::web::Json<PlaidItem>,
     user: User,
     user_service: Data<UserService>,
-    id: Path<String>,
-    payload: Json<AccountNewPayload>,
 ) -> HttpResponse {
-    crate::common::into_response_res(user_service.update_accounts(user, id.into_inner(), payload.into_inner()).await)
-}*/
+  let res = user_service.update_accounts(accounts_id.clone(), payload.into_inner(), user)
+    .await
+    .and_then(|_| Ok(ItemIdResponse { item_id: accounts_id }));
+
+  crate::common::into_response_res(res)
+}
 
 pub fn init_routes(config: &mut actix_web::web::ServiceConfig) {
   config.service(link_token);
   config.service(access_token);
   config.service(get_accounts);
+  config.service(update_accounts);
 }

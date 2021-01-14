@@ -104,7 +104,7 @@ impl UserService {
     mut user: User,
   ) -> Result<ItemIdResponse, ApiError> {
     
-    let mut account: PlaidItem = payload.into();
+    let account: PlaidItem = payload.into();
     let id = account.item_id.clone();
 
     user.accounts.iter_mut()

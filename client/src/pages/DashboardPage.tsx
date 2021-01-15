@@ -4,6 +4,7 @@ import PlaidLink from "../components/accounts/PlaidLink";
 import {PlaidService} from "../services/PlaidService";
 import {RecurringList} from "../components/recurring/RecurringList";
 import {Redirect} from "react-router-dom";
+import {PlanChart} from "../components/chart/PlanChart";
 
 /**
  * The logged in user default page
@@ -28,7 +29,7 @@ export default function DashboardPage() {
         }
         <h1>Dashboard</h1>
         <div className="box">
-            <h3>Chart Goes Here</h3>
+            <PlanChart/>
         </div>
     </>;
 }

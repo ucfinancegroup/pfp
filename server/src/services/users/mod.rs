@@ -42,6 +42,7 @@ impl UserService {
       first_name: data.first_name,
       last_name: data.last_name,
       income: data.income,
+      location: data.location,
       accounts: vec![],
       snapshots: vec![],
       recurrings: vec![],
@@ -96,6 +97,9 @@ impl UserService {
     }
     if let Some(income) = data.income {
       user.income = income;
+    }
+    if let Some(location) = data.location {
+      user.location = location;
     }
 
     user.save(&self.db, None).await.map_or_else(

@@ -6,6 +6,7 @@ use actix_web::{
   dev::Payload, error::ErrorServiceUnavailable, error::ErrorUnauthorized, web::Data, Error,
   FromRequest, HttpRequest,
 };
+use actix_web_validator::Validate;
 use argon2::{self, Config};
 use futures::future::Future;
 use rand::Rng;
@@ -22,6 +23,7 @@ pub struct User {
   pub first_name: String,
   pub last_name: String,
   pub income: f64,
+  pub location: Location,
   pub accounts: Vec<PlaidItem>,
   pub snapshots: Vec<Snapshot>,
   pub recurrings: Vec<Recurring>,
@@ -43,6 +45,25 @@ pub struct Snapshot {
   pub running_income: Money,
 
   pub snapshot_time: i64,
+}
+
+#[derive(Validate, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct Location {
+  pub has_location: bool,
+  #[validate(range(min = -90.0, max = 90.0))]
+  pub lat: f64,
+  #[validate(range(min = -180.0, max = 180.0))]
+  pub lon: f64,
+}
+
+impl Default for Location {
+  fn default() -> Location {
+    Location {
+      has_location: false,
+      lat: 0.0,
+      lon: 0.0,
+    }
+  }
 }
 
 impl User {
@@ -119,6 +140,14 @@ impl Migrating for User {
         set: Some(doc! {"goals": wither::mongodb::bson::to_bson(&Vec::<Goal>::new()).unwrap()}),
         unset: None,
       }),
+      Box::new(wither::IntervalMigration {
+        name: "add location field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"location": doc!{"$exists": false}},
+        set: Some(doc! {"location": wither::mongodb::bson::to_bson(&Location::default()).unwrap()}),
+        unset: None,
+      }),
     ]
   }
 }
@@ -175,6 +204,7 @@ mod test {
       first_name: "first_name".to_string(),
       last_name: "last_name".to_string(),
       income: 0.0,
+      location: Location::default(),
       accounts: vec![],
       snapshots: vec![],
       recurrings: vec![],

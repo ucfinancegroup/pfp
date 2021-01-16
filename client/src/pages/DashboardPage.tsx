@@ -3,6 +3,8 @@ import {UserContext} from "../contexts/UserContext";
 import PlaidLink from "../components/accounts/PlaidLink";
 import {PlaidService} from "../services/PlaidService";
 import {RecurringList} from "../components/recurring/RecurringList";
+import {Redirect} from "react-router-dom";
+import {PlanChart} from "../components/chart/PlanChart";
 
 /**
  * The logged in user default page
@@ -22,11 +24,12 @@ export default function DashboardPage() {
     }
 
     return <>
-        <h1>Homepage</h1>
-        <RecurringList/>
-        <p>Is logged in: <strong>{isLoggedIn ? "Yes" : "No"}</strong></p>
-        {
-            isLoggedIn && plaidToken && <PlaidLink token={plaidToken}/>
+        {!isLoggedIn &&
+            <Redirect to="/"/>
         }
+        <h1>Dashboard</h1>
+        <div className="box">
+            <PlanChart/>
+        </div>
     </>;
 }

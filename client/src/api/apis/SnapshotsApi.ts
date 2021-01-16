@@ -18,6 +18,9 @@ import {
     ApiError,
     ApiErrorFromJSON,
     ApiErrorToJSON,
+    Snapshot,
+    SnapshotFromJSON,
+    SnapshotToJSON,
 } from '../models';
 
 /**
@@ -28,7 +31,7 @@ export class SnapshotsApi extends runtime.BaseAPI {
     /**
      * Get all a user\'s snapshots
      */
-    async getSnapshotsRaw(): Promise<runtime.ApiResponse<object>> {
+    async getSnapshotsRaw(): Promise<runtime.ApiResponse<Snapshot>> {
         const queryParameters: runtime.HTTPQuery = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -40,13 +43,13 @@ export class SnapshotsApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse<any>(response);
+        return new runtime.JSONApiResponse(response, (jsonValue) => SnapshotFromJSON(jsonValue));
     }
 
     /**
      * Get all a user\'s snapshots
      */
-    async getSnapshots(): Promise<object> {
+    async getSnapshots(): Promise<Snapshot> {
         const response = await this.getSnapshotsRaw();
         return await response.value();
     }

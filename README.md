@@ -10,12 +10,24 @@ For Development, in the root of the repo run:
 $ sudo docker-compose -f docker-compose.yml up --build
 ```
 
-This builds dev containers. The rust container watches for changes and does not need to be rebuild while up.
+This builds dev containers. The rust container watches for changes and does not need to be rebuilt while up.
 
 To clean up the docker stuff when you're done:
 
 ```
 $ sudo docker-compose -f docker-compose.yml down
+```
+
+## Development
+The development frontend client is hosted on https://localhost:8888, which is proxied through Nginx.
+
+To test API routes on a local development server, omit the /api/ in the route address. /api/ will need to be included when accessing the deployed dev server.
+
+When testing Plaid in Sandbox mode, use the following credentials when logging into institutions:
+```
+username: user_good
+password: pass_good
+pin: credential_good (when required)
 ```
 
 ## Environment Variables

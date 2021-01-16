@@ -16,7 +16,6 @@ use wither::{
 
 use plaid::models::{
     Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse,
-    RetrieveTransactionsRequest, RetrieveTransactionsResponse, Transaction,
 };
 
 #[derive(Clone)]
@@ -136,15 +135,13 @@ impl UserService {
     
     let mut res: Vec<AccountResponse> = Vec::new();
     for item in user.accounts.iter() {
-      let balance: f64 = get_net_worth(item, plaid_client.clone()).await?;
-      res.push(AccountResponse { item_id: item.item_id.clone(), balance:  balance});
+      
+      let balance = match crate::common::get_net_worth(item, plaid_client.clone()).await {
+        Ok(num) => res.push(AccountResponse { item_id: item.item_id.clone(), balance:  Some(num), error: None}),
+        Err(e) => res.push(AccountResponse { item_id: item.item_id.clone(), balance: None, error:  Some(e), }),
+      };
+
     }
-    /*
-    user.accounts.iter()
-      .for_each(|rec| {
-        res.push(ItemIdResponse { item_id: rec.item_id.clone() });
-      });
-      */
     Ok(res)
   }
 
@@ -192,50 +189,4 @@ impl UserService {
       .await
       .map_err(|_| ApiError::new(500, "Database Error".to_string()))
   }
-}
-
-pub async fn get_net_worth(
-  item: &PlaidItem,
-  plaid_client: Data<Arc<Mutex<ApiClient>>>,
-) -> Result<f64, ApiError> {
-  let accounts = get_item_accounts_for_new_snapshot(item, plaid_client)
-    .await?
-    .accounts;
-
-  Ok(calculate_net_worth(&accounts))
-}
-
-pub fn calculate_net_worth(accounts: &Vec<Account>) -> f64 {
-  // map each account to a coefficient for each transaction.
-  let account_id_to_coeff =
-    crate::services::finchplaid::get_account_balance_coefficients(&accounts);
-
-  //  calculate "net worth" of the item's accounts.
-  accounts.iter().fold(0.0, |net, account: &Account| {
-    let contribution: f64 = (account.balances.current as f64)
-      * *account_id_to_coeff
-        .get(&account.account_id)
-        .or(Some(&0.0))
-        .unwrap();
-    net + contribution
-  })
-}
-
-pub async fn get_item_accounts_for_new_snapshot(
-  item: &PlaidItem,
-  plaid_client: Data<Arc<Mutex<ApiClient>>>,
-) -> Result<RetrieveAnItemsAccountsResponse, ApiError> {
-  let pc = plaid_client.lock().unwrap();
-  let config = &(pc.configuration);
-
-  plaid::apis::item_management_api::retrieve_an_items_accounts(
-    &config,
-    RetrieveAnItemsAccountsRequest::new(
-      pc.client_id.clone(),
-      pc.secret.clone(),
-      item.access_token.clone(),
-    ),
-  )
-  .await
-  .map_err(|_| ApiError::new(500, "Error while getting accounts".to_string()))
 }

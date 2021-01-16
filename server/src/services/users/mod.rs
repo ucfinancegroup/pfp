@@ -1,5 +1,5 @@
 use crate::common::errors::ApiError;
-use crate::controllers::plaid_controller::{AccountResponse, ItemIdResponse};
+use crate::controllers::plaid_controller::AccountResponse;
 use crate::controllers::user_controller::{LoginPayload, SignupPayload, UpdatePayload};
 use crate::models::{
   session_model,
@@ -7,6 +7,7 @@ use crate::models::{
 };
 use crate::services::{db, finchplaid::ApiClient, snapshots::SnapshotService};
 use actix_web::web::Data;
+use serde_json::{json, Map, Value};
 use std::sync::{Arc, Mutex};
 use wither::{
   mongodb::{bson::doc, Database},
@@ -127,15 +128,19 @@ impl UserService {
     &self,
     user: User,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
-  ) -> Result<Vec<AccountResponse>, ApiError> {
-    let mut res: Vec<AccountResponse> = Vec::new();
+  ) -> Result<Map<String, Value>, ApiError> {
+    let mut res = Map::new();
+
     for item in user.accounts.iter() {
       match crate::services::finchplaid::get_net_worth(item, plaid_client.clone()).await {
-        Ok(num) => res.push(AccountResponse {
-          item_id: item.item_id.clone(),
-          balance: num,
-        }),
-        Err(_) => continue,
+        Ok(num) => res.insert(
+          item.item_id.clone(),
+          json!(AccountResponse {
+            item_id: item.item_id.clone(),
+            balance: num,
+          }),
+        ),
+        Err(e) => res.insert(item.item_id.clone(), json!(e)),
       };
     }
     Ok(res)

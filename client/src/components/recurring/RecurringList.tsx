@@ -136,22 +136,25 @@ export function RecurringList(props: RecurringListProps) {
                 {error}
             </div>
         }
-        <div className="alert alert-primary" role="alert">
-            Finch predicts your finances using your connected bank account, as well as income and expenses that you enter.
-        </div>
-        <div className="d-grid gap-4 d-md-block mb-4">
-
-            {' '}
-
-        </div>
         <div>
             {
                 <>
-                  <h3>Expenses</h3>
-                  <button type="button" className="btn btn-danger mb-2" onClick={() => addExpense()}>Add Expense</button>
+                    <div className="d-flex justify-content-between">
+                        <h3>Expenses</h3>
+                        <button type="button" className="btn btn-primary mb-2" onClick={() => addExpense()}>
+                            <i className="fa fa-plus"/>
+                            Add Expense</button>
+                    </div>
+
                     {renderTable(expenses)}
-                  <h3 className="mt-4">Income</h3>
-                  <button type="button" className="btn btn-success mb-2" onClick={() => addIncome()}>Add Income</button>
+
+                    <div className="d-flex justify-content-between mt-4">
+                      <h3>Income</h3>
+                      <button type="button" className="btn btn-primary mb-2" onClick={() => addIncome()}>
+                          <i className="fa fa-plus"/>
+                          Add Income</button>
+                    </div>
+
                     {renderTable(incomes)}
                 </>
             }

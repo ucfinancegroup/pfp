@@ -3,6 +3,10 @@ import Nav from "react-bootstrap/Nav";
 import React, {useContext} from "react";
 import {UserContext} from "../contexts/UserContext";
 import Cookies from "js-cookie";
+import Container from "react-bootstrap/Container";
+import styles from "./Header.module.scss";
+import classNames from "classnames";
+const cx = classNames.bind(styles);
 
 export default function Header() {
     const {isLoggedIn, setIsLoggedIn} = useContext(UserContext);
@@ -13,19 +17,36 @@ export default function Header() {
     }
 
     return <header>
-        <Navbar bg="dark" variant="dark">
-            <Navbar.Brand href="/">Finch App</Navbar.Brand>
-            <Navbar.Collapse className="justify-content-end">
-                {!isLoggedIn && <>
-                  <Nav.Link href="/login">Log In</Nav.Link>
-                  <Nav.Link className="btn btn-primary" href="/register">Get Started</Nav.Link>
-                </>
+        <Navbar expand="lg" bg="dark" variant="dark">
+            <Container>
+                <Navbar.Brand href="/">
+                    <img
+                        alt=""
+                        src="/logo.png"
+                        className={cx(styles.logo, "d-inline-block", "align-top")}
+                    />
+                    Finch
+                </Navbar.Brand>
+                {isLoggedIn &&
+                <Navbar.Collapse>
+                      <Nav.Link href="/dashboard">Dashboard</Nav.Link>
+                      <Nav.Link href="/goals">Goals</Nav.Link>
+                      <Nav.Link href="/leaderboard">Leaderboards</Nav.Link>
+                </Navbar.Collapse>
                 }
-                {isLoggedIn && <>
-                  <Nav.Link onClick={() => logout()}>Logout</Nav.Link>
-                </>
-                }
-            </Navbar.Collapse>
+                <Navbar.Collapse className="justify-content-end">
+                    {!isLoggedIn && <>
+                      <Nav.Link href="/login">Log In</Nav.Link>
+                      <Nav.Link className="btn btn-primary" href="/register">Get Started</Nav.Link>
+                    </>
+                    }
+                    {isLoggedIn && <>
+                      <Nav.Link href="/account">Account</Nav.Link>
+                      <Nav.Link onClick={() => logout()}>Logout</Nav.Link>
+                    </>
+                    }
+                </Navbar.Collapse>
+            </Container>
         </Navbar>
     </header>
 }

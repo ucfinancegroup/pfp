@@ -267,7 +267,7 @@ mod tests {
       metric: GoalMetrics::Spending,
     };
 
-    let progress = GoalService::calculate_goal_progress(goal, vec![]).unwrap();
+    let progress = GoalService::calculate_goal_progress(goal, &vec![]).unwrap();
 
     // no snapshots should complete successfully and return _no_ progress
     assert_eq!(0.0 as f64, progress.progress);

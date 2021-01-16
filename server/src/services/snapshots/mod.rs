@@ -57,7 +57,7 @@ pub mod SnapshotService {
     let (money_in, money_out) = get_money_in_out(item, plaid_client.clone()).await?;
 
     // get net worth of items accounts
-    match crate::common::get_net_worth(item, plaid_client).await {
+    match crate::services::finchplaid::get_net_worth(item, plaid_client).await {
       Ok(num) => return Ok((money_in, money_out, num)),
       Err(e) => return Err(e),
     };
@@ -174,7 +174,7 @@ mod test {
     let transactions = load_test_data().unwrap();
     assert_eq!(
       -53501.318115234375 as f64,
-      crate::common::calculate_net_worth(&transactions.accounts)
+      crate::services::finchplaid::calculate_net_worth(&transactions.accounts)
     );
   }
 }

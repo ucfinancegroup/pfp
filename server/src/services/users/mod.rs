@@ -122,34 +122,6 @@ impl UserService {
     .map_err(|_| ApiError::new(500, "Database Error".to_string()))
     .and_then(|_| Ok(()))
   }
-  pub async fn update_accounts(
-    &self,
-    account_id: String,
-    payload: PlaidItem,
-    mut user: User,
-  ) -> Result<ItemIdResponse, ApiError> {
-    let account: PlaidItem = payload.into();
-    let id = account.item_id.clone();
-
-    user
-      .accounts
-      .iter_mut()
-      .find(|rec| rec.item_id == account_id)
-      .ok_or(ApiError::new(
-        400,
-        format!("No account with id {} found in current user", account_id),
-      ))
-      .and_then(|rec| {
-        *rec = account.clone();
-        Ok(account)
-      })?;
-
-    user
-      .save(&self.db, None)
-      .await
-      .map_err(|_| ApiError::new(500, "Database Error".to_string()))
-      .and_then(|_| Ok(ItemIdResponse { item_id: id }))
-  }
 
   pub async fn get_accounts(
     &self,

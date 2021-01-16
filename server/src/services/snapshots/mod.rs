@@ -174,7 +174,7 @@ mod test {
     let transactions = load_test_data().unwrap();
     assert_eq!(
       -53501.318115234375 as f64,
-      SnapshotService::calculate_net_worth(&transactions.accounts)
+      crate::common::calculate_net_worth(&transactions.accounts)
     );
   }
 }

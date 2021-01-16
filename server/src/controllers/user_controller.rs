@@ -1,4 +1,4 @@
-use crate::models::user_model::User;
+use crate::models::user_model::{Location, User};
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
 use actix_web::{post, put, web::Data, HttpResponse};
@@ -17,6 +17,7 @@ pub struct SignupPayload {
   pub last_name: String,
   #[validate(range(min = 0))]
   pub income: f64,
+  pub location: Location,
 }
 
 #[derive(Serialize, PartialEq)]
@@ -25,6 +26,7 @@ struct SignupResponse {
   pub first_name: String,
   pub last_name: String,
   pub income: f64,
+  pub location: Location,
 }
 
 impl SignupResponse {
@@ -34,6 +36,7 @@ impl SignupResponse {
       first_name: u.first_name,
       last_name: u.last_name,
       income: u.income,
+      location: u.location,
     }
   }
 }
@@ -60,6 +63,7 @@ pub struct UpdatePayload {
   pub last_name: Option<String>,
   #[validate(range(min = 0))]
   pub income: Option<f64>,
+  pub location: Option<Location>,
 }
 
 type UpdateResponse = SignupResponse;
@@ -161,7 +165,8 @@ mod test {
         password: "fafdfdf".to_string(),
         first_name: "first name".to_string(),
         last_name: "last name".to_string(),
-        income: 1000 as f64
+        income: 1000 as f64,
+        location: Location::default(),
       }
       .validate()
     );
@@ -172,7 +177,8 @@ mod test {
       password: "fadfdfda".to_string(),
       first_name: "first name".to_string(),
       last_name: "last name".to_string(),
-      income: -1 as f64
+      income: -1 as f64,
+      location: Location::default(),
     }
     .validate()
     .is_err());
@@ -183,7 +189,8 @@ mod test {
       password: "".to_string(),
       first_name: "first name".to_string(),
       last_name: "last name".to_string(),
-      income: 1000 as f64
+      income: 1000 as f64,
+      location: Location::default(),
     }
     .validate()
     .is_err());
@@ -194,7 +201,8 @@ mod test {
       password: "".to_string(),
       first_name: "first name".to_string(),
       last_name: "last name".to_string(),
-      income: 1000 as f64
+      income: 1000 as f64,
+      location: Location::default(),
     }
     .validate()
     .is_err());
@@ -205,7 +213,8 @@ mod test {
       password: "fadfdf".to_string(),
       first_name: "".to_string(),
       last_name: "".to_string(),
-      income: 1000 as f64
+      income: 1000 as f64,
+      location: Location::default(),
     }
     .validate()
     .is_err());

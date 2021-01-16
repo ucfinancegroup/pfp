@@ -5,9 +5,7 @@ pub mod SnapshotService {
   use crate::services::finchplaid::ApiClient;
   use actix_web::web::Data;
   use chrono::{Duration, Utc};
-  use plaid::models::{
-    RetrieveTransactionsRequest, RetrieveTransactionsResponse, Transaction,
-  };
+  use plaid::models::{RetrieveTransactionsRequest, RetrieveTransactionsResponse, Transaction};
   use std::sync::{Arc, Mutex};
 
   pub async fn add_new_snapshot(

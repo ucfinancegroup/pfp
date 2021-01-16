@@ -1,13 +1,9 @@
-use std::collections::HashMap;
-use crate::models::{
-  user_model::{PlaidItem},
-};
-use actix_web::web::Data;
-use std::sync::{Arc, Mutex};
 use crate::common::errors::ApiError;
-use plaid::models::{
-  Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse,
-};
+use crate::models::user_model::PlaidItem;
+use actix_web::web::Data;
+use plaid::models::{Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 pub struct ApiClient {
   pub client_id: String,
@@ -63,7 +59,7 @@ pub async fn get_net_worth(
   Ok(calculate_net_worth(&accounts))
 }
 
-fn calculate_net_worth(accounts: &Vec<Account>) -> f64 {
+pub fn calculate_net_worth(accounts: &Vec<Account>) -> f64 {
   // map each account to a coefficient for each transaction.
   let account_id_to_coeff =
     crate::services::finchplaid::get_account_balance_coefficients(&accounts);

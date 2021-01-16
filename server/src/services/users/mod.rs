@@ -1,5 +1,5 @@
 use crate::common::errors::ApiError;
-use crate::controllers::plaid_controller::{ItemIdResponse, AccountResponse};
+use crate::controllers::plaid_controller::{AccountResponse, ItemIdResponse};
 use crate::controllers::user_controller::{LoginPayload, SignupPayload, UpdatePayload};
 use crate::models::{
   session_model,
@@ -122,18 +122,18 @@ impl UserService {
     .map_err(|_| ApiError::new(500, "Database Error".to_string()))
     .and_then(|_| Ok(()))
   }
-  
   pub async fn update_accounts(
     &self,
     account_id: String,
     payload: PlaidItem,
     mut user: User,
   ) -> Result<ItemIdResponse, ApiError> {
-    
     let account: PlaidItem = payload.into();
     let id = account.item_id.clone();
 
-    user.accounts.iter_mut()
+    user
+      .accounts
+      .iter_mut()
       .find(|rec| rec.item_id == account_id)
       .ok_or(ApiError::new(
         400,
@@ -144,7 +144,9 @@ impl UserService {
         Ok(account)
       })?;
 
-      user.save(&self.db, None).await
+    user
+      .save(&self.db, None)
+      .await
       .map_err(|_| ApiError::new(500, "Database Error".to_string()))
       .and_then(|_| Ok(ItemIdResponse { item_id: id }))
   }
@@ -154,39 +156,35 @@ impl UserService {
     user: User,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<Vec<AccountResponse>, ApiError> {
-    
     let mut res: Vec<AccountResponse> = Vec::new();
     for item in user.accounts.iter() {
-      
-      match crate::common::get_net_worth(item, plaid_client.clone()).await {
-        Ok(num) => res.push(AccountResponse { item_id: item.item_id.clone(), balance:  num}),
+      match crate::services::finchplaid::get_net_worth(item, plaid_client.clone()).await {
+        Ok(num) => res.push(AccountResponse {
+          item_id: item.item_id.clone(),
+          balance: num,
+        }),
         Err(_) => continue,
       };
-
     }
     Ok(res)
   }
 
-  pub async fn delete_accounts(
-    &self,
-    account_id: String,
-    mut user: User,
-  ) -> Result<(), ApiError> {
-
-    user.accounts.iter()
+  pub async fn delete_account(&self, account_id: String, mut user: User) -> Result<(), ApiError> {
+    user
+      .accounts
+      .iter()
       .position(|rec| rec.item_id == account_id)
       .ok_or(ApiError::new(
         400,
-        format!(
-          "No account with id {} found in current user",
-          account_id
-        ),
+        format!("No account with id {} found in current user", account_id),
       ))
       .and_then(|pos| Ok(user.accounts.swap_remove(pos)))?;
 
-    user.save(&self.db, None).await
-    .map_err(|_| ApiError::new(500, "Database Error".to_string()))
-    .and_then(|_| Ok(()))
+    user
+      .save(&self.db, None)
+      .await
+      .map_err(|_| ApiError::new(500, "Database Error".to_string()))
+      .and_then(|_| Ok(()))
   }
 
   pub async fn get_snapshots(

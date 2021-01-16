@@ -3,7 +3,7 @@ use crate::models::user_model::{PlaidItem, User};
 use crate::services::finchplaid::ApiClient;
 use crate::services::users::UserService;
 use actix_web::{
-  post, get, put, delete,
+  delete, get, post, put,
   web::{Data, Path},
   HttpResponse,
 };
@@ -99,34 +99,40 @@ async fn help_access_token(
 
 #[get("/plaid/accounts")]
 pub async fn get_accounts(
-    user: User,
-    user_service: Data<UserService>,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+  user: User,
+  user_service: Data<UserService>,
+  plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> HttpResponse {
-    crate::common::into_response_res(user_service.get_accounts(user, plaid_client).await)
+  crate::common::into_response_res(user_service.get_accounts(user, plaid_client).await)
 }
 
 #[delete("plaid/accounts/{id}")]
-pub async fn delete_accounts(
+pub async fn delete_account(
   Path(accounts_id): Path<String>,
   user: User,
   user_service: Data<UserService>,
 ) -> HttpResponse {
-  let res = user_service.delete_accounts(accounts_id.clone(), user)
+  let res = user_service
+    .delete_account(accounts_id.clone(), user)
     .await
-    .and_then(|_| Ok(ItemIdResponse { item_id: accounts_id }));
+    .and_then(|_| {
+      Ok(ItemIdResponse {
+        item_id: accounts_id,
+      })
+    });
 
   crate::common::into_response_res(res)
 }
 
 #[put("/plaid/accounts/{id}")]
 pub async fn update_accounts(
-    Path(accounts_id): Path<String>,
-    payload: actix_web::web::Json<PlaidItem>,
-    user: User,
-    user_service: Data<UserService>,
+  Path(accounts_id): Path<String>,
+  payload: actix_web::web::Json<PlaidItem>,
+  user: User,
+  user_service: Data<UserService>,
 ) -> HttpResponse {
-  let res = user_service.update_accounts(accounts_id.clone(), payload.into_inner(), user)
+  let res = user_service
+    .update_accounts(accounts_id.clone(), payload.into_inner(), user)
     .await;
 
   crate::common::into_response_res(res)
@@ -137,5 +143,5 @@ pub fn init_routes(config: &mut actix_web::web::ServiceConfig) {
   config.service(access_token);
   config.service(get_accounts);
   config.service(update_accounts);
-  config.service(delete_accounts);
+  config.service(delete_account);
 }

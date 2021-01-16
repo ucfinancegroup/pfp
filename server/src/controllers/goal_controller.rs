@@ -60,7 +60,7 @@ pub async fn new_goal(
 
 #[get("/goals")]
 pub async fn get_goals(user: User) -> HttpResponse {
-  crate::common::into_response(user.goals)
+  crate::common::into_response_res(GoalService::get_all_goals(user).await)
 }
 
 #[get("/goal/{id}")]

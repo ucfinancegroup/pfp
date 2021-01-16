@@ -12,7 +12,7 @@ pub mod GoalService {
 
   pub fn calculate_goal_progress(
     goal: Goal,
-    snapshots: Vec<Snapshot>,
+    snapshots: &Vec<Snapshot>,
   ) -> Result<GoalAndStatus, ApiError> {
     let last_before_start = snapshots.iter().fold(Snapshot::default(), |acc, cur| {
       if cur.snapshot_time < goal.start {
@@ -57,7 +57,15 @@ pub mod GoalService {
 
   pub async fn get_goal(goal_id: String, user: User) -> Result<GoalAndStatus, ApiError> {
     let goal = retrieve_goal(goal_id, user.goals)?;
-    calculate_goal_progress(goal, user.snapshots)
+    calculate_goal_progress(goal, &user.snapshots)
+  }
+
+  pub async fn get_all_goals(user: User) -> Result<Vec<GoalAndStatus>, ApiError> {
+    user
+      .goals
+      .iter()
+      .map(|goal| calculate_goal_progress(goal.clone(), &user.snapshots))
+      .collect::<Result<Vec<GoalAndStatus>, ApiError>>()
   }
 
   pub fn retrieve_goal(goal_id: String, goals: Vec<Goal>) -> Result<Goal, ApiError> {
@@ -86,7 +94,7 @@ pub mod GoalService {
 
     user_service.save(&mut user).await?;
 
-    calculate_goal_progress(goal, user.snapshots)
+    calculate_goal_progress(goal, &user.snapshots)
   }
 
   pub async fn update_goal(
@@ -118,7 +126,7 @@ pub mod GoalService {
 
     user_service.save(&mut user).await?;
 
-    calculate_goal_progress(updated, user.snapshots)
+    calculate_goal_progress(updated, &user.snapshots)
   }
 
   pub async fn delete_goal(
@@ -143,7 +151,7 @@ pub mod GoalService {
 
     user_service.save(&mut user).await?;
 
-    calculate_goal_progress(removed, user.snapshots)
+    calculate_goal_progress(removed, &user.snapshots)
   }
 }
 
@@ -217,7 +225,7 @@ mod tests {
       },
     ];
 
-    let progress = GoalService::calculate_goal_progress(saving_goal, snapshots.clone()).unwrap();
+    let progress = GoalService::calculate_goal_progress(saving_goal, &snapshots).unwrap();
 
     assert_eq!(0.5 as f64, progress.progress);
 
@@ -230,7 +238,7 @@ mod tests {
       metric: GoalMetrics::Spending,
     };
 
-    let progress2 = GoalService::calculate_goal_progress(spending_goal, snapshots.clone()).unwrap();
+    let progress2 = GoalService::calculate_goal_progress(spending_goal, &snapshots).unwrap();
 
     assert_eq!(0.1 as f64, progress2.progress);
 
@@ -243,9 +251,25 @@ mod tests {
       metric: GoalMetrics::Spending,
     };
 
-    let progress3 =
-      GoalService::calculate_goal_progress(spending_goal2, snapshots.clone()).unwrap();
+    let progress3 = GoalService::calculate_goal_progress(spending_goal2, &snapshots).unwrap();
 
     assert_eq!(2.1 as f64, progress3.progress);
+  }
+
+  #[test]
+  fn test_calculate_progress_no_snapshots() {
+    let goal = Goal {
+      id: None,
+      name: "Spend under 100 Dollars".to_string(),
+      start: 6,
+      end: 12,
+      threshold: -10000, // dollars times 100
+      metric: GoalMetrics::Spending,
+    };
+
+    let progress = GoalService::calculate_goal_progress(goal, vec![]).unwrap();
+
+    // no snapshots should complete successfully and return _no_ progress
+    assert_eq!(0.0 as f64, progress.progress);
   }
 }

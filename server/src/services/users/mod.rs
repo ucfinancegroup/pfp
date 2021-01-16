@@ -14,10 +14,6 @@ use wither::{
   Model,
 };
 
-use plaid::models::{
-    Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse,
-};
-
 #[derive(Clone)]
 pub struct UserService {
   db: Database,
@@ -136,9 +132,9 @@ impl UserService {
     let mut res: Vec<AccountResponse> = Vec::new();
     for item in user.accounts.iter() {
       
-      let balance = match crate::common::get_net_worth(item, plaid_client.clone()).await {
-        Ok(num) => res.push(AccountResponse { item_id: item.item_id.clone(), balance:  Some(num), error: None}),
-        Err(e) => res.push(AccountResponse { item_id: item.item_id.clone(), balance: None, error:  Some(e), }),
+      match crate::common::get_net_worth(item, plaid_client.clone()).await {
+        Ok(num) => res.push(AccountResponse { item_id: item.item_id.clone(), balance:  num}),
+        Err(_) => continue,
       };
 
     }

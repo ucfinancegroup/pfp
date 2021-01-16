@@ -23,8 +23,7 @@ pub struct ItemIdResponse {
 #[derive(Serialize)]
 pub struct AccountResponse {
   pub item_id: String,
-  pub balance: Option<f64>,
-  pub error: Option<ApiError>,
+  pub balance: f64,
 }
 
 #[post("/plaid/link_token")]

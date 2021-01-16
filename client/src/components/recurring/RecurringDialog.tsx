@@ -28,7 +28,7 @@ const RecurringSchema = Yup.object().shape({
     end: Yup.string().required(),
     principal: Yup.number(),
     interest: Yup.number(),
-    amount: Yup.number().required(),
+    amount: Yup.number(),
     frequency: Yup.object().shape({
         typ: Yup.string().required(),
         content: Yup.number().required(),
@@ -52,8 +52,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
     const [error, setError] = useState<string>();
     const [examples, setExamples] = useState<RecurringNewPayload[]>();
     const [initialValues, setInitialValues] = useState<RecurringNewPayload>(props.editing ?? initialForm as any);
-    const [enablePricipal, setEnablePricipal] = useState<boolean>(false);
-    const [enableInterest, setEnableInterest] = useState<boolean>(false);
+    const [isCompounding, setIsCompounding] = useState<boolean>(false);
 
     useEffect(() => {
         getExamples();
@@ -66,10 +65,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
             copy.start = msToDateString(copy.start) as any;
 
             copy.end = msToDateString(copy.end) as any;
-            if (copy.principal !== 0)
-                setEnablePricipal(true);
-            if (copy.interest !== 0)
-                setEnableInterest(true);
+            setIsCompounding(copy.principal !== 0 || copy.interest !== 0);
             setInitialValues(copy)
         }
     }, [props.editing]);
@@ -89,8 +85,19 @@ export function RecurringDialog(props: RecurringDialogProps) {
 
     async function submit(values: RecurringNewPayload) {
         setError(null);
-        if (props.mode === RecurringType.Expense)
+        if (props.mode === RecurringType.Expense) {
             values.amount *= -1;
+            values.principal *= -1;
+        }
+
+        // Reset properties that shouldn't be present depending if the fixed or compounding tab was selected.
+        if (isCompounding) {
+            values.amount = 0;
+        } else {
+            values.principal = 0;
+            values.interest = 0;
+        }
+
         values.start = new Date(values.start).getTime();
         values.end = new Date(values.end).getTime();
 
@@ -100,8 +107,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
 
     function reset() {
         setInitialValues(initialForm as any);
-        setEnableInterest(false);
-        setEnablePricipal(false);
+        setIsCompounding(false);
     }
 
     function close() {
@@ -121,6 +127,17 @@ export function RecurringDialog(props: RecurringDialogProps) {
         >
             {({errors, touched, values}) => (
                 <Form>
+
+                    <ul className="nav nav-tabs mb-2 mt-4">
+                        <li className="nav-item">
+                            <a className={cx("nav-link", {active: !isCompounding})} onClick={() => setIsCompounding(false)}>Fixed</a>
+                        </li>
+                        <li className="nav-item">
+                            <a className={cx("nav-link", {active: isCompounding})} onClick={() => setIsCompounding(true)}>Compounding</a>
+                        </li>
+                    </ul>
+
+
                     <div className="form-row">
                         <div className="col">
                             <div className="form-group">
@@ -132,15 +149,40 @@ export function RecurringDialog(props: RecurringDialogProps) {
                         </div>
                     </div>
 
-                    <div className="form-row">
-                        <div className="col">
-                            <div className="form-group">
-                                <label>$ Amount:</label>
-                                <Field name="amount" type="number"
-                                       className={cx("form-control", {"is-invalid": errors.amount && touched.amount})}/>
-                                <div className="invalid-feedback"><ErrorMessage name="amount"/></div>
+                    {isCompounding &&
+                        <div className="form-row">
+                            <div className="col">
+                              <div className="form-group">
+                                <label>Principal $:</label>
+                                <Field name="principal" type="number"
+                                       className={cx("form-control", {"is-invalid": errors.principal && touched.principal})}/>
+                                <small className="form-text text-muted">The starting amount</small>
+                                <div className="invalid-feedback"><ErrorMessage name="principal"/></div>
+                              </div>
+                            </div>
+                            <div className="col">
+                              <div className="form-group">
+                                <label>Interest %:</label>
+                                <Field name="interest" type="number"
+                                       className={cx("form-control", {"is-invalid": errors.interest && touched.interest})}/>
+                                <small className="form-text text-muted">The annual compound interest</small>
+                                <div className="invalid-feedback"><ErrorMessage name="interest"/></div>
+                              </div>
                             </div>
                         </div>
+                    }
+
+                    <div className="form-row">
+                        {!isCompounding &&
+                        <div className="col">
+                          <div className="form-group">
+                            <label>$ Amount:</label>
+                            <Field name="amount" type="number"
+                                   className={cx("form-control", {"is-invalid": errors.amount && touched.amount})}/>
+                            <div className="invalid-feedback"><ErrorMessage name="amount"/></div>
+                          </div>
+                        </div>
+                        }
                         <div className="col">
                             <div className="form-group">
                                 <label>times:</label>
@@ -183,47 +225,6 @@ export function RecurringDialog(props: RecurringDialogProps) {
                             </div>
                         </div>
                     </div>
-
-                    <div className="form-row">
-                        {enablePricipal &&
-                            <div className="col">
-                                <div className="form-group">
-                                    <label>Principal $:</label>
-                                    <Field name="principal" type="number"
-                                           className={cx("form-control", {"is-invalid": errors.principal && touched.principal})}/>
-                                    <small className="form-text text-muted">The starting amount</small>
-                                    <div className="invalid-feedback"><ErrorMessage name="principal"/></div>
-                                </div>
-                            </div>
-                        }
-                        {enableInterest &&
-                            <div className="col">
-                                <div className="form-group">
-                                    <label>Interest %:</label>
-                                    <Field name="interest" type="number"
-                                           className={cx("form-control", {"is-invalid": errors.interest && touched.interest})}/>
-                                    <small className="form-text text-muted">The annual compound interest</small>
-                                    <div className="invalid-feedback"><ErrorMessage name="interest"/></div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                    {(!enablePricipal || !enableInterest) &&
-                        <Dropdown>
-                            <Dropdown.Toggle id="dropdown-basic">
-                                Advanced
-                            </Dropdown.Toggle>
-
-                            <Dropdown.Menu>
-                                {!enablePricipal &&
-                                    <Dropdown.Item onClick={() => setEnablePricipal(true)}>Add Principal</Dropdown.Item>
-                                }
-                                {!enableInterest &&
-                                    <Dropdown.Item onClick={() => setEnableInterest(true)}>Add Interest</Dropdown.Item>
-                                }
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    }
 
                     <button className="btn btn-primary mt-4" type="submit" disabled={Object.keys(touched).length === 0 || Object.keys(errors).length !== 0}>
                         {props.editing ? "Save" : "Add"}

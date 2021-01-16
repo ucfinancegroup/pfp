@@ -115,7 +115,14 @@ export function RecurringList(props: RecurringListProps) {
             {
                 recurrings.map(r => <tr>
                     <td>{r.name}</td>
-                    <td>${Math.abs(r.amount)}</td>
+                    <td>
+                        {
+                            r.interest === 0&& Math.abs(r.amount)
+                        }
+                        {
+                            r.interest !== 0 && <>{r.principal} @ {Math.abs(r.interest)}%</>
+                        }
+                    </td>
                     <td>{getRecurringFrequencyName(r.frequency.content, r.frequency.typ)}</td>
                     <td>{formatDate(r.start)}</td>
                     <td>{formatDate(r.end)}</td>

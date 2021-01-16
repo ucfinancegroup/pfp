@@ -1,0 +1,40 @@
+.goal {
+  margin-bottom: 1em;
+
+  .goal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .goal__name {
+    font-size: 1.25em;
+  }
+
+  .goal__actions {
+    i {
+      cursor: pointer;
+      margin-left: 1em;
+
+      &:hover {
+        opacity: 0.75;
+      }
+    }
+  }
+
+  .goal__progress {
+    margin-top: 0.3em;
+    height: 15px;
+    background-color: #e2e2e2;
+    border-radius: 5px;
+    overflow: hidden;
+
+    .goal__bar {
+      height: 100%;
+      background-image: linear-gradient(to right,
+              #1fb08e 0%,
+              #5adec0 100%
+      );
+    }
+  }
+}

@@ -136,6 +136,9 @@ export function RecurringList(props: RecurringListProps) {
                 {error}
             </div>
         }
+        {
+            !recurrings && !error && <p>Loading...</p>
+        }
         <div>
             {
                 <>

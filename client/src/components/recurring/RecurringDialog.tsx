@@ -9,6 +9,7 @@ import * as Yup from "yup";
 import {ErrorMessage, Field, Form, Formik} from "formik";
 import Dropdown from "react-bootstrap/cjs/Dropdown";
 import {getRecurringType, msToDateString, recurringFrequencies} from "./RecurringHelpers";
+import {addDaysToToday, dateAsInputString} from "../../Helpers";
 
 const cx = classNames.bind(styles);
 
@@ -36,8 +37,8 @@ const RecurringSchema = Yup.object().shape({
 
 const initialForm = {
     name: "",
-    start: (new Date()).getTime(),
-    end:  (new Date()).getTime(),
+    start: dateAsInputString(new Date()),
+    end: dateAsInputString(addDaysToToday(30)),
     principal: 0,
     interest: 0,
     amount: 0,
@@ -50,7 +51,7 @@ const initialForm = {
 export function RecurringDialog(props: RecurringDialogProps) {
     const [error, setError] = useState<string>();
     const [examples, setExamples] = useState<RecurringNewPayload[]>();
-    const [initialValues, setInitialValues] = useState<RecurringNewPayload>(props.editing ?? initialForm);
+    const [initialValues, setInitialValues] = useState<RecurringNewPayload>(props.editing ?? initialForm as any);
     const [enablePricipal, setEnablePricipal] = useState<boolean>(false);
     const [enableInterest, setEnableInterest] = useState<boolean>(false);
 
@@ -75,6 +76,10 @@ export function RecurringDialog(props: RecurringDialogProps) {
 
     async function getExamples() {
         const examples = await recurringApi.getRecurringExamples();
+        for (let example of examples) {
+            example.start = initialForm.start as any;
+            example.end = initialForm.end as any;
+        }
         setExamples(examples);
     }
 
@@ -94,7 +99,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
     }
 
     function reset() {
-        setInitialValues(initialForm);
+        setInitialValues(initialForm as any);
         setEnableInterest(false);
         setEnablePricipal(false);
     }
@@ -148,7 +153,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
                             <div className="form-group">
                                 <label>per:</label>
                                 <Field as="select" name="frequency.typ"
-                                       className={cx("form-control", {"input--error": errors.frequency?.typ && touched.frequency?.typ})}>
+                                       className={cx("form-control", {"is-invalid": errors.frequency?.typ && touched.frequency?.typ})}>
                                     {
                                         recurringFrequencies.map(c => <option value={c.type} key={c.type}>{c.name}</option>)
                                     }

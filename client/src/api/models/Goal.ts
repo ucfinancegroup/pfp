@@ -14,14 +14,14 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    GoalMetric,
+    GoalMetricFromJSON,
+    GoalMetricFromJSONTyped,
+    GoalMetricToJSON,
     MongoObjectID,
     MongoObjectIDFromJSON,
     MongoObjectIDFromJSONTyped,
     MongoObjectIDToJSON,
-    TimePeriod,
-    TimePeriodFromJSON,
-    TimePeriodFromJSONTyped,
-    TimePeriodToJSON,
 } from './';
 
 /**
@@ -44,10 +44,16 @@ export interface Goal {
     name: string;
     /**
      * 
-     * @type {TimePeriod}
+     * @type {number}
      * @memberof Goal
      */
-    period: TimePeriod;
+    start: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof Goal
+     */
+    end: number;
     /**
      * 
      * @type {number}
@@ -56,22 +62,10 @@ export interface Goal {
     threshold: number;
     /**
      * 
-     * @type {string}
+     * @type {GoalMetric}
      * @memberof Goal
      */
-    goal_side: GoalGoalSideEnum;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof Goal
-     */
-    completed: boolean;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof Goal
-     */
-    feasible?: boolean;
+    metric: GoalMetric;
 }
 
 export function GoalFromJSON(json: any): Goal {
@@ -86,11 +80,10 @@ export function GoalFromJSONTyped(json: any, ignoreDiscriminator: boolean): Goal
         
         '_id': MongoObjectIDFromJSON(json['_id']),
         'name': json['name'],
-        'period': TimePeriodFromJSON(json['period']),
+        'start': json['start'],
+        'end': json['end'],
         'threshold': json['threshold'],
-        'goal_side': json['goal_side'],
-        'completed': json['completed'],
-        'feasible': !exists(json, 'feasible') ? undefined : json['feasible'],
+        'metric': GoalMetricFromJSON(json['metric']),
     };
 }
 
@@ -105,21 +98,11 @@ export function GoalToJSON(value?: Goal | null): any {
         
         '_id': MongoObjectIDToJSON(value._id),
         'name': value.name,
-        'period': TimePeriodToJSON(value.period),
+        'start': value.start,
+        'end': value.end,
         'threshold': value.threshold,
-        'goal_side': value.goal_side,
-        'completed': value.completed,
-        'feasible': value.feasible,
+        'metric': GoalMetricToJSON(value.metric),
     };
-}
-
-/**
-* @export
-* @enum {string}
-*/
-export enum GoalGoalSideEnum {
-    Above = 'above',
-    Below = 'below'
 }
 
 

@@ -238,3 +238,4 @@ mod test {
       UserService::delete(accounts.accounts[0].account_id, user)
     );
   }
+}

@@ -203,7 +203,7 @@ mod test {
   use plaid::models::RetrieveTransactionsResponse;
 
   fn load_test_data() -> Result<RetrieveTransactionsResponse, Box<dyn Error>> {
-    let file = File::open("./tests/test_accounts.json")?;
+    let file = File::open("./tests/test_snapshots.json")?;
     let reader = BufReader::new(file);
     let transactions = serde_json::from_reader(reader)?;
     Ok(transactions)
@@ -214,10 +214,10 @@ mod test {
     let accounts = load_test_data().unwrap();
 
     let to_delete = PlaidItem {
-      item_id: accounts.accounts[0].account_id,
+      item_id: accounts.accounts[0].account_id.clone(),
       access_token: String::from("12345"),
     };
-    let accounts_array: Vec<PlaidItem> = Vec::new();
+    let mut accounts_array: Vec<PlaidItem> = Vec::new();
     accounts_array.push(to_delete);
 
     let user = User {
@@ -233,9 +233,21 @@ mod test {
       goals: Vec::new(),
     };
 
-    assert_eq!(
-      "aA3vbXrKnzF96g1xgnkkFblbJlwkA5i7JBaLk" as &str,
-      UserService::delete(accounts.accounts[0].account_id, user)
-    );
+    let mut found = false;
+
+    let obj = match UserService::delete(accounts.accounts[0].account_id.clone(), user) {
+      Ok(new_user) => new_user,
+
+      Err(_) => return assert_eq!(false, true),
+    };
+
+    for account in obj.accounts.iter() {
+      if account.item_id.eq(&accounts.accounts[0].account_id) {
+        found = true;
+        break;
+      }
+    }
+
+    assert_eq!(false, found);
   }
 }

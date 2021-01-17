@@ -143,7 +143,18 @@ impl UserService {
     Ok(res)
   }
 
-  pub async fn delete_account(&self, account_id: String, mut user: User) -> Result<(), ApiError> {
+  pub async fn delete_account(&self, account_id: String, user: User) -> Result<(), ApiError> {
+    match UserService::delete(account_id, user) {
+      Ok(mut res) => res
+        .save(&self.db, None)
+        .await
+        .map_err(|_| ApiError::new(500, "Database Error".to_string()))
+        .and_then(|_| Ok(())),
+      Err(e) => Err(e),
+    }
+  }
+
+  pub fn delete(account_id: String, mut user: User) -> Result<User, ApiError> {
     user
       .accounts
       .iter()
@@ -154,11 +165,7 @@ impl UserService {
       ))
       .and_then(|pos| Ok(user.accounts.swap_remove(pos)))?;
 
-    user
-      .save(&self.db, None)
-      .await
-      .map_err(|_| ApiError::new(500, "Database Error".to_string()))
-      .and_then(|_| Ok(()))
+    return Ok(user);
   }
 
   pub async fn get_snapshots(
@@ -184,3 +191,50 @@ impl UserService {
       .map_err(|_| ApiError::new(500, "Database Error".to_string()))
   }
 }
+
+#[cfg(test)]
+mod test {
+  use super::*;
+
+  use std::error::Error;
+  use std::fs::File;
+  use std::io::BufReader;
+
+  use plaid::models::RetrieveTransactionsResponse;
+
+  fn load_test_data() -> Result<RetrieveTransactionsResponse, Box<dyn Error>> {
+    let file = File::open("./tests/test_accounts.json")?;
+    let reader = BufReader::new(file);
+    let transactions = serde_json::from_reader(reader)?;
+    Ok(transactions)
+  }
+
+  #[test]
+  fn test_delete_account() {
+    let accounts = load_test_data().unwrap();
+
+    let to_delete = PlaidItem {
+      item_id: accounts.accounts[0].account_id,
+      access_token: String::from("12345"),
+    };
+    let accounts_array: Vec<PlaidItem> = Vec::new();
+    accounts_array.push(to_delete);
+
+    let user = User {
+      id: None,
+      email: String::from("test@test.com"),
+      password: String::from("test@test.com"),
+      first_name: String::from("fn"),
+      last_name: String::from("ln"),
+      income: 0.0,
+      accounts: accounts_array,
+      snapshots: Vec::new(),
+      recurrings: Vec::new(),
+      goals: Vec::new(),
+    };
+
+    assert_eq!(
+      "aA3vbXrKnzF96g1xgnkkFblbJlwkA5i7JBaLk" as &str,
+      UserService::delete(accounts.accounts[0].account_id, user)
+    );
+  }

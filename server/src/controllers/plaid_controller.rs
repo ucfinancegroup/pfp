@@ -22,7 +22,6 @@ pub struct ItemIdResponse {
 
 #[derive(Serialize)]
 pub struct AccountResponse {
-  pub item_id: String,
   pub balance: f64,
 }
 

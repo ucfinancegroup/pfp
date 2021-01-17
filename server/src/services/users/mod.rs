@@ -135,10 +135,7 @@ impl UserService {
       match crate::services::finchplaid::get_net_worth(item, plaid_client.clone()).await {
         Ok(num) => res.insert(
           item.item_id.clone(),
-          json!(AccountResponse {
-            item_id: item.item_id.clone(),
-            balance: num,
-          }),
+          json!(AccountResponse { balance: num }),
         ),
         Err(e) => res.insert(item.item_id.clone(), json!(e)),
       };

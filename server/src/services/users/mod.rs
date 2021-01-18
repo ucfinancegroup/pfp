@@ -200,6 +200,7 @@ impl UserService {
 mod test {
   use super::*;
 
+  use crate::models::user_model::Location;
   use std::error::Error;
   use std::fs::File;
   use std::io::BufReader;
@@ -231,6 +232,9 @@ mod test {
       first_name: String::from("fn"),
       last_name: String::from("ln"),
       income: 0.0,
+      location: Location {
+        ..Default::default()
+      },
       accounts: accounts_array,
       snapshots: Vec::new(),
       recurrings: Vec::new(),

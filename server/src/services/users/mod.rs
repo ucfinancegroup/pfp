@@ -49,6 +49,7 @@ impl UserService {
       snapshots: vec![],
       recurrings: vec![],
       goals: vec![],
+      insights: vec![],
     };
 
     user.save(&self.db, None).await.map_or_else(
@@ -239,6 +240,7 @@ mod test {
       snapshots: Vec::new(),
       recurrings: Vec::new(),
       goals: Vec::new(),
+      insights: Vec::new(),
     };
 
     let mut found = false;

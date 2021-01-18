@@ -1304,22 +1304,25 @@ components:
     Insight:
       type: object
       required:
+        - _id
         - title
         - description
-        - typ
+        - insight_type
         - dismissed
       properties:
         title:
           type: string
         description:
           type: string
-        logo:
+        insight_type:
           type: string
-          format: url
-        typ:
-          type: string
+          enum:
+            [ProductRecommendation, Savings, Spending, Income, Goal, Incomplete]
         dismissed:
           type: boolean
+        imageURL:
+          type: string
+          nullable: true
 
     TimeSeries:
       description: "Daily values starting on some day."

@@ -5,10 +5,7 @@ pub mod SnapshotService {
   use crate::services::finchplaid::ApiClient;
   use actix_web::web::Data;
   use chrono::{Duration, Utc};
-  use plaid::models::{
-    Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse,
-    RetrieveTransactionsRequest, RetrieveTransactionsResponse, Transaction,
-  };
+  use plaid::models::{RetrieveTransactionsRequest, RetrieveTransactionsResponse, Transaction};
   use std::sync::{Arc, Mutex};
 
   pub async fn add_new_snapshot(
@@ -58,9 +55,10 @@ pub mod SnapshotService {
     let (money_in, money_out) = get_money_in_out(item, plaid_client.clone()).await?;
 
     // get net worth of items accounts
-    let net_worth: f64 = get_net_worth(item, plaid_client).await?;
-
-    Ok((money_in, money_out, net_worth))
+    match crate::services::finchplaid::get_net_worth(item, plaid_client).await {
+      Ok(num) => return Ok((money_in, money_out, num)),
+      Err(e) => return Err(e),
+    };
   }
 
   async fn get_money_in_out(
@@ -94,33 +92,6 @@ pub mod SnapshotService {
     )
   }
 
-  async fn get_net_worth(
-    item: &PlaidItem,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
-  ) -> Result<f64, ApiError> {
-    let accounts = get_item_accounts_for_new_snapshot(item, plaid_client)
-      .await?
-      .accounts;
-
-    Ok(calculate_net_worth(&accounts))
-  }
-
-  pub fn calculate_net_worth(accounts: &Vec<Account>) -> f64 {
-    // map each account to a coefficient for each transaction.
-    let account_id_to_coeff =
-      crate::services::finchplaid::get_account_balance_coefficients(&accounts);
-
-    //  calculate "net worth" of the item's accounts.
-    accounts.iter().fold(0.0, |net, account: &Account| {
-      let contribution: f64 = (account.balances.current as f64)
-        * *account_id_to_coeff
-          .get(&account.account_id)
-          .or(Some(&0.0))
-          .unwrap();
-      net + contribution
-    })
-  }
-
   async fn get_item_transactions_for_new_snapshot(
     item: &PlaidItem,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
@@ -150,25 +121,6 @@ pub mod SnapshotService {
     )
     .await
     .map_err(|_| ApiError::new(500, "Error while getting transactions".to_string()))
-  }
-
-  async fn get_item_accounts_for_new_snapshot(
-    item: &PlaidItem,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
-  ) -> Result<RetrieveAnItemsAccountsResponse, ApiError> {
-    let pc = plaid_client.lock().unwrap();
-    let config = &(pc.configuration);
-
-    plaid::apis::item_management_api::retrieve_an_items_accounts(
-      &config,
-      RetrieveAnItemsAccountsRequest::new(
-        pc.client_id.clone(),
-        pc.secret.clone(),
-        item.access_token.clone(),
-      ),
-    )
-    .await
-    .map_err(|_| ApiError::new(500, "Error while getting accounts".to_string()))
   }
 
   pub fn need_new_snapshot(snapshots: &Vec<Snapshot>) -> bool {
@@ -220,7 +172,7 @@ mod test {
     let transactions = load_test_data().unwrap();
     assert_eq!(
       -53501.318115234375 as f64,
-      SnapshotService::calculate_net_worth(&transactions.accounts)
+      crate::services::finchplaid::calculate_net_worth(&transactions.accounts)
     );
   }
 }

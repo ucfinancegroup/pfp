@@ -3,8 +3,8 @@ use crate::models::user_model::User;
 use crate::services::finchplaid::ApiClient;
 use crate::services::users::UserService;
 use actix_web::{
-  post,
-  web::{Data, Json},
+  delete, get, post,
+  web::{Data, Path},
   HttpResponse,
 };
 use serde::{Deserialize, Serialize};
@@ -18,6 +18,11 @@ pub struct PublicTokenExchangeRequest {
 #[derive(Serialize)]
 pub struct ItemIdResponse {
   pub item_id: String,
+}
+
+#[derive(Serialize)]
+pub struct AccountResponse {
+  pub balance: f64,
 }
 
 #[post("/plaid/link_token")]
@@ -46,7 +51,7 @@ async fn link_token(plaid_client: Data<Arc<Mutex<ApiClient>>>, user: User) -> Ht
 #[post("/plaid/public_token_exchange")]
 async fn access_token(
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
-  payload: Json<PublicTokenExchangeRequest>,
+  payload: actix_web::web::Json<PublicTokenExchangeRequest>,
   user: User,
   user_service: Data<UserService>,
 ) -> HttpResponse {
@@ -91,7 +96,36 @@ async fn help_access_token(
     .and_then(|_| Ok(ItemIdResponse { item_id: item_id }))
 }
 
+#[get("/plaid/accounts")]
+pub async fn get_accounts(
+  user: User,
+  user_service: Data<UserService>,
+  plaid_client: Data<Arc<Mutex<ApiClient>>>,
+) -> HttpResponse {
+  crate::common::into_response_res(user_service.get_accounts(user, plaid_client).await)
+}
+
+#[delete("plaid/accounts/{id}")]
+pub async fn delete_account(
+  Path(accounts_id): Path<String>,
+  user: User,
+  user_service: Data<UserService>,
+) -> HttpResponse {
+  let res = user_service
+    .delete_account(accounts_id.clone(), user)
+    .await
+    .and_then(|_| {
+      Ok(ItemIdResponse {
+        item_id: accounts_id,
+      })
+    });
+
+  crate::common::into_response_res(res)
+}
+
 pub fn init_routes(config: &mut actix_web::web::ServiceConfig) {
   config.service(link_token);
   config.service(access_token);
+  config.service(get_accounts);
+  config.service(delete_account);
 }

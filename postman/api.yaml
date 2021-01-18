@@ -777,6 +777,57 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /plaid/accounts:
+    get:
+      summary: "Get all of user's connected accounts"
+      operationId: getAccounts
+      tags:
+        - plaid
+      security:
+        - sidCookie: []
+      responses:
+        "200":
+          description: "Accounts response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Accounts"
+      default:
+        description: "Server error or validation error"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiError"
+
+  /plaid/accounts/{id}:
+    delete:
+      summary: "Delete account with given item_id"
+      operationId: deleteAccount
+      tags:
+        - plaid
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Item ID of the account to delete
+      responses:
+        "200":
+          description: "The account was deleted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemIdResponse"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 
   /snapshots:
     get:
@@ -898,6 +949,18 @@ components:
         device_url:
           type: string
           format: url
+
+    Accounts:
+      type: object
+      additionalProperties:
+        type: string
+        properties:
+          balance:
+            type: number
+          code:
+            type: string
+          message:
+            type: string
 
     UpdateUserRequest:
       type: object

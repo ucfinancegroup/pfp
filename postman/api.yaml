@@ -792,12 +792,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Accounts"
-      default:
-        description: "Server error or validation error"
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ApiError"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 
   /plaid/accounts/{id}:
     delete:

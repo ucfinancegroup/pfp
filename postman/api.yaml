@@ -1309,6 +1309,7 @@ components:
         - description
         - insight_type
         - dismissed
+        - generation_time
       properties:
         title:
           type: string
@@ -1320,6 +1321,9 @@ components:
             [ProductRecommendation, Savings, Spending, Income, Goal, Incomplete]
         dismissed:
           type: boolean
+        generation_time:
+          type: integer
+          format: int64
         imageURL:
           type: string
           nullable: true

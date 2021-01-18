@@ -20,6 +20,9 @@ pub struct Insight {
 
   #[serde(rename = "imageURL", skip_serializing_if = "Option::is_none")]
   pub image: Option<String>,
+
+  #[serde(rename = "generation_time")]
+  pub generation_time: i64,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

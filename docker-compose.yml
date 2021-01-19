@@ -14,17 +14,17 @@ services:
       - ./server:/app/dev
     secrets:
       - config.json
-  # pfp_service_insights:
-  #   image: pfp_server_insights
-  #   build:
-  #     context: ./server
-  #     dockerfile: Dockerfile.rust.dev
-  #     args:
-  #       bin: "service_insights"
-  #   volumes:
-  #     - ./server:/app/dev
-  #   secrets:
-  #     - config.json
+  pfp_service_insights:
+    image: pfp_server_insights
+    build:
+      context: ./server
+      dockerfile: Dockerfile.rust.dev
+      args:
+        bin: "service_insights"
+    volumes:
+      - ./server:/app/dev
+    secrets:
+      - config.json
   pfp_client:
     image: pfp_client_dev
     build:

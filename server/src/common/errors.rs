@@ -24,3 +24,19 @@ impl Into<HttpResponse> for ApiError {
     }
   }
 }
+
+pub struct AppError {
+  message: &'static str,
+}
+
+impl AppError {
+  pub fn new(message: &'static str) -> AppError {
+    AppError { message }
+  }
+}
+
+impl Into<ApiError> for AppError {
+  fn into(self) -> ApiError {
+    ApiError::new(500, self.message.to_string())
+  }
+}

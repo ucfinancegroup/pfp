@@ -47,6 +47,8 @@ pub mod InsightsService {
     }
   }
 
+  // Tries to get ONE user that is eligible for a new insight.
+  // Does an async sleep if no user is found, and then tries again (and again...)
   pub async fn get_user_needing_insight(db_service: &DatabaseService) -> Result<User, AppError> {
     loop {
       let one_day_ago = (Utc::now() - Duration::days(1)).timestamp();
@@ -76,50 +78,7 @@ pub mod InsightsService {
 
       println!("Got no user.");
 
-      let mut agg = User::collection(&db_service.db)
-        .aggregate(
-          vec![
-            doc! {
-              "$project": {
-                "last_insight": {
-                  "$arrayElemAt": bson!([
-                    "$insights",
-                    -1
-                  ])
-                }
-              }
-            },
-            doc! {
-              "$group": {
-                "_id": Null,
-                "earliest_last_insight_time": {
-                  "$min": "$last_insight.generation_time"
-                }
-              }
-            },
-          ],
-          None,
-        )
-        .await
-        .map_err(|_| AppError::new("Error during aggregation"))?;
-
-      let min_time: i64 = agg
-        .next()
-        .await
-        .ok_or(AppError::new("Bad aggregation"))?
-        .map_err(|_| AppError::new("Db Error"))
-        .and_then(|doc| {
-          doc
-            .get_i64("earliest_last_insight_time")
-            .map_err(|_| AppError::new(""))
-        })
-        .unwrap_or(Utc::now().timestamp());
-
-      // max with 30s just in case it's somehow otherwise negative sleep_time
-      // but that shouldn't happen because if at least one user hasnt had a new insight
-      // in over a day then we wouldnt reach this code...
-      let sleep_time =
-        (Duration::days(1).num_seconds() - (Utc::now().timestamp() - min_time)).max(30);
+      let sleep_time = calculate_wait_time(&db_service).await?;
 
       println!(
         "Trying to get user for Insight generation in {} seconds...",
@@ -140,11 +99,58 @@ pub mod InsightsService {
       None,
     ))
   }
+
+  // Determines how long to wait before checking again to see
+  // if any user is eligible for new insight
+  pub async fn calculate_wait_time(db_service: &DatabaseService) -> Result<i64, AppError> {
+    let mut agg = User::collection(&db_service.db)
+      .aggregate(
+        vec![
+          doc! {
+            "$project": {
+              "last_insight": {
+                "$arrayElemAt": bson!([
+                  "$insights",
+                  -1
+                ])
+              }
+            }
+          },
+          doc! {
+            "$group": {
+              "_id": Null,
+              "earliest_last_insight_time": {
+                "$min": "$last_insight.generation_time"
+              }
+            }
+          },
+        ],
+        None,
+      )
+      .await
+      .map_err(|_| AppError::new("Error during aggregation"))?;
+
+    let min_time: i64 = agg
+      .next()
+      .await
+      .ok_or(AppError::new("Bad aggregation"))?
+      .map_err(|_| AppError::new("Db Error"))
+      .and_then(|doc| {
+        doc
+          .get_i64("earliest_last_insight_time")
+          .map_err(|_| AppError::new("no i64 field earliest_last_insight_time"))
+      })
+      .unwrap_or(Utc::now().timestamp());
+
+    // max with 30s just in case it's somehow otherwise negative sleep_time
+    // but that shouldn't happen because if at least one user hasnt had a new insight
+    // in over a day then we wouldnt reach this code...
+    let sleep_time =
+      (Duration::days(1).num_seconds() - (Utc::now().timestamp() - min_time)).max(30);
+
+    Ok(sleep_time)
+  }
 }
 
 #[cfg(test)]
-mod tests {
-
-  #[test]
-  fn test_reee() {}
-}
+mod tests {}

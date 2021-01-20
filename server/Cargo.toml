@@ -25,6 +25,7 @@ plaid={git="https://github.com/ucfinancegroup/plaid"}
 serde_json = "*"
 wither = "0.9.0-alpha.2"
 chrono="*"
+async-std="*"
 
 [features]
 development = []

@@ -1,5 +1,5 @@
 use crate::common::{errors::ApiError, Money};
-use crate::models::{goal_model::Goal, recurring_model::Recurring};
+use crate::models::{goal_model::Goal, insight_model::Insight, recurring_model::Recurring};
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
 use actix_web::{
@@ -28,6 +28,7 @@ pub struct User {
   pub snapshots: Vec<Snapshot>,
   pub recurrings: Vec<Recurring>,
   pub goals: Vec<Goal>,
+  pub insights: Vec<Insight>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -148,6 +149,16 @@ impl Migrating for User {
         set: Some(doc! {"location": wither::mongodb::bson::to_bson(&Location::default()).unwrap()}),
         unset: None,
       }),
+      Box::new(wither::IntervalMigration {
+        name: "add insights field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"insights": doc!{"$exists": false}},
+        set: Some(
+          doc! {"insights": wither::mongodb::bson::to_bson(&Vec::<Insight>::new()).unwrap()},
+        ),
+        unset: None,
+      }),
     ]
   }
 }
@@ -209,6 +220,7 @@ mod test {
       snapshots: vec![],
       recurrings: vec![],
       goals: vec![],
+      insights: vec![],
     };
 
     assert_eq!(Ok(true), user.compare_password("password".to_string()));

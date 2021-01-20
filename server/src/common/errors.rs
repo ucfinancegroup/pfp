@@ -25,6 +25,7 @@ impl Into<HttpResponse> for ApiError {
   }
 }
 
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct AppError {
   message: &'static str,
 }

@@ -1,16 +1,10 @@
 use futures::TryFutureExt;
 use wither::mongodb::bson::doc;
-use wither::mongodb::{Client, Collection, Database};
+use wither::mongodb::{Client, Database};
 
 #[derive(Clone)]
 pub struct DatabaseService {
   pub db: Database,
-}
-
-pub enum Collections {
-  Users,
-  Sessions,
-  Snapshots,
 }
 
 impl DatabaseService {
@@ -40,16 +34,5 @@ impl DatabaseService {
       )
       .await
       .unwrap()
-  }
-
-  // Lets you safely access a collection using an enum so that access collections
-  // are checked at compile time.
-  pub fn collection(&self, collection_name: Collections) -> Collection {
-    use Collections::*;
-    self.db.collection(match collection_name {
-      Users => "Users",
-      Sessions => "Sessions",
-      Snapshots => "Snapshots",
-    })
   }
 }

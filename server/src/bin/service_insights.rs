@@ -22,5 +22,9 @@ async fn main() -> std::io::Result<()> {
     configuration: plaid::apis::configuration::Configuration::default(),
   };
 
-  InsightsService::run_insights_service(db_service, plaid_client).await
+  InsightsService::run_insights_service(db_service, plaid_client)
+    .await
+    .unwrap();
+
+  Ok(())
 }

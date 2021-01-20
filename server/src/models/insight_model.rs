@@ -1,3 +1,4 @@
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use wither::{mongodb::bson::oid::ObjectId, Model};
 
@@ -33,4 +34,37 @@ pub enum InsightTypes {
   Income,
   Goal,
   Incomplete, // for insights that are not yet generated.
+}
+
+impl Insight {
+  pub fn new(
+    title: String,
+    description: String,
+    insight_type: InsightTypes,
+    image: Option<String>,
+  ) -> Insight {
+    Insight {
+      id: Some(ObjectId::new()),
+      title,
+      description,
+      insight_type,
+      dismissed: false,
+      image,
+      generation_time: Utc::now().timestamp(),
+    }
+  }
+}
+
+impl Default for Insight {
+  fn default() -> Insight {
+    Insight {
+      id: None,
+      title: "".to_string(),
+      description: "".to_string(),
+      insight_type: InsightTypes::Incomplete,
+      dismissed: false,
+      image: None,
+      generation_time: Utc::now().timestamp(),
+    }
+  }
 }

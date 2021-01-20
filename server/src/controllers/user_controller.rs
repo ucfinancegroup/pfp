@@ -118,12 +118,26 @@ pub async fn update_user(
   crate::common::into_response_res(res)
 }
 
+#[post("/logout")]
+pub async fn logout(session: Session, session_service: Data<SessionService>) -> HttpResponse {
+  let res = match session_service.get_valid_session(&session).await {
+    Ok(finch_session) => {
+      session_service.invalidate(&finch_session).await;
+      Ok("Logged Out")
+    }
+    Err(e) => Err(e),
+  };
+
+  crate::common::into_response_res(res)
+}
+
 // you add the services here.
 use actix_web::web::ServiceConfig;
 pub fn init_routes(config: &mut ServiceConfig) {
   config.service(signup);
   config.service(login);
   config.service(update_user);
+  config.service(logout);
 }
 
 #[cfg(test)]

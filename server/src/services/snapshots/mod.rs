@@ -5,6 +5,7 @@ pub mod SnapshotService {
   use crate::services::finchplaid::ApiClient;
   use actix_web::web::Data;
   use chrono::{Duration, Utc};
+  use log::debug;
   use plaid::models::{RetrieveTransactionsRequest, RetrieveTransactionsResponse, Transaction};
   use std::sync::{Arc, Mutex};
 
@@ -127,7 +128,7 @@ pub mod SnapshotService {
     let now = Utc::now().timestamp();
     let last_time = get_last_snapshot(snapshots).snapshot_time;
 
-    println!("Last snapshot at {}. Currently it is {}", last_time, now);
+    debug!("Last snapshot at {}. Currently it is {}", last_time, now);
 
     // need a new snapshot if the last one was more than a day ago
     Duration::seconds(now - last_time) > Duration::days(1)

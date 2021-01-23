@@ -113,7 +113,7 @@ export function RecurringList(props: RecurringListProps) {
             </thead>
             <tbody>
             {
-                recurrings.map(r => <tr>
+                recurrings.map(r => <tr key={r._id.$oid}>
                     <td>{r.name}</td>
                     <td>
                         {

@@ -70,18 +70,6 @@ export function GoalsList(props: GoalsListProps) {
         setDialogOpen(true);
     }
 
-    goals = [{
-        goal: {
-            _id: {$oid: "6002433800d36c29008a4811"},
-            end: 1613260800000,
-            metric: GoalMetric.Spending,
-            name: "Save 100 Dollars",
-            start: 1610668800000,
-            threshold: 100
-        },
-        progress: 38,
-    }]
-
     return <>
         <GoalsDialog show={dialogOpen} onClose={g => dialogClosed(g)} editing={dialogEditing}/>
         {

@@ -4,19 +4,27 @@ import PlaidLink from "../components/accounts/PlaidLink";
 import {PlaidService} from "../services/PlaidService";
 import {RecurringList} from "../components/recurring/RecurringList";
 import {Redirect} from "react-router-dom";
+import {PlaidApi, Account} from "../api";
+
+const plaidApi = new PlaidApi();
 
 export default function AccountPage() {
     const {isLoggedIn} = useContext(UserContext);
     const [plaidToken, setPlaidToken] = useState<string>();
     const [tab, setTab] = useState<"recurrings" | "accounts">("recurrings");
+    const [accounts, setAccounts] = useState<Account[]>();
 
     useEffect(() => {
         load();
     }, [])
 
     async function load() {
-        const token = await PlaidService.getToken();
+        const token = await plaidApi.plaidLink();
         setPlaidToken(token.link_token);
+
+        const accounts = await plaidApi.getAccounts();
+        setAccounts(accounts.accounts);
+        console.log(accounts);
     }
 
     return <>

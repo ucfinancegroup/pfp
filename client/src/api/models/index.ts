@@ -1,3 +1,6 @@
+export * from './Account';
+export * from './AccountError';
+export * from './AccountsResponse';
 export * from './Allocation';
 export * from './ApiError';
 export * from './Asset';

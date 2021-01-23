@@ -13,49 +13,49 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import {
-    Goal,
-    GoalFromJSON,
-    GoalFromJSONTyped,
-    GoalToJSON,
-} from './';
-
 /**
  * 
  * @export
- * @interface GoalAndStatus
+ * @interface Account
  */
-export interface GoalAndStatus {
-    /**
-     * 
-     * @type {Goal}
-     * @memberof GoalAndStatus
-     */
-    goal: Goal;
+export interface Account {
     /**
      * 
      * @type {number}
-     * @memberof GoalAndStatus
+     * @memberof Account
      */
-    progress: number;
+    balance: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof Account
+     */
+    code: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Account
+     */
+    message: string;
 }
 
-export function GoalAndStatusFromJSON(json: any): GoalAndStatus {
-    return GoalAndStatusFromJSONTyped(json, false);
+export function AccountFromJSON(json: any): Account {
+    return AccountFromJSONTyped(json, false);
 }
 
-export function GoalAndStatusFromJSONTyped(json: any, ignoreDiscriminator: boolean): GoalAndStatus {
+export function AccountFromJSONTyped(json: any, ignoreDiscriminator: boolean): Account {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'goal': GoalFromJSON(json['goal']),
-        'progress': json['progress'],
+        'balance': json['balance'],
+        'code': json['code'],
+        'message': json['message'],
     };
 }
 
-export function GoalAndStatusToJSON(value?: GoalAndStatus | null): any {
+export function AccountToJSON(value?: Account | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -64,8 +64,9 @@ export function GoalAndStatusToJSON(value?: GoalAndStatus | null): any {
     }
     return {
         
-        'goal': GoalToJSON(value.goal),
-        'progress': value.progress,
+        'balance': value.balance,
+        'code': value.code,
+        'message': value.message,
     };
 }
 

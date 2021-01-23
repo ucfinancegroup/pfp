@@ -36,19 +36,25 @@ export interface Insight {
      * @type {string}
      * @memberof Insight
      */
-    logo?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof Insight
-     */
-    typ: string;
+    insight_type: InsightInsightTypeEnum;
     /**
      * 
      * @type {boolean}
      * @memberof Insight
      */
     dismissed: boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof Insight
+     */
+    generation_time: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof Insight
+     */
+    imageURL?: string | null;
 }
 
 export function InsightFromJSON(json: any): Insight {
@@ -63,9 +69,10 @@ export function InsightFromJSONTyped(json: any, ignoreDiscriminator: boolean): I
         
         'title': json['title'],
         'description': json['description'],
-        'logo': !exists(json, 'logo') ? undefined : json['logo'],
-        'typ': json['typ'],
+        'insight_type': json['insight_type'],
         'dismissed': json['dismissed'],
+        'generation_time': json['generation_time'],
+        'imageURL': !exists(json, 'imageURL') ? undefined : json['imageURL'],
     };
 }
 
@@ -80,10 +87,24 @@ export function InsightToJSON(value?: Insight | null): any {
         
         'title': value.title,
         'description': value.description,
-        'logo': value.logo,
-        'typ': value.typ,
+        'insight_type': value.insight_type,
         'dismissed': value.dismissed,
+        'generation_time': value.generation_time,
+        'imageURL': value.imageURL,
     };
+}
+
+/**
+* @export
+* @enum {string}
+*/
+export enum InsightInsightTypeEnum {
+    ProductRecommendation = 'ProductRecommendation',
+    Savings = 'Savings',
+    Spending = 'Spending',
+    Income = 'Income',
+    Goal = 'Goal',
+    Incomplete = 'Incomplete'
 }
 
 

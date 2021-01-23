@@ -15,6 +15,9 @@
 
 import * as runtime from '../runtime';
 import {
+    AccountsResponse,
+    AccountsResponseFromJSON,
+    AccountsResponseToJSON,
     ApiError,
     ApiErrorFromJSON,
     ApiErrorToJSON,
@@ -32,6 +35,10 @@ import {
     PublicTokenExchangeRequestToJSON,
 } from '../models';
 
+export interface DeleteAccountRequest {
+    id: string;
+}
+
 export interface PlaidLinkAccessRequest {
     publicTokenExchangeRequest: PublicTokenExchangeRequest;
 }
@@ -44,6 +51,62 @@ export interface PlaidWebhookRequest {
  * 
  */
 export class PlaidApi extends runtime.BaseAPI {
+
+    /**
+     * Delete account with given item_id
+     */
+    async deleteAccountRaw(requestParameters: DeleteAccountRequest): Promise<runtime.ApiResponse<ItemIdResponse>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling deleteAccount.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/plaid/accounts/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ItemIdResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Delete account with given item_id
+     */
+    async deleteAccount(requestParameters: DeleteAccountRequest): Promise<ItemIdResponse> {
+        const response = await this.deleteAccountRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Get all of user\'s connected accounts
+     */
+    async getAccountsRaw(): Promise<runtime.ApiResponse<AccountsResponse>> {
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/plaid/accounts`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AccountsResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Get all of user\'s connected accounts
+     */
+    async getAccounts(): Promise<AccountsResponse> {
+        const response = await this.getAccountsRaw();
+        return await response.value();
+    }
 
     /**
      * to request link token for PlaidLink

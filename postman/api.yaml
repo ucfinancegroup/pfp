@@ -950,8 +950,35 @@ components:
           type: string
           format: url
 
-    Accounts:
+    AccountsResponse:
       type: object
+      required:
+        - accounts
+        - errors
+      additionalProperties:
+        accounts:
+          type: array
+          items: 
+            $ref: "#/components/schemas/Account"
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountError"
+
+    AccountError:
+      type: object
+      required:
+        - message
+      additionalProperties:
+        message:
+          type: string
+
+    Account:
+      type: object
+      required:
+        - balance
+        - code
+        - message
       additionalProperties:
         type: string
         properties:

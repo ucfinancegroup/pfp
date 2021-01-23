@@ -955,7 +955,7 @@ components:
       required:
         - accounts
         - errors
-      additionalProperties:
+      properties:
         accounts:
           type: array
           items: 
@@ -969,7 +969,7 @@ components:
       type: object
       required:
         - message
-      additionalProperties:
+      properties:
         message:
           type: string
 
@@ -979,7 +979,7 @@ components:
         - balance
         - code
         - message
-      additionalProperties:
+      properties:
         type: string
         properties:
           balance:

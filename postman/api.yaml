@@ -980,8 +980,6 @@ components:
         - code
         - message
       properties:
-        type: string
-        properties:
           balance:
             type: number
           code:

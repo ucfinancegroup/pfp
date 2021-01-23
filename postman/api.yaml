@@ -791,7 +791,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Accounts"
+                $ref: "#/components/schemas/AccountsResponse"
         default:
           description: "Server error or validation error"
           content:
@@ -950,11 +950,36 @@ components:
           type: string
           format: url
 
-    Accounts:
+    AccountsResponse:
       type: object
-      additionalProperties:
-        type: string
-        properties:
+      required:
+        - accounts
+        - errors
+      properties:
+        accounts:
+          type: array
+          items: 
+            $ref: "#/components/schemas/Account"
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountError"
+
+    AccountError:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+
+    Account:
+      type: object
+      required:
+        - balance
+        - code
+        - message
+      properties:
           balance:
             type: number
           code:

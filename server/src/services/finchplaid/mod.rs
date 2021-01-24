@@ -120,7 +120,7 @@ async fn get_institution_data(
   let mut country_codes = Vec::new();
   country_codes.push("US".to_string());
 
-  res = plaid::apis::institutions_api::search_institutionby_id(
+  plaid::apis::institutions_api::search_institutionby_id(
     &config,
     SearchInstitutionbyIdRequest::new(
       institution_id,

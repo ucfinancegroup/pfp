@@ -36,7 +36,7 @@ pub struct AccountSuccess {
 #[derive(Serialize)]
 pub struct AccountError {
   pub item_id: String,
-  pub code: number,
+  pub code: u16,
   pub message: String,
 }
 

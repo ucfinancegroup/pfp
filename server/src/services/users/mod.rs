@@ -1,5 +1,5 @@
 use crate::common::errors::ApiError;
-use crate::controllers::plaid_controller::AccountResponse;
+use crate::controllers::plaid_controller::{AccountError, AccountResponse, AccountSuccess};
 use crate::controllers::user_controller::{LoginPayload, SignupPayload, UpdatePayload};
 use crate::models::{
   session_model,
@@ -133,19 +133,29 @@ impl UserService {
     &self,
     user: User,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
-  ) -> Result<Map<String, Value>, ApiError> {
-    let mut res = Map::new();
+  ) -> Result<AccountResponse, ApiError> {
+    let mut account_successes = Vec::new();
+    let mut account_errors = Vec::new();
 
     for item in user.accounts.iter() {
       match crate::services::finchplaid::get_net_worth(item, plaid_client.clone()).await {
-        Ok(num) => res.insert(
-          item.item_id.clone(),
-          json!(AccountResponse { balance: num }),
-        ),
-        Err(e) => res.insert(item.item_id.clone(), json!(e)),
+        Ok(num) => account_successes.push(AccountSuccess {
+          item_id: item.item_id.clone(),
+          name: "temp".to_string(),
+          balance: num,
+        }),
+        Err(e) => account_errors.push(AccountError {
+          item_id: item.item_id.clone(),
+          code: 500,
+          message: "Failed to obtain account information with given id".to_string(),
+        }),
       };
     }
-    Ok(res)
+
+    Ok(AccountResponse {
+      accounts: account_successes,
+      account_errors: account_errors,
+    })
   }
 
   pub async fn delete_account(&self, account_id: String, user: User) -> Result<(), ApiError> {

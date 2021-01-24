@@ -23,6 +23,7 @@ pub struct ItemIdResponse {
 #[derive(Serialize)]
 pub struct AccountResponse {
   pub accounts: Vec<AccountSuccess>,
+  #[serde(rename = "errors")]
   pub account_errors: Vec<AccountError>,
 }
 

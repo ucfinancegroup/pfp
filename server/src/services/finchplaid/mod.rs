@@ -1,12 +1,8 @@
 use crate::common::errors::ApiError;
-use crate::controllers::plaid_controller::{AccountError, AccountResponse, AccountSuccess};
+use crate::controllers::plaid_controller::AccountSuccess;
 use crate::models::user_model::PlaidItem;
 use actix_web::web::Data;
-use plaid::models::{
-  Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse, RetrieveItemRequest,
-  RetrieveItemResponse, SearchInstitutionbyIdRequest, SearchInstitutionbyIdResponse,
-};
-use serde_json::json;
+use plaid::models::{Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 

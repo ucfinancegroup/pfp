@@ -958,7 +958,7 @@ components:
       properties:
         accounts:
           type: array
-          items: 
+          items:
             $ref: "#/components/schemas/Account"
         errors:
           type: array
@@ -968,24 +968,30 @@ components:
     AccountError:
       type: object
       required:
+        - item_id
+        - code
         - message
       properties:
+        item_id:
+          type: string
+        code:
+          type: number
         message:
           type: string
 
     Account:
       type: object
       required:
+        - item_id
+        - name
         - balance
-        - code
-        - message
       properties:
-          balance:
-            type: number
-          code:
-            type: string
-          message:
-            type: string
+        item_id:
+          type: string
+        name:
+          type: string
+        balance:
+          type: number
 
     UpdateUserRequest:
       type: object

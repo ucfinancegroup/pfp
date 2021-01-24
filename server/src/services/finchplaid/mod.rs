@@ -53,7 +53,7 @@ pub async fn get_account_data(
   item: &PlaidItem,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> Result<Vec<AccountSuccess>, ApiError> {
-  let accounts = get_item_accounts_for_new_snapshot(item, plaid_client.clone())
+  let accounts = get_item_accounts(item, plaid_client.clone())
     .await?
     .accounts;
   let account_id_to_coeff =
@@ -81,9 +81,7 @@ pub async fn get_net_worth(
   item: &PlaidItem,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> Result<f64, ApiError> {
-  let accounts = get_item_accounts_for_new_snapshot(item, plaid_client)
-    .await?
-    .accounts;
+  let accounts = get_item_accounts(item, plaid_client).await?.accounts;
 
   Ok(calculate_net_worth(&accounts))
 }
@@ -104,7 +102,7 @@ pub fn calculate_net_worth(accounts: &Vec<Account>) -> f64 {
   })
 }
 
-async fn get_item_accounts_for_new_snapshot(
+async fn get_item_accounts(
   item: &PlaidItem,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> Result<RetrieveAnItemsAccountsResponse, ApiError> {

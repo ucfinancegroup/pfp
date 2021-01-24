@@ -56,8 +56,7 @@ pub async fn get_account_data(
   let accounts = get_item_accounts(item, plaid_client.clone())
     .await?
     .accounts;
-  let account_id_to_coeff =
-    crate::services::finchplaid::get_account_balance_coefficients(&accounts);
+  let account_id_to_coeff = get_account_balance_coefficients(&accounts);
 
   let mut account_successes = Vec::new();
 
@@ -88,8 +87,7 @@ pub async fn get_net_worth(
 
 pub fn calculate_net_worth(accounts: &Vec<Account>) -> f64 {
   // map each account to a coefficient for each transaction.
-  let account_id_to_coeff =
-    crate::services::finchplaid::get_account_balance_coefficients(&accounts);
+  let account_id_to_coeff = get_account_balance_coefficients(&accounts);
 
   //  calculate "net worth" of the item's accounts.
   accounts.iter().fold(0.0, |net, account: &Account| {

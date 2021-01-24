@@ -1,5 +1,5 @@
 use crate::common::errors::ApiError;
-use crate::controllers::plaid_controller::{AccountError, AccountResponse, AccountSuccess};
+use crate::controllers::plaid_controller::{AccountError, AccountResponse};
 use crate::controllers::user_controller::{LoginPayload, SignupPayload, UpdatePayload};
 use crate::models::{
   session_model,
@@ -7,7 +7,6 @@ use crate::models::{
 };
 use crate::services::{db, finchplaid::ApiClient, snapshots::SnapshotService};
 use actix_web::web::Data;
-use serde_json::{json, Map, Value};
 use std::sync::{Arc, Mutex};
 use wither::{
   mongodb::{bson::doc, Database},
@@ -138,13 +137,9 @@ impl UserService {
     let mut account_errors = Vec::new();
 
     for item in user.accounts.iter() {
-      match crate::services::finchplaid::get_net_worth(item, plaid_client.clone()).await {
-        Ok(num) => account_successes.push(AccountSuccess {
-          item_id: item.item_id.clone(),
-          name: "temp".to_string(),
-          balance: num,
-        }),
-        Err(e) => account_errors.push(AccountError {
+      match crate::services::finchplaid::get_account_data(item, plaid_client.clone()).await {
+        Ok(res) => account_successes.push(res),
+        Err(_) => account_errors.push(AccountError {
           item_id: item.item_id.clone(),
           code: 500,
           message: "Failed to obtain account information with given id".to_string(),

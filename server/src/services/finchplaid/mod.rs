@@ -56,13 +56,20 @@ pub async fn get_account_data(
   let accounts = get_item_accounts_for_new_snapshot(item, plaid_client.clone())
     .await?
     .accounts;
+  let account_id_to_coeff =
+    crate::services::finchplaid::get_account_balance_coefficients(&accounts);
 
   let mut account_successes = Vec::new();
 
   for account in accounts.iter() {
     account_successes.push(AccountSuccess {
       item_id: item.item_id.clone(),
-      balance: (account.balances.current as f64) * 100.0,
+      balance: (account.balances.current as f64)
+        * *account_id_to_coeff
+          .get(&account.account_id)
+          .or(Some(&0.0))
+          .unwrap()
+        * 100.0,
       name: account.name.clone(),
     });
   }

@@ -1,5 +1,5 @@
 use crate::common::errors::ApiError;
-use crate::controllers::plaid_controller::AccountSuccess;
+use crate::controllers::plaid_controller::{AccountError, AccountResponse, AccountSuccess};
 use crate::models::user_model::PlaidItem;
 use actix_web::web::Data;
 use plaid::models::{
@@ -56,81 +56,22 @@ pub fn get_account_transaction_coefficients(accounts: &Vec<Account>) -> HashMap<
 pub async fn get_account_data(
   item: &PlaidItem,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
-) -> Result<AccountSuccess, ApiError> {
+) -> Result<Vec<AccountSuccess>, ApiError> {
   let accounts = get_item_accounts_for_new_snapshot(item, plaid_client.clone())
     .await?
     .accounts;
 
-  let balance = calculate_net_worth(&accounts);
-  let res = match get_institution_name(item, plaid_client.clone()).await {
-    Ok(name) => AccountSuccess {
-      item_id: "smaint".to_string(),
-      balance: balance * 100.0,
-      name: name,
-    },
-    Err(e) => return Err(e),
-  };
+  let mut account_successes = Vec::new();
 
-  Ok(res)
-}
+  for account in accounts.iter() {
+    account_successes.push(AccountSuccess {
+      item_id: item.item_id.clone(),
+      balance: (account.balances.current as f64) * 100.0,
+      name: account.name.clone(),
+    });
+  }
 
-async fn get_institution_name(
-  item: &PlaidItem,
-  plaid_client: Data<Arc<Mutex<ApiClient>>>,
-) -> Result<String, ApiError> {
-  let institution_id = get_item_data(item, plaid_client.clone())
-    .await?
-    .item
-    .institution_id;
-  println!("{}", institution_id);
-  let name = get_institution_data(plaid_client, institution_id.clone())
-    .await?
-    .institution
-    .name;
-  println!("{}", name);
-  Ok(name)
-}
-
-async fn get_item_data(
-  item: &PlaidItem,
-  plaid_client: Data<Arc<Mutex<ApiClient>>>,
-) -> Result<RetrieveItemResponse, ApiError> {
-  let pc = plaid_client.lock().unwrap();
-  let config = &(pc.configuration);
-
-  plaid::apis::item_management_api::retrieve_item(
-    &config,
-    RetrieveItemRequest::new(
-      pc.client_id.clone(),
-      pc.secret.clone(),
-      item.access_token.clone(),
-    ),
-  )
-  .await
-  .map_err(|_| ApiError::new(500, "Error while getting plaid data".to_string()))
-}
-
-async fn get_institution_data(
-  plaid_client: Data<Arc<Mutex<ApiClient>>>,
-  institution_id: String,
-) -> Result<SearchInstitutionbyIdResponse, ApiError> {
-  let pc = plaid_client.lock().unwrap();
-  let config = &(pc.configuration);
-
-  let mut country_codes = Vec::new();
-  country_codes.push("US".to_string());
-
-  plaid::apis::institutions_api::search_institutionby_id(
-    &config,
-    SearchInstitutionbyIdRequest::new(
-      institution_id,
-      country_codes,
-      pc.client_id.clone(),
-      pc.secret.clone(),
-    ),
-  )
-  .await
-  .map_err(|_| ApiError::new(500, "Error while getting bank data".to_string()))
+  Ok(account_successes)
 }
 
 pub async fn get_net_worth(

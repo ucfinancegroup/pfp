@@ -139,7 +139,7 @@ impl UserService {
     for item in user.accounts.iter() {
       match crate::services::finchplaid::get_account_data(item, plaid_client.clone()).await {
         Ok(res) => account_successes.push(res),
-        Err(_) => account_errors.push(AccountError {
+        Err(e) => account_errors.push(AccountError {
           item_id: item.item_id.clone(),
           code: 500,
           message: "Failed to obtain account information with given id".to_string(),

@@ -6,6 +6,7 @@ use plaid::models::{
   Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse, RetrieveItemRequest,
   RetrieveItemResponse, SearchInstitutionbyIdRequest, SearchInstitutionbyIdResponse,
 };
+use serde_json::json;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
@@ -64,7 +65,7 @@ pub async fn get_account_data(
   let res = match get_institution_name(item, plaid_client.clone()).await {
     Ok(name) => AccountSuccess {
       item_id: "smaint".to_string(),
-      balance: balance * 100,
+      balance: balance * 100.0,
       name: name,
     },
     Err(e) => return Err(e),
@@ -81,12 +82,12 @@ async fn get_institution_name(
     .await?
     .item
     .institution_id;
-
-  let name = get_instution_data(plaid_client, institution_id)
+  println!("{}", institution_id);
+  let name = get_institution_data(plaid_client, institution_id.clone())
     .await?
     .institution
     .name;
-
+  println!("{}", name);
   Ok(name)
 }
 
@@ -109,23 +110,26 @@ async fn get_item_data(
   .map_err(|_| ApiError::new(500, "Error while getting plaid data".to_string()))
 }
 
-async fn get_instution_data(
+async fn get_institution_data(
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
   institution_id: String,
 ) -> Result<SearchInstitutionbyIdResponse, ApiError> {
   let pc = plaid_client.lock().unwrap();
   let config = &(pc.configuration);
 
-  plaid::apis::institutions_api::search_institutionby_id(
+  let mut country_codes = Vec::new();
+  country_codes.push("US".to_string());
+
+  res = plaid::apis::institutions_api::search_institutionby_id(
     &config,
     SearchInstitutionbyIdRequest::new(
-      institution_id.clone(),
-      ["US".to_string()].to_vec(),
+      institution_id,
+      country_codes,
       pc.client_id.clone(),
       pc.secret.clone(),
     ),
   )
-  .await
+  .await;
   .map_err(|_| ApiError::new(500, "Error while getting bank data".to_string()))
 }
 

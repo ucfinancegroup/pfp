@@ -9,6 +9,7 @@ pub mod InsightsService {
   use async_std::task;
   use chrono::{Duration, Utc};
   use futures::stream::StreamExt;
+  use log::{debug, info};
   use std::time; // y is there chrono and time lol
   use wither::{
     mongodb::{
@@ -27,7 +28,7 @@ pub mod InsightsService {
     loop {
       let mut user = get_user_needing_insight(&db_service).await?;
 
-      println!("Found user needing insight: {:?}", user);
+      debug!("Found user needing insight: {:?}", user);
 
       let generated_insight = generate_insight(&user).await?;
 
@@ -76,11 +77,11 @@ pub mod InsightsService {
         return Ok(user);
       }
 
-      println!("Got no user.");
+      debug!("Got no user.");
 
       let sleep_time = calculate_wait_time(&db_service).await?;
 
-      println!(
+      info!(
         "Trying to get user for Insight generation in {} seconds...",
         sleep_time
       );

@@ -22,7 +22,22 @@ pub struct ItemIdResponse {
 
 #[derive(Serialize)]
 pub struct AccountResponse {
+  pub accounts: Vec<AccountSuccess>,
+  pub account_errors: Vec<AccountError>,
+}
+
+#[derive(Serialize)]
+pub struct AccountSuccess {
+  pub item_id: String,
+  pub name: String,
   pub balance: f64,
+}
+
+#[derive(Serialize)]
+pub struct AccountError {
+  pub item_id: String,
+  pub code: number,
+  pub message: String,
 }
 
 #[post("/plaid/link_token")]

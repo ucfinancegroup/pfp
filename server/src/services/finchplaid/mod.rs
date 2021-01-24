@@ -64,12 +64,12 @@ pub async fn get_account_data(
   for account in accounts.iter() {
     account_successes.push(AccountSuccess {
       item_id: item.item_id.clone(),
-      balance: (account.balances.current as f64)
+      balance: ((account.balances.current as f64)
         * *account_id_to_coeff
           .get(&account.account_id)
           .or(Some(&0.0))
           .unwrap()
-        * 100.0,
+        * 100.0) as i64,
       name: account.name.clone(),
     });
   }

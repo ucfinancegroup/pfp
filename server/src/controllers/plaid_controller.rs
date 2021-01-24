@@ -31,7 +31,7 @@ pub struct AccountResponse {
 pub struct AccountSuccess {
   pub item_id: String,
   pub name: String,
-  pub balance: f64,
+  pub balance: i64,
 }
 
 #[derive(Serialize)]

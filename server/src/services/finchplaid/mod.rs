@@ -129,7 +129,7 @@ async fn get_institution_data(
       pc.secret.clone(),
     ),
   )
-  .await;
+  .await
   .map_err(|_| ApiError::new(500, "Error while getting bank data".to_string()))
 }
 

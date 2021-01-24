@@ -1,10 +1,10 @@
+mod similar_user;
+
 #[allow(non_snake_case)]
 pub mod InsightsService {
+  use super::*;
   use crate::common::errors::AppError;
-  use crate::models::{
-    insight_model::{Insight, InsightTypes},
-    user_model::User,
-  };
+  use crate::models::{insight_model::Insight, user_model::User};
   use crate::services::{db::DatabaseService, finchplaid};
   use async_std::task;
   use chrono::{Duration, Utc};
@@ -30,7 +30,7 @@ pub mod InsightsService {
 
       debug!("Found user needing insight: {:?}", user);
 
-      let generated_insight = generate_insight(&user).await?;
+      let generated_insight = generate_insight(&user, &db_service).await?;
 
       let last = user
         .insights
@@ -92,13 +92,17 @@ pub mod InsightsService {
 
   // TODO -- this function should eventually decide what type of insight
   // and then delegate to a more specific insight generator.
-  pub async fn generate_insight(_user: &User) -> Result<Insight, AppError> {
-    Ok(Insight::new(
-      "Wealthfront Cash Account".to_string(),
-      "Consider a Wealthfront Cash Account to boost your savings APY (0.35%).".to_string(),
-      InsightTypes::ProductRecommendation,
-      None,
-    ))
+  pub async fn generate_insight(
+    user: &User,
+    db_service: &DatabaseService,
+  ) -> Result<Insight, AppError> {
+    similar_user::generate_similar_user_insight(user, db_service).await
+    // Ok(Insight::new(
+    //   "Wealthfront Cash Account".to_string(),
+    //   "Consider a Wealthfront Cash Account to boost your savings APY (0.35%).".to_string(),
+    //   InsightTypes::ProductRecommendation,
+    //   None,
+    // ))
   }
 
   // Determines how long to wait before checking again to see

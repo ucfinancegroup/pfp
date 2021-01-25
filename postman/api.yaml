@@ -992,6 +992,7 @@ components:
           type: string
         balance:
           type: integer
+          format: int64
 
     UpdateUserRequest:
       type: object

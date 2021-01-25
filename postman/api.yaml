@@ -991,7 +991,7 @@ components:
         name:
           type: string
         balance:
-          type: number
+          type: integer
 
     UpdateUserRequest:
       type: object

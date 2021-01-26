@@ -6,6 +6,8 @@ use wither::{mongodb::bson::oid::ObjectId, Model};
 
 #[derive(Model, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Plan {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
     pub name: String,
     pub recurrings: Vec<Recurring>,
     pub allocations: Vec<Allocation>,
@@ -38,5 +40,5 @@ pub struct Transfrom {
 pub struct Asset {
     pub name: String,
     pub class: String,
-    pub annualized_performance: String,
+    pub annualized_performance: f64,
 }

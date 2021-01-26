@@ -42,3 +42,9 @@ pub struct Asset {
     pub class: String,
     pub annualized_performance: f64,
 }
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct AssetChange {
+    pub asset: Asset,
+    pub change: f64.
+}

@@ -1189,7 +1189,7 @@ components:
         - change
       properties:
         trigger:
-          type: integer
+          $ref: "#/components/schemas/TimeInterval"
         change:
           $ref: "#/components/schemas/AssetChange"
 

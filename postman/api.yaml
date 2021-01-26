@@ -1137,25 +1137,31 @@ components:
           description: "Annualised Percentage Performance"
           type: number
 
+    AssetChange:
+      type: object
+      required:
+        - asset
+        - change
+      properties:
+        asset:
+          $ref: "#/components/schemas/Asset"
+        change:
+          type: number
+          format: float64
+
     Allocation:
       type: object
       required:
         - description
         - date
-        - mapping
+        - schema
       properties:
         description:
           type: string
         date:
           type: integer
-        assets:
-          type: array
-          items: "#/components/schemas/Assets"
-        changes: # Asset -> Percent
-          type: array
-          items:
-            type: number
-            format: float64
+        schema:
+          $ref: "#/components/schemas/AssetChange"
 
     KnownFinancialProduct:
       type: object
@@ -1184,14 +1190,8 @@ components:
       properties:
         trigger:
           type: integer
-        assets:
-          type: array
-          items: "#/components/schemas/Assets"
-        changes: # Asset -> Percent
-          type: array
-          items:
-            type: number
-            format: float64
+        change:
+          $ref: "#/components/schemas/AssetChange"
 
     Event:
       type: object

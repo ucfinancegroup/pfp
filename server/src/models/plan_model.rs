@@ -18,8 +18,7 @@ pub struct Plan {
 pub struct Allocation {
     pub description: String,
     pub date: DateTime,
-    pub assets: Vec<Asset>,
-    pub allocation_changes: Vec<f64>,
+    pub schema: Vec<AssetChange>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -32,8 +31,7 @@ pub struct Event {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Transfrom {
     pub trigger: TimeInterval,
-    pub assets: Vec<Asset>,
-    pub changes: Vec<f64>,
+    pub changes: Vec<AssetChange>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

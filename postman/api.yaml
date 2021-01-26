@@ -1190,10 +1190,14 @@ components:
       properties:
         trigger:
           type: integer
-        change: # Asset -> Percent
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/AssetToPercentMapping"
+        assets:
+          type: array
+          items: "#/components/schemas/Assets"
+        changes: # Asset -> Percent
+          type: array
+          items:
+            type: number
+            format: float64
 
     Event:
       type: object

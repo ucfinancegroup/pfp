@@ -1137,31 +1137,46 @@ components:
           description: "Annualised Percentage Performance"
           type: number
 
-    AssetToPercentMapping:
+    AssetChange:
       type: object
       required:
-        - percentage
+        - asset
+        - change
       properties:
-        percentage:
+        asset:
+          $ref: "#/components/schemas/Asset"
+        change:
           type: number
-          minimum: 0
-          maximum: 100
+          format: float64
+          minimum: -100.0
 
     Allocation:
       type: object
       required:
         - description
         - date
-        - mapping
+        - schema
       properties:
         description:
           type: string
         date:
           type: integer
-        mapping: # Asset -> Percent
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/AssetToPercentMapping"
+        schema:
+          $ref: "#/components/schemas/AllocationChange"
+
+    AllocationChange:
+      type: object
+      required:
+        - asset
+        - change
+      properties:
+        asset:
+          $ref: "#/components/schemas/Asset"
+        change:
+          type: number
+          format: float64
+          minimum: 0.0
+          maximum: 100.0
 
     KnownFinancialProduct:
       type: object
@@ -1189,11 +1204,9 @@ components:
         - change
       properties:
         trigger:
-          type: integer
-        change: # Asset -> Percent
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/AssetToPercentMapping"
+          $ref: "#/components/schemas/TimeInterval"
+        change:
+          $ref: "#/components/schemas/AssetChange"
 
     Event:
       type: object

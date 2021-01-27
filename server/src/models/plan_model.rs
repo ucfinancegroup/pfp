@@ -44,11 +44,12 @@ pub struct Asset {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AssetChange {
     pub asset: Asset,
-    pub change: f64.
+    pub change: f64,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AllocationChange {
     pub asset: Asset,
-    pub change: f64.
+    #[validate(range(min = 0, max = 100))]
+    pub change: f64,
 }

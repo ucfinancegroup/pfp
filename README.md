@@ -30,6 +30,12 @@ password: pass_good
 pin: credential_good (when required)
 ```
 
+To run the backend locally:
+
+```
+cargo run --features development --bin api
+```
+
 ## Environment Variables
 
 For development, the server needs some configuration variables at runtime (e.g., database url). Put these in a `config.json` file inside the [server](/server) directory. Follow the format of [config.sample.json](/server/config.sample.json)

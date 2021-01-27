@@ -5,6 +5,7 @@ import {PlaidService} from "../../services/PlaidService";
 
 type PlaidLinkProps = {
     token: string,
+    onSuccess: () => void;
 }
 
 export default function PlaidLink(props: PlaidLinkProps) {
@@ -12,6 +13,7 @@ export default function PlaidLink(props: PlaidLinkProps) {
         async (token, metadata) => {
             console.log('onSuccess', token, metadata);
             await PlaidService.exchangeToken(token);
+            props.onSuccess();
         },
         []
     );

@@ -16,3 +16,14 @@ export function addDaysToToday(days: number) {
     date.setDate(date.getDate() + days);
     return date;
 }
+
+export function getValue(value: number) {
+    return value / 100;
+}
+
+export function formatPrice(price: number) {
+    const v = getValue(price);
+    if (v < 0)
+        return "-$" + (-1 * v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return "$"+ v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}

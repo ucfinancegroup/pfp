@@ -1,31 +1,11 @@
 import React, {useContext, useEffect, useState} from "react";
 import {UserContext} from "../contexts/UserContext";
-import PlaidLink from "../components/accounts/PlaidLink";
-import {PlaidService} from "../services/PlaidService";
 import {RecurringList} from "../components/recurring/RecurringList";
 import {Redirect} from "react-router-dom";
-import {PlaidApi, Account} from "../api";
-
-const plaidApi = new PlaidApi();
-
+import {AccountsList} from "../components/accounts/AccountsList";
 export default function AccountPage() {
     const {isLoggedIn} = useContext(UserContext);
-    const [plaidToken, setPlaidToken] = useState<string>();
     const [tab, setTab] = useState<"recurrings" | "accounts">("recurrings");
-    const [accounts, setAccounts] = useState<Account[]>();
-
-    useEffect(() => {
-        load();
-    }, [])
-
-    async function load() {
-        const token = await plaidApi.plaidLink();
-        setPlaidToken(token.link_token);
-
-        const accounts = await plaidApi.getAccounts();
-        setAccounts(accounts.accounts);
-        console.log(accounts);
-    }
 
     return <>
         {!isLoggedIn &&
@@ -48,14 +28,7 @@ export default function AccountPage() {
             {
                 tab === "accounts" && <>
                   <h3>Connected Accounts</h3>
-                {
-                    !plaidToken && <p>Loading...</p>
-                }
-                {
-                    plaidToken && <div className="mt-4">
-                        <PlaidLink token={plaidToken}/>
-                    </div>
-                }
+                    <AccountsList/>
                 </>
             }
         </div>

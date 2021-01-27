@@ -21,22 +21,22 @@ import { exists, mapValues } from '../runtime';
 export interface Account {
     /**
      * 
+     * @type {string}
+     * @memberof Account
+     */
+    item_id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Account
+     */
+    name: string;
+    /**
+     * 
      * @type {number}
      * @memberof Account
      */
     balance: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof Account
-     */
-    code: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof Account
-     */
-    message: string;
 }
 
 export function AccountFromJSON(json: any): Account {
@@ -49,9 +49,9 @@ export function AccountFromJSONTyped(json: any, ignoreDiscriminator: boolean): A
     }
     return {
         
+        'item_id': json['item_id'],
+        'name': json['name'],
         'balance': json['balance'],
-        'code': json['code'],
-        'message': json['message'],
     };
 }
 
@@ -64,9 +64,9 @@ export function AccountToJSON(value?: Account | null): any {
     }
     return {
         
+        'item_id': value.item_id,
+        'name': value.name,
         'balance': value.balance,
-        'code': value.code,
-        'message': value.message,
     };
 }
 

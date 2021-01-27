@@ -24,6 +24,18 @@ export interface AccountError {
      * @type {string}
      * @memberof AccountError
      */
+    item_id: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof AccountError
+     */
+    code: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccountError
+     */
     message: string;
 }
 
@@ -37,6 +49,8 @@ export function AccountErrorFromJSONTyped(json: any, ignoreDiscriminator: boolea
     }
     return {
         
+        'item_id': json['item_id'],
+        'code': json['code'],
         'message': json['message'],
     };
 }
@@ -50,6 +64,8 @@ export function AccountErrorToJSON(value?: AccountError | null): any {
     }
     return {
         
+        'item_id': value.item_id,
+        'code': value.code,
         'message': value.message,
     };
 }

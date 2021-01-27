@@ -1,19 +1,19 @@
 # https://vsupalov.com/rebuilding-docker-image-development/
 version: "3.3"
 services:
-  pfp_server:
-    image: pfp_server_dev
-    build:
-      context: ./server
-      dockerfile: Dockerfile.rust.dev
-      args:
-        bin: "api"
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./server:/app/dev
-    secrets:
-      - config.json
+  # pfp_server:
+  #  image: pfp_server_dev
+  #  build:
+  #   context: ./server
+  #    dockerfile: Dockerfile.rust.dev
+  #    args:
+  #      bin: "api"
+  #  ports:
+  #    - "8080:8080"
+ #   volumes:
+  #    - ./server:/app/dev
+  #  secrets:
+  #    - config.json
   pfp_service_insights:
     image: pfp_server_insights
     build:

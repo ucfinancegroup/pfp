@@ -46,3 +46,9 @@ pub struct AssetChange {
     pub asset: Asset,
     pub change: f64.
 }
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct AllocationChange {
+    pub asset: Asset,
+    pub change: f64.
+}

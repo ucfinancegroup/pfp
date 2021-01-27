@@ -18,7 +18,7 @@ pub struct Plan {
 pub struct Allocation {
     pub description: String,
     pub date: DateTime,
-    pub schema: Vec<AssetChange>,
+    pub schema: Vec<AllocationChange>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -1148,6 +1148,7 @@ components:
         change:
           type: number
           format: float64
+          minimum: -100.0
 
     Allocation:
       type: object
@@ -1161,7 +1162,21 @@ components:
         date:
           type: integer
         schema:
-          $ref: "#/components/schemas/AssetChange"
+          $ref: "#/components/schemas/AllocationChange"
+
+    AllocationChange:
+      type: object
+      required:
+        - asset
+        - change
+      properties:
+        asset:
+          $ref: "#/components/schemas/Asset"
+        change:
+          type: number
+          format: float64
+          minimum: 0.0
+          maximum: 100.0
 
     KnownFinancialProduct:
       type: object

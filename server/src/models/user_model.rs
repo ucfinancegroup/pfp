@@ -37,7 +37,7 @@ pub struct PlaidItem {
   pub access_token: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct Snapshot {
   pub net_worth: Money,
 

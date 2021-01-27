@@ -2,7 +2,7 @@ pub mod errors;
 use actix_web::HttpResponse;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct Money {
   pub amount: i64,
 }
@@ -18,6 +18,14 @@ impl From<f64> for Money {
 impl Into<f64> for Money {
   fn into(self) -> f64 {
     (self.amount as f64) / 100.0
+  }
+}
+
+impl std::ops::Sub for Money {
+  type Output = f64;
+
+  fn sub(self, other: Self) -> Self::Output {
+    ((self.amount - other.amount) as f64) / 100.0
   }
 }
 

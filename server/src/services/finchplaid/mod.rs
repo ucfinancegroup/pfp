@@ -1,4 +1,5 @@
 use crate::common::errors::ApiError;
+use crate::controllers::plaid_controller::AccountSuccess;
 use crate::models::user_model::PlaidItem;
 use actix_web::web::Data;
 use plaid::models::{Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse};
@@ -48,21 +49,45 @@ pub fn get_account_transaction_coefficients(accounts: &Vec<Account>) -> HashMap<
     .collect()
 }
 
+pub async fn get_account_data(
+  item: &PlaidItem,
+  plaid_client: Data<Arc<Mutex<ApiClient>>>,
+) -> Result<Vec<AccountSuccess>, ApiError> {
+  let accounts = get_item_accounts(item, plaid_client.clone())
+    .await?
+    .accounts;
+  let account_id_to_coeff = get_account_balance_coefficients(&accounts);
+
+  let mut account_successes = Vec::new();
+
+  for account in accounts.iter() {
+    account_successes.push(AccountSuccess {
+      item_id: item.item_id.clone(),
+      balance: ((account.balances.current as f64)
+        * *account_id_to_coeff
+          .get(&account.account_id)
+          .or(Some(&0.0))
+          .unwrap()
+        * 100.0) as i64,
+      name: account.name.clone(),
+    });
+  }
+
+  Ok(account_successes)
+}
+
 pub async fn get_net_worth(
   item: &PlaidItem,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> Result<f64, ApiError> {
-  let accounts = get_item_accounts_for_new_snapshot(item, plaid_client)
-    .await?
-    .accounts;
+  let accounts = get_item_accounts(item, plaid_client).await?.accounts;
 
   Ok(calculate_net_worth(&accounts))
 }
 
 pub fn calculate_net_worth(accounts: &Vec<Account>) -> f64 {
   // map each account to a coefficient for each transaction.
-  let account_id_to_coeff =
-    crate::services::finchplaid::get_account_balance_coefficients(&accounts);
+  let account_id_to_coeff = get_account_balance_coefficients(&accounts);
 
   //  calculate "net worth" of the item's accounts.
   accounts.iter().fold(0.0, |net, account: &Account| {
@@ -75,7 +100,7 @@ pub fn calculate_net_worth(accounts: &Vec<Account>) -> f64 {
   })
 }
 
-async fn get_item_accounts_for_new_snapshot(
+async fn get_item_accounts(
   item: &PlaidItem,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> Result<RetrieveAnItemsAccountsResponse, ApiError> {

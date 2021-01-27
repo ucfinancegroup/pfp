@@ -50,6 +50,6 @@ pub struct AssetChange {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AllocationChange {
     pub asset: Asset,
-    #[validate(range(min = 0, max = 100))]
+    #[validate(range(min = 0.0, max = 100.0))]
     pub change: f64,
 }

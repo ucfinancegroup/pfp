@@ -888,6 +888,7 @@ components:
         - first_name
         - last_name
         - income
+        - location
       properties:
         email:
           type: string
@@ -900,6 +901,8 @@ components:
           type: string
         income:
           type: number
+        location:
+          $ref: "#/components/schemas/Location"
     LoginPayload:
       type: object
       required:
@@ -917,27 +920,20 @@ components:
       required:
         - email
         # password hash never returned.
-        - location
         - first_name
         - last_name
+        - location
+        - income
       properties:
         email:
           type: string
           format: email
-        location:
-          type: object
-          required:
-            - lat
-            - lon
-          properties:
-            lat:
-              type: number
-            lon:
-              type: number
         first_name:
           type: string
         last_name:
           type: string
+        location:
+          $ref: "#/components/schemas/Location"
         income:
           type: number
         # recurrings: # not returned
@@ -950,6 +946,21 @@ components:
           type: string
           format: url
 
+    Location:
+      type: object
+      required:
+        - lat
+        - lon
+        - has_location
+      properties:
+        has_location:
+          type: boolean
+        lat:
+          type: number
+          format: float64
+        lon:
+          type: number
+          format: float64
     AccountsResponse:
       type: object
       required:

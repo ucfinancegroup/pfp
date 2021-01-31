@@ -6,6 +6,8 @@ use actix_web::{
   HttpResponse,
 };
 use actix_web_validator::{Json, Validate};
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use validator::ValidationError;
 
@@ -19,7 +21,7 @@ pub struct GoalNewPayload {
   #[serde(rename = "end")]
   pub end: i64,
   #[serde(rename = "threshold")]
-  pub threshold: i64,
+  pub threshold: Decimal,
   #[serde(rename = "metric")]
   pub metric: GoalMetrics,
 }
@@ -100,14 +102,14 @@ pub async fn get_goal_examples(_: User) -> HttpResponse {
       name: "Save 100 Dollars".to_string(),
       start: 1609977600,
       end: 1617753600,
-      threshold: 10000, // dollars times 100
+      threshold: dec!(100),
       metric: GoalMetrics::Savings,
     },
     GoalNewPayload {
       name: "Spend under 100 Dollars".to_string(),
       start: 1609977600,
       end: 1617753600,
-      threshold: -10000, // dollars times 100
+      threshold: dec!(-100),
       metric: GoalMetrics::Spending,
     },
   ])

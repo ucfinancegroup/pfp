@@ -1,4 +1,4 @@
-use crate::common::errors::ApiError;
+use crate::common::{errors::ApiError, Money};
 use crate::models::user_model::User;
 use crate::services::finchplaid::ApiClient;
 use crate::services::users::UserService;
@@ -31,7 +31,7 @@ pub struct AccountResponse {
 pub struct AccountSuccess {
   pub item_id: String,
   pub name: String,
-  pub balance: i64,
+  pub balance: Money,
 }
 
 #[derive(Serialize)]

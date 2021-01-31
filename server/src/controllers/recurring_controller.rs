@@ -6,6 +6,8 @@ use actix_web::{
   HttpResponse,
 };
 use actix_web_validator::{Json, Validate};
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use validator::ValidationError;
 
@@ -24,20 +26,20 @@ pub struct RecurringNewPayload {
   #[validate(range(min = 0))]
   pub end: i64,
   #[serde(rename = "principal")]
-  pub principal: i64,
+  pub principal: Decimal,
   #[serde(rename = "amount")]
-  pub amount: i64,
+  pub amount: Decimal,
   #[serde(rename = "interest")]
-  #[validate(range(min = 0))]
-  pub interest: f32,
+  #[validate(custom = "crate::common::decimal_at_least_zero")]
+  pub interest: Decimal,
   #[serde(rename = "frequency")]
   pub frequency: TimeInterval,
 }
 
 fn validate_recurring_new_payload(data: &RecurringNewPayload) -> Result<(), ValidationError> {
-  if data.principal == 0 && data.interest == 0.0 && data.amount != 0 {
+  if data.principal == dec!(0) && data.interest == dec!(0) && data.amount != dec!(0) {
     Ok(())
-  } else if data.amount == 0 && data.principal != 0 {
+  } else if data.amount == dec!(0) && data.principal != dec!(0) {
     Ok(())
   } else {
     Err(ValidationError::new(
@@ -116,9 +118,9 @@ pub async fn get_recurring_examples(_: User) -> HttpResponse {
       name: "Unemployment Benefits".to_string(),
       start: 1609977600,
       end: 1617753600,
-      principal: 0,
-      interest: 0.0,
-      amount: 30000, // remember amount is multiplied by 100 so its' $.cc -> $cc
+      principal: dec!(0),
+      interest: dec!(0),
+      amount: dec!(300),
       frequency: TimeInterval {
         typ: Typ::Monthly,
         content: 1,
@@ -128,9 +130,9 @@ pub async fn get_recurring_examples(_: User) -> HttpResponse {
       name: "Pay Babysitter".to_string(),
       start: 1609977600,
       end: 1617753600,
-      principal: 0,
-      interest: 0.0,
-      amount: -6000,
+      principal: dec!(0),
+      interest: dec!(0),
+      amount: dec!(-60),
       frequency: TimeInterval {
         typ: Typ::Monthly,
         content: 1,

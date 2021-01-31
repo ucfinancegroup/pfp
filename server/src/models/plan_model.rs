@@ -1,5 +1,6 @@
 use chrono::DateTime;
 use models::recurring_model::{Recurring, TimeInterval};
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
 use wither::{mongodb::bson::oid::ObjectId, Model};
@@ -38,18 +39,18 @@ pub struct Transfrom {
 pub struct Asset {
     pub name: String,
     pub class: String,
-    pub annualized_performance: f64,
+    pub annualized_performance: Decimal,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AssetChange {
     pub asset: Asset,
-    pub change: f64,
+    pub change: Decimal,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AllocationChange {
     pub asset: Asset,
     #[validate(range(min = 0.0, max = 100.0))]
-    pub change: f64,
+    pub change: Decimal,
 }

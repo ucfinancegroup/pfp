@@ -33,3 +33,13 @@ where
     .unwrap()
     .clone()
 }
+
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
+use validator::ValidationError;
+pub fn decimal_at_least_zero(d: &Decimal) -> Result<(), ValidationError> {
+  match *d >= dec!(0) {
+    true => Ok(()),
+    false => Err(ValidationError::new("Field must be at least 0")),
+  }
+}

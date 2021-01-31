@@ -5,5 +5,19 @@
     stroke-width: 2px;
     stroke: #21c19c;
     fill: none;
+
+    &.path--known {
+
+    }
+
+    &.path--predicted {
+      stroke-dasharray: 5;
+      opacity: 0.5;
+    }
+  }
+
+  .area {
+    fill: url("#areaGradient");
+    opacity: 0.5;
   }
 }

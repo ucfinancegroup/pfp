@@ -1,10 +1,10 @@
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import * as Yup from 'yup';
 import {ErrorMessage, Field, Form, Formik} from "formik";
 import classNames from "classnames/bind";
 import {UserContext} from "../contexts/UserContext";
 import {useHistory} from "react-router-dom";
-import {UserApi} from "../api";
+import {Location, UserApi} from "../api";
 import handleFetchError from "../hooks/handleFetchError";
 
 const cx = classNames;
@@ -28,6 +28,27 @@ export default function RegisterPage() {
     const [loading, setLoading] = useState<boolean>();
     const {setIsLoggedIn} = useContext(UserContext);
     const router = useHistory();
+    const [location, setLocation] = useState<Location>({
+        has_location: false,
+        lat: 0,
+        lon: 0,
+    });
+
+    useEffect(() => {
+        getLocation();
+    });
+
+    function getLocation() {
+         navigator.geolocation.getCurrentPosition(pos => {
+             const newLocation = {
+                 has_location: true,
+                 lat: pos.coords.latitude,
+                 lon: pos.coords.longitude,
+             };
+             console.log("Got location", newLocation);
+             setLocation(newLocation);
+         }, e => console.warn("Unable to get location", e));
+    }
 
     async function submit({email, password, firstName, lastName}:
                               { email: string, password: string, firstName: string, lastName: string }) {
@@ -42,7 +63,8 @@ export default function RegisterPage() {
                     password,
                     first_name: firstName,
                     last_name: lastName,
-                    income: 100 // TODO remove this
+                    income: 100,
+                    location,
                 }
             })
             setIsLoggedIn(true);

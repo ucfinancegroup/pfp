@@ -2137,7 +2137,8 @@ dependencies = [
  "rand 0.5.6",
  "reqwest 0.11.0",
  "rust-argon2",
- "rusty-money",
+ "rust_decimal",
+ "rust_decimal_macros",
  "serde",
  "serde_json",
  "simple_logger",
@@ -2607,16 +2608,6 @@ name = "rustversion"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb5d2a036dc6d2d8fd16fde3498b04306e29bd193bf306a57427019b823d5acd"
-
-[[package]]
-name = "rusty-money"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b28f881005eac7ad8d46b6f075da5f322bd7f4f83a38720fc069694ddadd683"
-dependencies = [
- "rust_decimal",
- "rust_decimal_macros",
-]
 
 [[package]]
 name = "ryu"

@@ -27,7 +27,8 @@ chrono="*"
 async-std="*"
 log="*"
 simple_logger = {version = "1.11.0", default-features= false}
-rusty-money = "0.4.1"
+rust_decimal= "*"
+rust_decimal_macros = "*"
 
 [features]
 development = []

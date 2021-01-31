@@ -6,6 +6,8 @@ use crate::models::{
 use crate::services::db::DatabaseService;
 use chrono::{DateTime, Utc};
 use futures::stream::{Stream, StreamExt};
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 use wither::{
   mongodb::bson::{bson, doc, Bson},
   Model,
@@ -45,9 +47,9 @@ impl std::ops::Add for SimilarUserMetrics {
 
 #[derive(Clone)]
 struct UserMetricRates {
-  pub spending_rate: f64,
-  pub savings_rate: f64,
-  pub income_rate: f64,
+  pub spending_rate: Decimal,
+  pub savings_rate: Decimal,
+  pub income_rate: Decimal,
 }
 
 impl UserMetricRates {
@@ -56,12 +58,12 @@ impl UserMetricRates {
       return Self::default();
     }
 
-    let elapsed = (end.snapshot_time - start.snapshot_time) as f64;
+    let elapsed = Decimal::new(end.snapshot_time - start.snapshot_time, 0);
 
     UserMetricRates {
-      spending_rate: (end.running_spending - start.running_spending) / elapsed,
-      savings_rate: (end.running_savings - start.running_savings) / elapsed,
-      income_rate: (end.running_income - start.running_income) / elapsed,
+      spending_rate: (end.running_spending - start.running_spending).amount / elapsed,
+      savings_rate: (end.running_savings - start.running_savings).amount / elapsed,
+      income_rate: (end.running_income - start.running_income).amount / elapsed,
     }
   }
 
@@ -78,9 +80,9 @@ impl UserMetricRates {
 impl Default for UserMetricRates {
   fn default() -> Self {
     UserMetricRates {
-      spending_rate: 0.0,
-      savings_rate: 0.0,
-      income_rate: 0.0,
+      spending_rate: dec!(0),
+      savings_rate: dec!(0),
+      income_rate: dec!(0),
     }
   }
 }
@@ -89,8 +91,8 @@ pub fn match_income_range(u: &User) -> bson::Document {
   doc! {
     "$match": {
       "income": {
-        "$gte": u.income * 0.9,
-        "$lte": u.income * 1.10
+        "$gte": wither::mongodb::bson::ser::to_bson(&(u.income * dec!(0.9))).unwrap(),
+        "$lte": wither::mongodb::bson::ser::to_bson(&(u.income * dec!(1.1))).unwrap()
       },
       "snapshots": {
         "$not": {
@@ -216,39 +218,40 @@ mod tests {
   use crate::common::Money;
   use actix_rt;
   use chrono::NaiveDateTime;
+  use rust_decimal_macros::dec;
 
   #[actix_rt::test]
   async fn test_compare_snapshots_to_user() {
     let other_users_snapshots: Vec<Result<Vec<Snapshot>, AppError>> = vec![
       Ok(vec![
         Snapshot {
-          net_worth: Money { amount: 0 },
-          running_savings: Money { amount: 0 },
-          running_spending: Money { amount: 0 },
-          running_income: Money { amount: 0 },
+          net_worth: Money::new(dec!(0)),
+          running_savings: Money::new(dec!(0)),
+          running_spending: Money::new(dec!(0)),
+          running_income: Money::new(dec!(0)),
           snapshot_time: 50,
         },
         Snapshot {
-          net_worth: Money { amount: 0 },
-          running_savings: Money { amount: 5000 },
-          running_spending: Money { amount: 0 },
-          running_income: Money { amount: 0 },
+          net_worth: Money::new(dec!(0)),
+          running_savings: Money::new(dec!(5000)),
+          running_spending: Money::new(dec!(0)),
+          running_income: Money::new(dec!(0)),
           snapshot_time: 100,
         },
       ]),
       Ok(vec![
         Snapshot {
-          net_worth: Money { amount: 0 },
-          running_savings: Money { amount: 0 },
-          running_spending: Money { amount: 0 },
-          running_income: Money { amount: 0 },
+          net_worth: Money::new(dec!(0)),
+          running_savings: Money::new(dec!(0)),
+          running_spending: Money::new(dec!(0)),
+          running_income: Money::new(dec!(0)),
           snapshot_time: 50,
         },
         Snapshot {
-          net_worth: Money { amount: 0 },
-          running_savings: Money { amount: 4500 },
-          running_spending: Money { amount: 0 },
-          running_income: Money { amount: 0 },
+          net_worth: Money::new(dec!(0)),
+          running_savings: Money::new(dec!(4500)),
+          running_spending: Money::new(dec!(0)),
+          running_income: Money::new(dec!(0)),
           snapshot_time: 100,
         },
       ]),
@@ -256,17 +259,17 @@ mod tests {
 
     let this_users_snapshots: Vec<Snapshot> = vec![
       Snapshot {
-        net_worth: Money { amount: 0 },
-        running_savings: Money { amount: 0 },
-        running_spending: Money { amount: 0 },
-        running_income: Money { amount: 0 },
+        net_worth: Money::new(dec!(0)),
+        running_savings: Money::new(dec!(0)),
+        running_spending: Money::new(dec!(0)),
+        running_income: Money::new(dec!(0)),
         snapshot_time: 50,
       },
       Snapshot {
-        net_worth: Money { amount: 0 },
-        running_savings: Money { amount: 4700 },
-        running_spending: Money { amount: 0 },
-        running_income: Money { amount: 0 },
+        net_worth: Money::new(dec!(0)),
+        running_savings: Money::new(dec!(4700)),
+        running_spending: Money::new(dec!(0)),
+        running_income: Money::new(dec!(0)),
         snapshot_time: 100,
       },
     ];

@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    Location,
+    LocationFromJSON,
+    LocationFromJSONTyped,
+    LocationToJSON,
+} from './';
+
 /**
  * 
  * @export
@@ -49,6 +56,12 @@ export interface SignupPayload {
      * @memberof SignupPayload
      */
     income: number;
+    /**
+     * 
+     * @type {Location}
+     * @memberof SignupPayload
+     */
+    location: Location;
 }
 
 export function SignupPayloadFromJSON(json: any): SignupPayload {
@@ -66,6 +79,7 @@ export function SignupPayloadFromJSONTyped(json: any, ignoreDiscriminator: boole
         'first_name': json['first_name'],
         'last_name': json['last_name'],
         'income': json['income'],
+        'location': LocationFromJSON(json['location']),
     };
 }
 
@@ -83,6 +97,7 @@ export function SignupPayloadToJSON(value?: SignupPayload | null): any {
         'first_name': value.first_name,
         'last_name': value.last_name,
         'income': value.income,
+        'location': LocationToJSON(value.location),
     };
 }
 

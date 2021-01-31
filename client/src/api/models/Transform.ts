@@ -14,10 +14,14 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    AssetToPercentMapping,
-    AssetToPercentMappingFromJSON,
-    AssetToPercentMappingFromJSONTyped,
-    AssetToPercentMappingToJSON,
+    AssetChange,
+    AssetChangeFromJSON,
+    AssetChangeFromJSONTyped,
+    AssetChangeToJSON,
+    TimeInterval,
+    TimeIntervalFromJSON,
+    TimeIntervalFromJSONTyped,
+    TimeIntervalToJSON,
 } from './';
 
 /**
@@ -28,16 +32,16 @@ import {
 export interface Transform {
     /**
      * 
-     * @type {number}
+     * @type {TimeInterval}
      * @memberof Transform
      */
-    trigger: number;
+    trigger: TimeInterval;
     /**
      * 
-     * @type {{ [key: string]: AssetToPercentMapping; }}
+     * @type {AssetChange}
      * @memberof Transform
      */
-    change: { [key: string]: AssetToPercentMapping; };
+    change: AssetChange;
 }
 
 export function TransformFromJSON(json: any): Transform {
@@ -50,8 +54,8 @@ export function TransformFromJSONTyped(json: any, ignoreDiscriminator: boolean):
     }
     return {
         
-        'trigger': json['trigger'],
-        'change': (mapValues(json['change'], AssetToPercentMappingFromJSON)),
+        'trigger': TimeIntervalFromJSON(json['trigger']),
+        'change': AssetChangeFromJSON(json['change']),
     };
 }
 
@@ -64,8 +68,8 @@ export function TransformToJSON(value?: Transform | null): any {
     }
     return {
         
-        'trigger': value.trigger,
-        'change': (mapValues(value.change, AssetToPercentMappingToJSON)),
+        'trigger': TimeIntervalToJSON(value.trigger),
+        'change': AssetChangeToJSON(value.change),
     };
 }
 

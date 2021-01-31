@@ -14,10 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    UserLocation,
-    UserLocationFromJSON,
-    UserLocationFromJSONTyped,
-    UserLocationToJSON,
+    Location,
+    LocationFromJSON,
+    LocationFromJSONTyped,
+    LocationToJSON,
 } from './';
 
 /**
@@ -34,12 +34,6 @@ export interface User {
     email: string;
     /**
      * 
-     * @type {UserLocation}
-     * @memberof User
-     */
-    location: UserLocation;
-    /**
-     * 
      * @type {string}
      * @memberof User
      */
@@ -52,10 +46,16 @@ export interface User {
     last_name: string;
     /**
      * 
+     * @type {Location}
+     * @memberof User
+     */
+    location: Location;
+    /**
+     * 
      * @type {number}
      * @memberof User
      */
-    income?: number;
+    income: number;
     /**
      * 
      * @type {string}
@@ -75,10 +75,10 @@ export function UserFromJSONTyped(json: any, ignoreDiscriminator: boolean): User
     return {
         
         'email': json['email'],
-        'location': UserLocationFromJSON(json['location']),
         'first_name': json['first_name'],
         'last_name': json['last_name'],
-        'income': !exists(json, 'income') ? undefined : json['income'],
+        'location': LocationFromJSON(json['location']),
+        'income': json['income'],
         'device_url': !exists(json, 'device_url') ? undefined : json['device_url'],
     };
 }
@@ -93,9 +93,9 @@ export function UserToJSON(value?: User | null): any {
     return {
         
         'email': value.email,
-        'location': UserLocationToJSON(value.location),
         'first_name': value.first_name,
         'last_name': value.last_name,
+        'location': LocationToJSON(value.location),
         'income': value.income,
         'device_url': value.device_url,
     };

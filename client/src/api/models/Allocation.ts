@@ -14,10 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    AssetToPercentMapping,
-    AssetToPercentMappingFromJSON,
-    AssetToPercentMappingFromJSONTyped,
-    AssetToPercentMappingToJSON,
+    AllocationChange,
+    AllocationChangeFromJSON,
+    AllocationChangeFromJSONTyped,
+    AllocationChangeToJSON,
 } from './';
 
 /**
@@ -40,10 +40,10 @@ export interface Allocation {
     date: number;
     /**
      * 
-     * @type {{ [key: string]: AssetToPercentMapping; }}
+     * @type {AllocationChange}
      * @memberof Allocation
      */
-    mapping: { [key: string]: AssetToPercentMapping; };
+    schema: AllocationChange;
 }
 
 export function AllocationFromJSON(json: any): Allocation {
@@ -58,7 +58,7 @@ export function AllocationFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         
         'description': json['description'],
         'date': json['date'],
-        'mapping': (mapValues(json['mapping'], AssetToPercentMappingFromJSON)),
+        'schema': AllocationChangeFromJSON(json['schema']),
     };
 }
 
@@ -73,7 +73,7 @@ export function AllocationToJSON(value?: Allocation | null): any {
         
         'description': value.description,
         'date': value.date,
-        'mapping': (mapValues(value.mapping, AssetToPercentMappingToJSON)),
+        'schema': AllocationChangeToJSON(value.schema),
     };
 }
 

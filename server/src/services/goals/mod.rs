@@ -8,6 +8,7 @@ pub mod GoalService {
   };
   use crate::services::users::UserService;
   use actix_web::web::Data;
+  use rust_decimal_macros::dec;
   use wither::{mongodb::bson::oid::ObjectId, Model};
 
   pub fn calculate_goal_progress(
@@ -44,13 +45,13 @@ pub mod GoalService {
 
     if change == goal.threshold {
       return Ok(GoalAndStatus {
-        progress: 100.0,
+        progress: dec!(100.0),
         goal,
       });
     }
 
     Ok(GoalAndStatus {
-      progress: (change as f64) / (goal.threshold.clone() as f64),
+      progress: change / goal.threshold.clone(),
       goal,
     })
   }
@@ -161,6 +162,7 @@ mod tests {
 
   use crate::common::Money;
   use crate::models::{goal_model::*, user_model::Snapshot};
+  use rust_decimal_macros::dec;
 
   #[test]
   fn test_calculate_progress() {
@@ -169,91 +171,91 @@ mod tests {
       name: "Save 100 Dollars".to_string(),
       start: 3,
       end: 10,
-      threshold: 10000, // dollars times 100
+      threshold: 100.into(),
       metric: GoalMetrics::Savings,
     };
 
     let snapshots = vec![
       Snapshot {
-        net_worth: Money { amount: 0 },
-        running_spending: Money { amount: 0 },
-        running_savings: Money { amount: 0 },
-        running_income: Money { amount: 0 },
+        net_worth: Money::new(dec!(0)),
+        running_spending: Money::new(dec!(0)),
+        running_savings: Money::new(dec!(0)),
+        running_income: Money::new(dec!(0)),
         snapshot_time: 1,
       },
       Snapshot {
-        net_worth: Money { amount: 0 },
-        running_spending: Money { amount: 0 },
-        running_savings: Money { amount: 0 },
-        running_income: Money { amount: 0 },
+        net_worth: Money::new(dec!(0)),
+        running_spending: Money::new(dec!(0)),
+        running_savings: Money::new(dec!(0)),
+        running_income: Money::new(dec!(0)),
         snapshot_time: 2,
       },
       Snapshot {
-        net_worth: Money { amount: 0 },
-        running_spending: Money { amount: 0 },
-        running_savings: Money { amount: 0 },
-        running_income: Money { amount: 0 },
+        net_worth: Money::new(dec!(0)),
+        running_spending: Money::new(dec!(0)),
+        running_savings: Money::new(dec!(0)),
+        running_income: Money::new(dec!(0)),
         snapshot_time: 4,
       },
       Snapshot {
-        net_worth: Money { amount: 0 },
-        running_spending: Money { amount: -1000 },
-        running_savings: Money { amount: 5000 },
-        running_income: Money { amount: 0 },
+        net_worth: Money::new(dec!(0)),
+        running_spending: Money::new(dec!(-10)),
+        running_savings: Money::new(dec!(50)),
+        running_income: Money::new(dec!(0)),
         snapshot_time: 6,
       },
       Snapshot {
-        net_worth: Money { amount: 0 },
-        running_spending: Money { amount: -1000 },
-        running_savings: Money { amount: 5000 },
-        running_income: Money { amount: 0 },
+        net_worth: Money::new(dec!(0)),
+        running_spending: Money::new(dec!(-10)),
+        running_savings: Money::new(dec!(50)),
+        running_income: Money::new(dec!(0)),
         snapshot_time: 7,
       },
       Snapshot {
-        net_worth: Money { amount: 0 },
-        running_spending: Money { amount: -1000 },
-        running_savings: Money { amount: 5000 },
-        running_income: Money { amount: 0 },
+        net_worth: Money::new(dec!(0)),
+        running_spending: Money::new(dec!(-10)),
+        running_savings: Money::new(dec!(50)),
+        running_income: Money::new(dec!(0)),
         snapshot_time: 10,
       },
       Snapshot {
-        net_worth: Money { amount: 0 },
-        running_spending: Money { amount: -21000 },
-        running_savings: Money { amount: 5000 },
-        running_income: Money { amount: 0 },
+        net_worth: Money::new(dec!(0)),
+        running_spending: Money::new(dec!(-210)),
+        running_savings: Money::new(dec!(50)),
+        running_income: Money::new(dec!(0)),
         snapshot_time: 11,
       },
     ];
 
     let progress = GoalService::calculate_goal_progress(saving_goal, &snapshots).unwrap();
 
-    assert_eq!(0.5 as f64, progress.progress);
+    assert_eq!(dec!(0.5), progress.progress);
 
     let spending_goal = Goal {
       id: None,
       name: "Spend under 100 Dollars".to_string(),
       start: 5,
       end: 9,
-      threshold: -10000, // dollars times 100
+      threshold: dec!(-100),
       metric: GoalMetrics::Spending,
     };
 
     let progress2 = GoalService::calculate_goal_progress(spending_goal, &snapshots).unwrap();
 
-    assert_eq!(0.1 as f64, progress2.progress);
+    assert_eq!(dec!(0.1), progress2.progress);
 
     let spending_goal2 = Goal {
       id: None,
       name: "Spend under 100 Dollars".to_string(),
       start: 6,
       end: 12,
-      threshold: -10000, // dollars times 100
+      threshold: dec!(-100),
       metric: GoalMetrics::Spending,
     };
 
     let progress3 = GoalService::calculate_goal_progress(spending_goal2, &snapshots).unwrap();
 
-    assert_eq!(2.1 as f64, progress3.progress);
+    assert_eq!(dec!(2.1), progress3.progress);
   }
 
   #[test]
@@ -263,13 +265,13 @@ mod tests {
       name: "Spend under 100 Dollars".to_string(),
       start: 6,
       end: 12,
-      threshold: -10000, // dollars times 100
+      threshold: dec!(-100), // dollars times 100
       metric: GoalMetrics::Spending,
     };
 
     let progress = GoalService::calculate_goal_progress(goal, &vec![]).unwrap();
 
     // no snapshots should complete successfully and return _no_ progress
-    assert_eq!(0.0 as f64, progress.progress);
+    assert_eq!(dec!(0.0), progress.progress);
   }
 }

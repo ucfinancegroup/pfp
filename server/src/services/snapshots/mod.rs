@@ -84,14 +84,30 @@ pub mod SnapshotService {
     transactions_response.transactions.iter().fold(
       (Money::default(), Money::default()).into(),
       |(money_in, money_out), transaction: &Transaction| {
-        let s: Decimal = Decimal::try_from(transaction.amount).unwrap()
-          * Decimal::new(
-            *account_id_to_coeff
-              .get(&transaction.account_id)
-              .or(Some(&0))
-              .unwrap(),
-            0,
-          );
+        let s: Decimal = Decimal::try_from(transaction.amount)
+          .and_then(|amount| {
+            Ok(
+              amount
+                * Decimal::new(
+                  *account_id_to_coeff
+                    .get(&transaction.account_id)
+                    .or(Some(&0))
+                    .unwrap(),
+                  0,
+                ),
+            )
+          })
+          .map_err(|e| {
+            log::error!(
+              "Could not convert {} to decimal: {}",
+              transaction.amount.clone(),
+              e
+            );
+          })
+          .ok()
+          .or(Some(Decimal::new(0, 0)))
+          .unwrap();
+
         (money_in + s.max(0.into()), money_out + s.min(0.into()))
       },
     )

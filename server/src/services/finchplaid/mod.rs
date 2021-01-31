@@ -65,11 +65,15 @@ pub async fn get_account_data<'a>(
   for account in accounts.iter() {
     account_successes.push(AccountSuccess {
       item_id: item.item_id.clone(),
-      balance: Money::new(Decimal::try_from(account.balances.current).unwrap())
-        * *account_id_to_coeff
-          .get(&account.account_id)
-          .or(Some(&0))
-          .unwrap(),
+      balance: Decimal::try_from(account.balances.current)
+        .map_err(|_| ApiError::new(500, "Decimal conversion error".to_string()))?
+        * Decimal::new(
+          *account_id_to_coeff
+            .get(&account.account_id)
+            .or(Some(&0))
+            .unwrap(),
+          0,
+        ),
       name: account.name.clone(),
     });
   }

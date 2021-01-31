@@ -3,6 +3,7 @@ use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
 use actix_web::{post, put, web::Data, HttpResponse};
 use actix_web_validator::{Json, Validate};
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 #[derive(Validate, Deserialize, PartialEq)]
@@ -15,8 +16,8 @@ pub struct SignupPayload {
   pub first_name: String,
   #[validate(length(min = 1))]
   pub last_name: String,
-  #[validate(range(min = 0))]
-  pub income: f64,
+  #[validate(custom = "crate::common::decimal_at_least_zero")]
+  pub income: Decimal,
   pub location: Location,
 }
 
@@ -25,7 +26,7 @@ struct SignupResponse {
   pub email: String,
   pub first_name: String,
   pub last_name: String,
-  pub income: f64,
+  pub income: Decimal,
   pub location: Location,
 }
 
@@ -61,8 +62,8 @@ pub struct UpdatePayload {
   pub first_name: Option<String>,
   #[validate(length(min = 1))]
   pub last_name: Option<String>,
-  #[validate(range(min = 0))]
-  pub income: Option<f64>,
+  #[validate(custom = "crate::common::decimal_at_least_zero")]
+  pub income: Option<Decimal>,
   pub location: Option<Location>,
 }
 
@@ -179,7 +180,7 @@ mod test {
         password: "fafdfdf".to_string(),
         first_name: "first name".to_string(),
         last_name: "last name".to_string(),
-        income: 1000 as f64,
+        income: 1000.into(),
         location: Location::default(),
       }
       .validate()
@@ -191,7 +192,7 @@ mod test {
       password: "fadfdfda".to_string(),
       first_name: "first name".to_string(),
       last_name: "last name".to_string(),
-      income: -1 as f64,
+      income: Decimal::new(-1, 0),
       location: Location::default(),
     }
     .validate()
@@ -203,7 +204,7 @@ mod test {
       password: "".to_string(),
       first_name: "first name".to_string(),
       last_name: "last name".to_string(),
-      income: 1000 as f64,
+      income: 1000.into(),
       location: Location::default(),
     }
     .validate()
@@ -215,7 +216,7 @@ mod test {
       password: "".to_string(),
       first_name: "first name".to_string(),
       last_name: "last name".to_string(),
-      income: 1000 as f64,
+      income: 1000.into(),
       location: Location::default(),
     }
     .validate()
@@ -227,7 +228,7 @@ mod test {
       password: "fadfdf".to_string(),
       first_name: "".to_string(),
       last_name: "".to_string(),
-      income: 1000 as f64,
+      income: 1000.into(),
       location: Location::default(),
     }
     .validate()

@@ -207,11 +207,11 @@ mod test {
   use super::*;
 
   use crate::models::user_model::Location;
+  use plaid::models::RetrieveTransactionsResponse;
+  use rust_decimal_macros::dec;
   use std::error::Error;
   use std::fs::File;
   use std::io::BufReader;
-
-  use plaid::models::RetrieveTransactionsResponse;
 
   fn load_test_data() -> Result<RetrieveTransactionsResponse, Box<dyn Error>> {
     let file = File::open("./tests/test_snapshots.json")?;
@@ -237,7 +237,7 @@ mod test {
       password: String::from("test@test.com"),
       first_name: String::from("fn"),
       last_name: String::from("ln"),
-      income: 0.0,
+      income: dec!(0.0),
       location: Location {
         ..Default::default()
       },

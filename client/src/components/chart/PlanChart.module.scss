@@ -1,20 +1,9 @@
-.chart {
-  svg {
-    font: 10px sans-serif;
-  }
-  .area {
-    fill: steelblue;
-    clip-path: url(#clip);
-  }
-  .axis path,
-  .axis line {
+.svg {
+  font-size: 14px;
+
+  .path {
+    stroke-width: 2px;
+    stroke: #21c19c;
     fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-  }
-  .brush .extent {
-    stroke: #fff;
-    fill-opacity: .125;
-    shape-rendering: crispEdges;
   }
 }

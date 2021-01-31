@@ -3,6 +3,7 @@ import classNames from "classnames";
 import * as d3 from "d3";
 import {useEffect, useState} from "react";
 import React from "react";
+import { curveBasis } from "d3";
 
 const cx = classNames.bind(styles);
 
@@ -15,24 +16,30 @@ export function PlanChart(props: PlanChartProps) {
     const height = 440;
     const width = 1000;
     const margin = ({top: 20, right: 20, bottom: 30, left: 40});
-   // const [data, setData] = useState<any>();
 
     useEffect(() => {
         getData();
-
     }, []);
+
     async function getData() {
         const d = await d3.csv("/data.csv");
         const data = Object.assign((d).map(({date, close}) =>
             ({date: new Date(date), value: parseFloat(close)})), {y: "↑ Close $"});
-        //setData(tmpData);
 
-
+        /*
         const area = (x, y) => d3.area()
             .defined((d: any) => !isNaN(d.value))
             .x((d: any)  => x(d.date))
             .y0(y(0))
             .y1((d: any)  => y(d.value));
+
+         */
+
+        const line = (x, y) => d3.area()
+            .curve(curveBasis)
+            .defined((d: any) => !isNaN(d.value))
+            .x((d: any)  => x(d.date))
+            .y((d: any)  => y(d.value));
 
         const x = d3.scaleUtc()
             .domain(d3.extent(data,  (d: any) => d.date) as any)
@@ -60,6 +67,7 @@ export function PlanChart(props: PlanChartProps) {
 
         function createChart() {
             const svg = d3.create("svg")
+                .attr("class", styles.svg + " " + styles.chart)
                 .attr("viewBox", [0, 0, width, height] as any)
                 .style("display", "block");
 
@@ -80,13 +88,13 @@ export function PlanChart(props: PlanChartProps) {
             const path = svg.append("path")
                 .datum(data)
                 .attr("clip-path", "url(#" + clipId + ")")
-                .attr("fill", "steelblue");
+                .attr("class", styles.path);
 
             const node = svg.node();
             (node as any).update = function(focusX, focusY) {
                 gx.call(xAxis, focusX, height);
                 gy.call(yAxis, focusY, data.y);
-                path.attr("d", area(focusX, focusY) as any);
+                path.attr("d", line(focusX, focusY) as any);
             };
             return node;
         }
@@ -95,6 +103,7 @@ export function PlanChart(props: PlanChartProps) {
 
         function createFocus() {
             const svg = d3.create("svg")
+                .attr("class", styles.svg + " " + styles.focus)
                 .attr("viewBox", [0, 0, width, focusHeight] as any)
                 .style("display", "block");
 
@@ -110,8 +119,8 @@ export function PlanChart(props: PlanChartProps) {
 
             svg.append("path")
                 .datum(data)
-                .attr("fill", "steelblue")
-                .attr("d", area(x, y.copy().range([focusHeight - margin.bottom, 4])) as any);
+                .attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4])) as any)
+                .attr("class", styles.path);
 
             const gb = svg.append("g")
                 .call(brush)

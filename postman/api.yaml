@@ -1412,7 +1412,7 @@ components:
           nullable: true
 
     TimeSeriesEntry:
-      description: "Daily values of user's net"
+      description: "Daily values of user's net worth"
       type: object
       required:
         - date

@@ -1421,8 +1421,7 @@ components:
         date:
           type: integer
         net_worth:
-          type: number
-          format: float64
+          $ref: "#/components/schemas/Money"
 
     LinkTokenCreateResponse:
       type: object

@@ -901,6 +901,7 @@ components:
           type: string
         income:
           type: number
+          format: float64
         location:
           $ref: "#/components/schemas/Location"
     LoginPayload:
@@ -936,6 +937,7 @@ components:
           $ref: "#/components/schemas/Location"
         income:
           type: number
+          format: float64
         # recurrings: # not returned
         # snapshots: # not returned
         # accounts: # maybe
@@ -986,7 +988,8 @@ components:
         item_id:
           type: string
         code:
-          type: number
+          type: integer
+          format: int32
         message:
           type: string
 
@@ -1016,6 +1019,7 @@ components:
           type: string
         income:
           type: number
+          format: int64
 
     # with serde we wanna #[serde(tag = "t", content = "content")]
     # enum Block {
@@ -1078,13 +1082,14 @@ components:
           type: integer
           format: int64
         principal:
-          type: integer
-          format: int64
+          type: number
+          format: float64
         amount:
-          type: integer
-          format: int64
+          type: number
+          format: float64
         interest:
           type: number
+          format: float64
         frequency:
           $ref: "#/components/schemas/TimeInterval"
       example:
@@ -1123,13 +1128,14 @@ components:
           type: integer
           format: int64
         principal:
-          type: integer
-          format: int64
+          type: number
+          format: float64
         amount:
-          type: integer
-          format: int64
+          type: number
+          format: float64
         interest:
           type: number
+          format: float64
         frequency:
           $ref: "#/components/schemas/TimeInterval"
 
@@ -1147,6 +1153,7 @@ components:
         performance:
           description: "Annualised Percentage Performance"
           type: number
+          format: float64
 
     AssetChange:
       type: object
@@ -1297,6 +1304,7 @@ components:
           format: int64
         threshold:
           type: number
+          format: float64
         metric:
           $ref: "#/components/schemas/GoalMetric"
 
@@ -1322,6 +1330,7 @@ components:
           format: int64
         threshold:
           type: number
+          format: float64
         metric:
           $ref: "#/components/schemas/GoalMetric"
 
@@ -1353,6 +1362,7 @@ components:
           type: string
         percentile:
           type: number
+          format: float64
           minimum: 0
           maximum: 100
           exclusiveMaximum: true
@@ -1397,6 +1407,7 @@ components:
           type: array
           items:
             type: number
+            format: float64
 
     LinkTokenCreateResponse:
       type: object
@@ -1437,15 +1448,14 @@ components:
         "$oid":
           type: string
           example: "5ff7361e0027e8ac003af400"
-    # stores money as the raw amount times 100: $$.cc -> $$cc.00, but integer
     Money:
       type: object
       required:
         - amount
       properties:
         amount:
-          type: integer
-          format: int64
+          type: number
+          format: float64
     Snapshot:
       type: object
       required:

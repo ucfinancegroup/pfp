@@ -6,4 +6,5 @@ pub mod recurrings;
 pub mod secrets;
 pub mod sessions;
 pub mod snapshots;
+pub mod timeseries;
 pub mod users;

@@ -1,8 +1,6 @@
-use chrono::DateTime;
-use models::recurring_model::{Recurring, TimeInterval};
+use crate::models::recurring_model::{Recurring, TimeInterval};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use serde_json::Map;
 use wither::{mongodb::bson::oid::ObjectId, Model};
 
 #[derive(Model, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -18,14 +16,14 @@ pub struct Plan {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Allocation {
     pub description: String,
-    pub date: DateTime,
+    pub date: i64,
     pub schema: Vec<AllocationChange>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Event {
     pub name: String,
-    pub start: DateTime,
+    pub start: i64,
     pub transforms: Vec<Transfrom>,
 }
 
@@ -51,6 +49,5 @@ pub struct AssetChange {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AllocationChange {
     pub asset: Asset,
-    #[validate(range(min = 0.0, max = 100.0))]
     pub change: Decimal,
 }

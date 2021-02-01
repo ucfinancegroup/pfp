@@ -1,4 +1,5 @@
 use crate::models::recurring_model::{Recurring, TimeInterval};
+use actix_web_validator::Validate;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use wither::{mongodb::bson::oid::ObjectId, Model};
@@ -46,8 +47,9 @@ pub struct AssetChange {
     pub change: Decimal,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AllocationChange {
     pub asset: Asset,
+    #[validate(custom = "crate::common::decimal_between_zero_or_hundred")]
     pub change: Decimal,
 }

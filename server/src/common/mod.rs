@@ -1,33 +1,10 @@
 pub mod errors;
+
+mod money;
+pub use money::*;
+
 use actix_web::HttpResponse;
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-pub struct Money {
-  pub amount: i64,
-}
-
-impl From<f64> for Money {
-  fn from(f: f64) -> Money {
-    Money {
-      amount: (f * 100.0).floor() as i64,
-    }
-  }
-}
-
-impl Into<f64> for Money {
-  fn into(self) -> f64 {
-    (self.amount as f64) / 100.0
-  }
-}
-
-impl std::ops::Sub for Money {
-  type Output = f64;
-
-  fn sub(self, other: Self) -> Self::Output {
-    ((self.amount - other.amount) as f64) / 100.0
-  }
-}
+use serde::Serialize;
 
 pub fn into_response<T>(m: T) -> HttpResponse
 where
@@ -55,4 +32,14 @@ where
     .as_document()
     .unwrap()
     .clone()
+}
+
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
+use validator::ValidationError;
+pub fn decimal_at_least_zero(d: &Decimal) -> Result<(), ValidationError> {
+  match *d >= dec!(0) {
+    true => Ok(()),
+    false => Err(ValidationError::new("Field must be at least 0")),
+  }
 }

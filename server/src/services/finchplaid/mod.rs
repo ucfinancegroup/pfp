@@ -1,9 +1,11 @@
-use crate::common::errors::ApiError;
+use crate::common::{errors::ApiError, Money};
 use crate::controllers::plaid_controller::AccountSuccess;
 use crate::models::user_model::PlaidItem;
 use actix_web::web::Data;
 use plaid::models::{Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse};
+use rust_decimal::Decimal;
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::sync::{Arc, Mutex};
 
 pub struct ApiClient {
@@ -13,43 +15,43 @@ pub struct ApiClient {
   pub configuration: plaid::apis::configuration::Configuration,
 }
 
-pub fn get_account_balance_coefficients(accounts: &Vec<Account>) -> HashMap<String, f64> {
+pub fn get_account_balance_coefficients(accounts: &Vec<Account>) -> HashMap<String, i64> {
   accounts
     .iter()
     .map(|account: &Account| {
       (
         account.account_id.clone(),
         match account._type.as_str() {
-          "depository" => 1.0,
-          "credit" => -1.0,
-          "loan" => -1.0,
-          "investment" => 1.0,
-          _ => 0.0,
+          "depository" => 1,
+          "credit" => -1,
+          "loan" => -1,
+          "investment" => 1,
+          _ => 0,
         },
       )
     })
     .collect()
 }
 
-pub fn get_account_transaction_coefficients(accounts: &Vec<Account>) -> HashMap<String, f64> {
+pub fn get_account_transaction_coefficients(accounts: &Vec<Account>) -> HashMap<String, i64> {
   accounts
     .iter()
     .map(|account: &Account| {
       (
         account.account_id.clone(),
         match account._type.as_str() {
-          "depository" => -1.0,
-          "credit" => -1.0,
-          "loan" => 0.0,
-          "investment" => 1.0,
-          _ => 0.0,
+          "depository" => -1,
+          "credit" => -1,
+          "loan" => 0,
+          "investment" => 1,
+          _ => 0,
         },
       )
     })
     .collect()
 }
 
-pub async fn get_account_data(
+pub async fn get_account_data<'a>(
   item: &PlaidItem,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> Result<Vec<AccountSuccess>, ApiError> {
@@ -63,12 +65,15 @@ pub async fn get_account_data(
   for account in accounts.iter() {
     account_successes.push(AccountSuccess {
       item_id: item.item_id.clone(),
-      balance: ((account.balances.current as f64)
-        * *account_id_to_coeff
-          .get(&account.account_id)
-          .or(Some(&0.0))
-          .unwrap()
-        * 100.0) as i64,
+      balance: Decimal::try_from(account.balances.current)
+        .map_err(|_| ApiError::new(500, "Decimal conversion error".to_string()))?
+        * Decimal::new(
+          *account_id_to_coeff
+            .get(&account.account_id)
+            .or(Some(&0))
+            .unwrap(),
+          0,
+        ),
       name: account.name.clone(),
     });
   }
@@ -79,25 +84,27 @@ pub async fn get_account_data(
 pub async fn get_net_worth(
   item: &PlaidItem,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
-) -> Result<f64, ApiError> {
+) -> Result<Money, ApiError> {
   let accounts = get_item_accounts(item, plaid_client).await?.accounts;
 
   Ok(calculate_net_worth(&accounts))
 }
 
-pub fn calculate_net_worth(accounts: &Vec<Account>) -> f64 {
+pub fn calculate_net_worth(accounts: &Vec<Account>) -> Money {
   // map each account to a coefficient for each transaction.
   let account_id_to_coeff = get_account_balance_coefficients(&accounts);
 
   //  calculate "net worth" of the item's accounts.
-  accounts.iter().fold(0.0, |net, account: &Account| {
-    let contribution: f64 = (account.balances.current as f64)
-      * *account_id_to_coeff
-        .get(&account.account_id)
-        .or(Some(&0.0))
-        .unwrap();
-    net + contribution
-  })
+  accounts
+    .iter()
+    .fold(Money::new(0), |net, account: &Account| {
+      let contribution = Money::new(Decimal::try_from(account.balances.current).unwrap())
+        * *account_id_to_coeff
+          .get(&account.account_id)
+          .or(Some(&0))
+          .unwrap();
+      net + contribution
+    })
 }
 
 async fn get_item_accounts(

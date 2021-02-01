@@ -1,3 +1,4 @@
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use wither::{mongodb::bson::oid::ObjectId, Model};
 
@@ -12,11 +13,11 @@ pub struct Recurring {
   #[serde(rename = "end")]
   pub end: i64,
   #[serde(rename = "principal")]
-  pub principal: i64,
+  pub principal: Decimal,
   #[serde(rename = "amount")]
-  pub amount: i64,
+  pub amount: Decimal,
   #[serde(rename = "interest")]
-  pub interest: f32,
+  pub interest: Decimal,
   #[serde(rename = "frequency")]
   pub frequency: TimeInterval,
 }

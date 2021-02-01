@@ -1002,8 +1002,8 @@ components:
         name:
           type: string
         balance:
-          type: integer
-          format: int64
+          type: number
+          format: float64
 
     UpdateUserRequest:
       type: object

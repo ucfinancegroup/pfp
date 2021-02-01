@@ -14,6 +14,13 @@ impl DatabaseService {
     db_pw: String,
     db_name: String,
   ) -> DatabaseService {
+    log::info!(
+      "Connecting to user:{} uri:{} db_name:{}",
+      db_user,
+      uri,
+      db_name
+    );
+
     let connection_str = format!(
       "mongodb+srv://{}:{}@{}/{}?w=majority",
       db_user, db_pw, uri, db_name

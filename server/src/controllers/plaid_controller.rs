@@ -7,6 +7,7 @@ use actix_web::{
   web::{Data, Path},
   HttpResponse,
 };
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
@@ -31,7 +32,7 @@ pub struct AccountResponse {
 pub struct AccountSuccess {
   pub item_id: String,
   pub name: String,
-  pub balance: i64,
+  pub balance: Decimal,
 }
 
 #[derive(Serialize)]

@@ -8,8 +8,10 @@ use actix_web::{
 };
 use actix_web_validator::Validate;
 use argon2::{self, Config};
+use chrono::Utc;
 use futures::future::Future;
 use rand::Rng;
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::pin::Pin;
 use wither::Model;
@@ -22,7 +24,7 @@ pub struct User {
   pub password: String,
   pub first_name: String,
   pub last_name: String,
-  pub income: f64,
+  pub income: Decimal,
   pub location: Location,
   pub accounts: Vec<PlaidItem>,
   pub snapshots: Vec<Snapshot>,
@@ -46,6 +48,39 @@ pub struct Snapshot {
   pub running_income: Money,
 
   pub snapshot_time: i64,
+}
+
+impl Snapshot {
+  pub fn new<T: Into<Money>>(
+    net_worth: T,
+    running_savings: T,
+    running_spending: T,
+    running_income: T,
+  ) -> Self {
+    Self::new_with_time(
+      net_worth,
+      running_savings,
+      running_spending,
+      running_income,
+      Utc::now().timestamp(),
+    )
+  }
+
+  pub fn new_with_time<T: Into<Money>>(
+    net_worth: T,
+    running_savings: T,
+    running_spending: T,
+    running_income: T,
+    snapshot_time: i64,
+  ) -> Self {
+    Snapshot {
+      net_worth: net_worth.into(),
+      running_savings: running_savings.into(),
+      running_spending: running_spending.into(),
+      running_income: running_income.into(),
+      snapshot_time,
+    }
+  }
 }
 
 #[derive(Validate, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -92,10 +127,10 @@ impl User {
 impl Default for Snapshot {
   fn default() -> Snapshot {
     Snapshot {
-      net_worth: Money { amount: 0 },
-      running_savings: Money { amount: 0 },
-      running_spending: Money { amount: 0 },
-      running_income: Money { amount: 0 },
+      net_worth: Money::new(Decimal::new(0, 0)),
+      running_savings: Money::new(Decimal::new(0, 0)),
+      running_spending: Money::new(Decimal::new(0, 0)),
+      running_income: Money::new(Decimal::new(0, 0)),
       snapshot_time: 0,
     }
   }
@@ -214,7 +249,7 @@ mod test {
       password: hashed,
       first_name: "first_name".to_string(),
       last_name: "last_name".to_string(),
-      income: 0.0,
+      income: 0.into(),
       location: Location::default(),
       accounts: vec![],
       snapshots: vec![],

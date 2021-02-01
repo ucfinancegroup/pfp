@@ -1,12 +1,14 @@
 #[allow(non_snake_case)]
 pub mod SnapshotService {
-  use crate::common::errors::ApiError;
+  use crate::common::{errors::ApiError, Money};
   use crate::models::user_model::{PlaidItem, Snapshot, User};
   use crate::services::finchplaid::ApiClient;
   use actix_web::web::Data;
   use chrono::{Duration, Utc};
   use log::debug;
   use plaid::models::{RetrieveTransactionsRequest, RetrieveTransactionsResponse, Transaction};
+  use rust_decimal::Decimal;
+  use std::convert::TryFrom;
   use std::sync::{Arc, Mutex};
 
   pub async fn add_new_snapshot(
@@ -20,23 +22,22 @@ pub mod SnapshotService {
     }
 
     // accumulate each item to a total
-    let (total_money_in, total_money_out, total_net) = per_item_stats
-      .iter()
-      .fold((0.0, 0.0, 0.0), |(a, b, c), (e, f, g)| {
-        (a + e, b + f, c + g)
-      });
+    let (total_money_in, total_money_out, total_net): (Money, Money, Money) =
+      per_item_stats.iter().fold(
+        (Money::default(), Money::default(), Money::default()),
+        |(a, b, c), (e, f, g)| (a + *e, b + *f, c + *g),
+      );
 
     // for rolling sums
     let prev = get_last_snapshot(&user.snapshots);
 
     // create the new snapshot
-    let mut curr = Snapshot {
-      net_worth: total_net.into(),
-      running_savings: (total_money_in - total_money_out).into(),
-      running_spending: total_money_out.into(),
-      running_income: total_money_in.into(),
-      snapshot_time: Utc::now().timestamp(),
-    };
+    let mut curr = Snapshot::new(
+      total_net,
+      total_money_in - total_money_out,
+      total_money_out,
+      total_money_in,
+    );
 
     // make it a cumulative sum
     curr.running_savings.amount += prev.running_savings.amount;
@@ -51,7 +52,7 @@ pub mod SnapshotService {
   pub async fn handle_item(
     item: &PlaidItem,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
-  ) -> Result<(f64, f64, f64), ApiError> {
+  ) -> Result<(Money, Money, Money), ApiError> {
     // accumulate money_in and money_out for items' transactions
     let (money_in, money_out) = get_money_in_out(item, plaid_client.clone()).await?;
 
@@ -65,7 +66,7 @@ pub mod SnapshotService {
   async fn get_money_in_out(
     item: &PlaidItem,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
-  ) -> Result<(f64, f64), ApiError> {
+  ) -> Result<(Money, Money), ApiError> {
     let transactions = get_item_transactions_for_new_snapshot(item, plaid_client).await?;
 
     Ok(calculate_money_in_out(&transactions))
@@ -73,7 +74,7 @@ pub mod SnapshotService {
 
   pub fn calculate_money_in_out(
     transactions_response: &RetrieveTransactionsResponse,
-  ) -> (f64, f64) {
+  ) -> (Money, Money) {
     // map each account to a coefficient for each transaction.
     let account_id_to_coeff = crate::services::finchplaid::get_account_transaction_coefficients(
       &transactions_response.accounts,
@@ -81,14 +82,33 @@ pub mod SnapshotService {
 
     // accumulate money_in and money_out for transactions
     transactions_response.transactions.iter().fold(
-      (0.0, 0.0),
+      (Money::default(), Money::default()).into(),
       |(money_in, money_out), transaction: &Transaction| {
-        let s: f64 = (transaction.amount as f64)
-          * *account_id_to_coeff
-            .get(&transaction.account_id)
-            .or(Some(&0.0))
-            .unwrap();
-        (money_in + s.max(0.0), money_out + s.min(0.0))
+        let s: Decimal = Decimal::try_from(transaction.amount)
+          .and_then(|amount| {
+            Ok(
+              amount
+                * Decimal::new(
+                  *account_id_to_coeff
+                    .get(&transaction.account_id)
+                    .or(Some(&0))
+                    .unwrap(),
+                  0,
+                ),
+            )
+          })
+          .map_err(|e| {
+            log::error!(
+              "Could not convert {} to decimal: {}",
+              transaction.amount.clone(),
+              e
+            );
+          })
+          .ok()
+          .or(Some(Decimal::new(0, 0)))
+          .unwrap();
+
+        (money_in + s.max(0.into()), money_out + s.min(0.into()))
       },
     )
   }
@@ -146,6 +166,9 @@ pub mod SnapshotService {
 mod test {
   use super::*;
 
+  use crate::common::Money;
+  use rust_decimal_macros::dec;
+
   use std::error::Error;
   use std::fs::File;
   use std::io::BufReader;
@@ -163,7 +186,7 @@ mod test {
   fn test_calculate_money_in_money_out() {
     let transactions = load_test_data().unwrap();
     assert_eq!(
-      (0.0, -10965.230000019073) as (f64, f64),
+      (Money::new(dec!(0)), Money::new(dec!(-10965.23))),
       SnapshotService::calculate_money_in_out(&transactions)
     );
   }
@@ -172,7 +195,7 @@ mod test {
   fn test_calculate_net_worth() {
     let transactions = load_test_data().unwrap();
     assert_eq!(
-      -53501.318115234375 as f64,
+      Money::new(dec!(-53501.32)),
       crate::services::finchplaid::calculate_net_worth(&transactions.accounts)
     );
   }

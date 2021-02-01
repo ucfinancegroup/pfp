@@ -27,6 +27,8 @@ chrono="*"
 async-std="*"
 log="*"
 simple_logger = {version = "1.11.0", default-features= false}
+rust_decimal= {version="*", features=["serde-float"]}
+rust_decimal_macros = "*"
 
 [features]
 development = []

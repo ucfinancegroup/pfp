@@ -747,7 +747,7 @@ paths:
   /timeseries/example:
     get:
       summary: "Get an example timeseries"
-      operationId: getTimeseries
+      operationId: getTimeseriesExample
       tags:
         - timeseries
       security:

@@ -76,6 +76,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /logout:
+    post:
+      summary: "Log out a user"
+      operationId: logoutUser
+      tags:
+        - user
+      responses:
+        "200":
+          description: "Logged Out"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /update/user:
     put:
       summary: "This route receives a payload with requests to change data of a user"

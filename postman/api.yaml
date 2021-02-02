@@ -719,7 +719,34 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TimeSeries"
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimeSeriesEntry"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /timeseries/example:
+    get:
+      summary: "Get an example timeseries"
+      operationId: getTimeseries
+      tags:
+        - timeseries
+      security:
+        - sidCookie: []
+
+      responses:
+        "200":
+          description: "Timeseries response"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimeSeriesEntry"
         default:
           description: "Server error or validation error"
           content:
@@ -1394,20 +1421,17 @@ components:
           type: string
           nullable: true
 
-    TimeSeries:
-      description: "Daily values starting on some day."
+    TimeSeriesEntry:
+      description: "Daily values of user's net worth"
       type: object
       required:
-        - start_day
-        - series
+        - date
+        - net_worth
       properties:
-        start_day:
+        date:
           type: integer
-        series:
-          type: array
-          items:
-            type: number
-            format: float64
+        net_worth:
+          $ref: "#/components/schemas/Money"
 
     LinkTokenCreateResponse:
       type: object

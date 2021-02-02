@@ -43,3 +43,10 @@ pub fn decimal_at_least_zero(d: &Decimal) -> Result<(), ValidationError> {
     false => Err(ValidationError::new("Field must be at least 0")),
   }
 }
+
+pub fn decimal_between_zero_or_hundred(d: &Decimal) -> Result<(), ValidationError> {
+  match *d >= dec!(0) && *d <= dec!(100) {
+    true => Ok(()),
+    false => Err(ValidationError::new("Field must be between 0 and 100")),
+  }
+}

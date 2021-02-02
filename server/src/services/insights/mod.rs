@@ -22,8 +22,8 @@ pub mod InsightsService {
   };
 
   pub async fn run_insights_service(
-    db_service: DatabaseService,
-    _plaid_client: finchplaid::ApiClient,
+    db_service: &DatabaseService,
+    _plaid_client: &finchplaid::ApiClient,
   ) -> Result<(), AppError> {
     loop {
       let mut user = get_user_needing_insight(&db_service).await?;

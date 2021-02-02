@@ -29,9 +29,18 @@ async fn main() -> std::io::Result<()> {
     configuration: plaid::apis::configuration::Configuration::default(),
   };
 
-  InsightsService::run_insights_service(db_service, plaid_client)
-    .await
-    .unwrap();
+  loop {
+    let res = InsightsService::run_insights_service(&db_service, &plaid_client).await;
 
+    match res {
+      Err(e) => log::error!(
+        "InsightsService::run_insights_service returned error: {:?}",
+        e
+      ),
+      _ => (),
+    };
+  }
+
+  #[allow(unreachable_code)]
   Ok(())
 }

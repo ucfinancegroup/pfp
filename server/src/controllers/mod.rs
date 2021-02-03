@@ -1,4 +1,5 @@
 pub mod goal_controller;
+pub mod insights_controller;
 pub mod plaid_controller;
 pub mod recurring_controller;
 pub mod snapshot_controller;
@@ -13,4 +14,5 @@ pub fn configure(config: &mut ServiceConfig) {
   recurring_controller::init_routes(config);
   goal_controller::init_routes(config);
   timeseries_controller::init_routes(config);
+  insights_controller::init_routes(config);
 }

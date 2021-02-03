@@ -734,9 +734,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/TimeSeriesEntry"
+                $ref: "#/components/schemas/TimeSeriesResponse"
         default:
           description: "Server error or validation error"
           content:
@@ -759,9 +757,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/TimeSeriesEntry"
+                $ref: "#/components/schemas/TimeSeriesResponse"
         default:
           description: "Server error or validation error"
           content:
@@ -1447,6 +1443,20 @@ components:
           type: integer
         net_worth:
           $ref: "#/components/schemas/Money"
+
+    TimeSeriesResponse:
+      description: "Today's date, daily values of user's net worth"
+      type: object
+      required:
+        - start
+        - series
+      properties:
+        start:
+          type: integer
+        series:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimeSeriesEntry"
 
     LinkTokenCreateResponse:
       type: object

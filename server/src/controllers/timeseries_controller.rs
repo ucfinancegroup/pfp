@@ -10,6 +10,12 @@ pub struct TimeseriesEntry {
     pub net_worth: Money,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub struct TimeseriesResponse {
+    pub start: i64,
+    pub series: Vec<TimeseriesEntry>,
+}
+
 #[get("/timeseries/example")]
 pub async fn get_example(_: User) -> HttpResponse {
     crate::common::into_response(TimeseriesService::get_example())

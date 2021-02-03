@@ -1,16 +1,17 @@
 #[allow(non_snake_case)]
 pub mod TimeseriesService {
     use crate::common::{errors::ApiError, Money};
-    use crate::controllers::timeseries_controller::TimeseriesEntry;
+    use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
     use crate::models::user_model::User;
     use chrono::{offset, Duration, TimeZone, Utc};
     use rust_decimal::Decimal;
 
-    pub fn get_example() -> Vec<TimeseriesEntry> {
+    pub fn get_example() -> TimeseriesResponse {
         let mut res = Vec::new();
-        let mut today = offset::Utc::now();
+        let today = offset::Utc::now();
         let mut start = today - Duration::weeks(54);
         let end = today + Duration::weeks(108);
+        let mut next_day = today.clone();
 
         let mut last_value: i64 = 100000;
         let mut i = 0;
@@ -30,22 +31,25 @@ pub mod TimeseriesService {
             i += 1;
         }
 
-        while today < end {
+        while next_day < end {
             res.push(TimeseriesEntry {
-                date: today.timestamp(),
+                date: next_day.timestamp(),
                 net_worth: Decimal::new(last_value.clone(), 2).into(),
             });
 
             last_value += last_value * 3 / 1000;
-            today = today + Duration::days(1);
+            next_day = next_day + Duration::days(1);
         }
 
-        return res;
+        return TimeseriesResponse {
+            start: today.timestamp(),
+            series: res,
+        };
     }
 
-    pub async fn get_timeseries(user: User, days: i64) -> Result<Vec<TimeseriesEntry>, ApiError> {
+    pub async fn get_timeseries(user: User, days: i64) -> Result<TimeseriesResponse, ApiError> {
         let mut res = Vec::new();
-        let apy = 1100; //temporary
+        let apy = 110; //temporary
 
         for item in user.snapshots.iter() {
             res.push(TimeseriesEntry {
@@ -68,6 +72,10 @@ pub mod TimeseriesService {
                 net_worth: account_value,
             });
         }
-        Ok(res)
+
+        Ok(TimeseriesResponse {
+            start: last_day.snapshot_time,
+            series: res,
+        })
     }
 }

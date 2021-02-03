@@ -2,6 +2,7 @@ use crate::common::errors::ApiError;
 use crate::controllers::plaid_controller::{AccountError, AccountResponse};
 use crate::controllers::user_controller::{LoginPayload, SignupPayload, UpdatePayload};
 use crate::models::{
+  insight_model::Insight,
   session_model,
   user_model::{PlaidItem, Snapshot, User},
 };
@@ -193,6 +194,32 @@ impl UserService {
       })?;
     }
     Ok(user.snapshots.clone())
+  }
+
+  pub async fn dismiss_insight(
+    &self,
+    user: &mut User,
+    insight_id: String,
+  ) -> Result<Insight, ApiError> {
+    let insight_id = wither::mongodb::bson::oid::ObjectId::with_string(insight_id.as_str())
+      .or(Err(ApiError::new(400, "Malformed Object Id".to_string())))?;
+    let insight_id_opt = Some(insight_id.clone());
+
+    let updated = user
+      .insights
+      .iter_mut()
+      .find(|rec| rec.id == insight_id_opt)
+      .ok_or(ApiError::new(
+        400,
+        format!("No insight with id {} found in current user", insight_id),
+      ))
+      .and_then(|rec: &mut Insight| {
+        rec.dismissed = true;
+        Ok(rec)
+      })?
+      .clone();
+
+    self.save(user).await.and_then(|_| Ok(updated))
   }
 
   pub async fn save(&self, u: &mut User) -> Result<(), ApiError> {

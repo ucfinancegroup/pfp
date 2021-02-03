@@ -1,8 +1,11 @@
 use crate::common::Money;
 use crate::models::user_model::User;
-use crate::services::timeseries::TimeseriesService;
+use crate::services::finchplaid::ApiClient;
+use crate::services::{timeseries::TimeseriesService, users::UserService};
+use actix_web::web::Data;
 use actix_web::{get, HttpResponse};
 use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct TimeseriesEntry {
@@ -22,8 +25,14 @@ pub async fn get_example(_: User) -> HttpResponse {
 }
 
 #[get("/timeseries/")]
-pub async fn get_timeseries(user: User) -> HttpResponse {
-    crate::common::into_response_res(TimeseriesService::get_timeseries(user, 365).await)
+pub async fn get_timeseries(
+    mut user: User,
+    user_service: Data<UserService>,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+) -> HttpResponse {
+    crate::common::into_response_res(
+        TimeseriesService::get_timeseries(user, 365, user_service, plaid_client).await,
+    )
 }
 
 // you add the services here.

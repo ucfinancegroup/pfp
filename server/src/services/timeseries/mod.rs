@@ -3,8 +3,12 @@ pub mod TimeseriesService {
     use crate::common::{errors::ApiError, Money};
     use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
     use crate::models::user_model::User;
+    use crate::services::finchplaid::ApiClient;
+    use crate::services::users::UserService;
+    use actix_web::web::Data;
     use chrono::{offset, Duration, TimeZone, Utc};
     use rust_decimal::Decimal;
+    use std::sync::{Arc, Mutex};
 
     pub fn get_example() -> TimeseriesResponse {
         let mut res = Vec::new();
@@ -47,16 +51,24 @@ pub mod TimeseriesService {
         };
     }
 
-    pub async fn get_timeseries(user: User, days: i64) -> Result<TimeseriesResponse, ApiError> {
+    pub async fn get_timeseries(
+        mut user: User,
+        days: i64,
+        user_service: Data<UserService>,
+        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    ) -> Result<TimeseriesResponse, ApiError> {
         let mut res = Vec::new();
-        let apy = 110; //temporary
+        let apy = 11000; //temporary
 
-        for item in user.snapshots.iter() {
-            res.push(TimeseriesEntry {
-                date: item.snapshot_time.clone(),
-                net_worth: item.net_worth.clone(),
-            });
-        }
+        let snapshots = user_service.get_snapshots(&mut user, plaid_client).await?;
+
+        res = snapshots
+            .iter()
+            .map(|s| TimeseriesEntry {
+                date: s.snapshot_time.clone(),
+                net_worth: s.net_worth.clone(),
+            })
+            .collect();
 
         // TODO: do something if user has no snapshots
         let last_day = user.snapshots[user.snapshots.len() - 1].clone();
@@ -65,7 +77,7 @@ pub mod TimeseriesService {
         let mut account_value = last_day.net_worth;
 
         for i in 1..days {
-            account_value = Money::from(Decimal::new(apy / 365, 2)) * account_value + account_value; //TODO: add transform stuff
+            account_value = Money::from(Decimal::new(apy / 365, 4)) * account_value + account_value; //TODO: add transform stuff
 
             res.push(TimeseriesEntry {
                 date: (next_day + Duration::days(i)).timestamp(),

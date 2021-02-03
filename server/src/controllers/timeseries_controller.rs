@@ -17,7 +17,7 @@ pub async fn get_example(_: User) -> HttpResponse {
 
 #[get("/timeseries/")]
 pub async fn get_timeseries(user: User) -> HttpResponse {
-    crate::common::into_response(TimeseriesService::get_timeseries(user).await)
+    crate::common::into_response_res(TimeseriesService::get_timeseries(user, 365).await)
 }
 
 // you add the services here.

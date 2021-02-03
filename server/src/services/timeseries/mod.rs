@@ -3,7 +3,7 @@ pub mod TimeseriesService {
     use crate::common::{errors::ApiError, Money};
     use crate::controllers::timeseries_controller::TimeseriesEntry;
     use crate::models::user_model::User;
-    use chrono::{offset, Duration};
+    use chrono::{offset, Duration, TimeZone, Utc};
     use rust_decimal::Decimal;
 
     pub fn get_example() -> Vec<TimeseriesEntry> {
@@ -43,9 +43,9 @@ pub mod TimeseriesService {
         return res;
     }
 
-    pub async fn get_timeseries(user: User) -> Result<Vec<TimeseriesEntry>, ApiError> {
+    pub async fn get_timeseries(user: User, days: i64) -> Result<Vec<TimeseriesEntry>, ApiError> {
         let mut res = Vec::new();
-        let today = offset::Utc::now();
+        let apy = 1100; //temporary
 
         for item in user.snapshots.iter() {
             res.push(TimeseriesEntry {
@@ -54,6 +54,20 @@ pub mod TimeseriesService {
             });
         }
 
+        // TODO: do something if user has no snapshots
+        let last_day = user.snapshots[user.snapshots.len() - 1].clone();
+
+        let next_day = Utc.timestamp(last_day.snapshot_time, 0);
+        let mut account_value = last_day.net_worth;
+
+        for i in 1..days {
+            account_value = Money::from(Decimal::new(apy / 365, 2)) * account_value + account_value; //TODO: add transform stuff
+
+            res.push(TimeseriesEntry {
+                date: (next_day + Duration::days(i)).timestamp(),
+                net_worth: account_value,
+            });
+        }
         Ok(res)
     }
 }

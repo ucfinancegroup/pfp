@@ -1,5 +1,9 @@
 use crate::common::{errors::ApiError, Money};
-use crate::models::{goal_model::Goal, insight_model::Insight, recurring_model::Recurring};
+use crate::models::{
+  goal_model::Goal,
+  insight_model::{Insight, InsightTypes},
+  recurring_model::Recurring,
+};
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
 use actix_web::{
@@ -121,6 +125,15 @@ impl User {
         "Password checking failed".to_string(),
       )
     })
+  }
+
+  pub fn get_non_dismissed_insights(&self) -> Vec<Insight> {
+    self
+      .insights
+      .iter()
+      .filter(|insight| !insight.dismissed && insight.insight_type != InsightTypes::Incomplete)
+      .cloned()
+      .collect()
   }
 }
 

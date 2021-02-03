@@ -2,6 +2,7 @@
 pub mod TimeseriesService {
     use crate::common::{errors::ApiError, Money};
     use crate::controllers::timeseries_controller::TimeseriesEntry;
+    use crate::models::user_model::User;
     use chrono::{offset, Duration};
     use rust_decimal::Decimal;
 
@@ -44,7 +45,7 @@ pub mod TimeseriesService {
 
     pub async fn get_timeseries(user: User) -> Result<Vec<TimeseriesEntry>, ApiError> {
         let mut res = Vec::new();
-        let mut today = offset::Utc::now();
+        let today = offset::Utc::now();
 
         for item in user.snapshots.iter() {
             res.push(TimeseriesEntry {

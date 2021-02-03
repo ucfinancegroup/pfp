@@ -15,8 +15,14 @@ pub async fn get_example(_: User) -> HttpResponse {
     crate::common::into_response(TimeseriesService::get_example())
 }
 
+#[get("/timeseries/")]
+pub async fn get_timeseries(user: User) -> HttpResponse {
+    crate::common::into_response(TimeseriesService::get_timeseries(user).await)
+}
+
 // you add the services here.
 use actix_web::web::ServiceConfig;
 pub fn init_routes(config: &mut ServiceConfig) {
     config.service(get_example);
+    config.service(get_timeseries);
 }

@@ -1,5 +1,6 @@
 #[allow(non_snake_case)]
 pub mod TimeseriesService {
+    use crate::common::{errors::ApiError, Money};
     use crate::controllers::timeseries_controller::TimeseriesEntry;
     use chrono::{offset, Duration};
     use rust_decimal::Decimal;
@@ -41,5 +42,17 @@ pub mod TimeseriesService {
         return res;
     }
 
-    //pub async fn get_timeseries() -> Result {}
+    pub async fn get_timeseries(user: User) -> Result<Vec<TimeseriesEntry>, ApiError> {
+        let mut res = Vec::new();
+        let mut today = offset::Utc::now();
+
+        for item in user.snapshots.iter() {
+            res.push(TimeseriesEntry {
+                date: item.snapshot_time.clone(),
+                net_worth: item.net_worth.clone(),
+            });
+        }
+
+        Ok(res)
+    }
 }

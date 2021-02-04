@@ -1441,6 +1441,7 @@ components:
       properties:
         date:
           type: integer
+          format: i64
         net_worth:
           $ref: "#/components/schemas/Money"
 
@@ -1453,6 +1454,7 @@ components:
       properties:
         start:
           type: integer
+          format: i64
         series:
           type: array
           items:

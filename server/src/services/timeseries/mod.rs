@@ -72,7 +72,7 @@ pub mod TimeseriesService {
             .collect();
 
         // TODO: do something if user has no snapshots
-        let last_day = user.snapshots[user.snapshots.len() - 1].clone();
+        let last_day = snapshots[snapshots.len() - 1].clone();
 
         let next_day = Utc.timestamp(last_day.snapshot_time, 0);
 

@@ -57,12 +57,13 @@ pub mod TimeseriesService {
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<TimeseriesResponse, ApiError> {
-        let mut res = Vec::new();
-        let apy = 11000; //temporary
+        let mut past: Vec<TimeseriesEntry>;
+        let mut future: Vec<TimeseriesEntry>;
+        let apy: f64 = 1.1; //temporary
 
         let snapshots = user_service.get_snapshots(&mut user, plaid_client).await?;
 
-        res = snapshots
+        past = snapshots
             .iter()
             .map(|s| TimeseriesEntry {
                 date: s.snapshot_time.clone(),
@@ -74,20 +75,22 @@ pub mod TimeseriesService {
         let last_day = user.snapshots[user.snapshots.len() - 1].clone();
 
         let next_day = Utc.timestamp(last_day.snapshot_time, 0);
-        let mut account_value = last_day.net_worth;
 
-        for i in 1..days {
-            account_value = Money::from(Decimal::new(apy / 365, 4)) * account_value + account_value; //TODO: add transform stuff
-
-            res.push(TimeseriesEntry {
-                date: (next_day + Duration::days(i)).timestamp(),
-                net_worth: account_value,
-            });
-        }
+        future = (1..days)
+            .map(|s| TimeseriesEntry {
+                date: (next_day + Duration::days(s)).timestamp(),
+                net_worth: last_day.net_worth
+                    * Money::from(Decimal::new(
+                        ((apy / 365.0 + 1.0).powi(s as i32) * 10000.0) as i64,
+                        4,
+                    )),
+            })
+            .collect();
+        past.append(&mut future);
 
         Ok(TimeseriesResponse {
             start: last_day.snapshot_time,
-            series: res,
+            series: past,
         })
     }
 }

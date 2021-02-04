@@ -26,7 +26,7 @@ pub async fn get_example(_: User) -> HttpResponse {
 
 #[get("/timeseries/")]
 pub async fn get_timeseries(
-    mut user: User,
+    user: User,
     user_service: Data<UserService>,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> HttpResponse {

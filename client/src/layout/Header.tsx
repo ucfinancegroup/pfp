@@ -6,14 +6,18 @@ import Cookies from "js-cookie";
 import Container from "react-bootstrap/Container";
 import styles from "./Header.module.scss";
 import classNames from "classnames";
+import {UserApi} from "../api";
 const cx = classNames.bind(styles);
+
+const userApi = new UserApi();
 
 export default function Header() {
     const {isLoggedIn, setIsLoggedIn} = useContext(UserContext);
 
-    function logout() {
-        Cookies.remove("finch-sid");
+    async function logout() {
         setIsLoggedIn(false);
+        await userApi.logoutUser();
+        Cookies.remove("finch-sid");
     }
 
     return <header>

@@ -18,9 +18,9 @@ import {
     ApiError,
     ApiErrorFromJSON,
     ApiErrorToJSON,
-    TimeSeries,
-    TimeSeriesFromJSON,
-    TimeSeriesToJSON,
+    TimeSeriesEntry,
+    TimeSeriesEntryFromJSON,
+    TimeSeriesEntryToJSON,
 } from '../models';
 
 /**
@@ -31,7 +31,7 @@ export class TimeseriesApi extends runtime.BaseAPI {
     /**
      * Get a user\'s projection timeseries
      */
-    async getTimeseriesRaw(): Promise<runtime.ApiResponse<TimeSeries>> {
+    async getTimeseriesRaw(): Promise<runtime.ApiResponse<Array<TimeSeriesEntry>>> {
         const queryParameters: runtime.HTTPQuery = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -43,14 +43,40 @@ export class TimeseriesApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => TimeSeriesFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TimeSeriesEntryFromJSON));
     }
 
     /**
      * Get a user\'s projection timeseries
      */
-    async getTimeseries(): Promise<TimeSeries> {
+    async getTimeseries(): Promise<Array<TimeSeriesEntry>> {
         const response = await this.getTimeseriesRaw();
+        return await response.value();
+    }
+
+    /**
+     * Get an example timeseries
+     */
+    async getTimeseriesExampleRaw(): Promise<runtime.ApiResponse<Array<TimeSeriesEntry>>> {
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/timeseries/example`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TimeSeriesEntryFromJSON));
+    }
+
+    /**
+     * Get an example timeseries
+     */
+    async getTimeseriesExample(): Promise<Array<TimeSeriesEntry>> {
+        const response = await this.getTimeseriesExampleRaw();
         return await response.value();
     }
 

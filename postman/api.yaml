@@ -931,6 +931,7 @@ components:
         - last_name
         - income
         - location
+        - birthday
       properties:
         email:
           type: string
@@ -946,6 +947,9 @@ components:
           format: float64
         location:
           $ref: "#/components/schemas/Location"
+        birthday:
+          type: string
+          format: date # yyyy-mm-dd
     LoginPayload:
       type: object
       required:
@@ -977,6 +981,7 @@ components:
           type: string
         location:
           $ref: "#/components/schemas/Location"
+        # birthday: # not returned
         income:
           type: number
           format: float64

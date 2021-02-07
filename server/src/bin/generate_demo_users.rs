@@ -25,6 +25,7 @@ fn main() {
         lat: 40.7128,
         lon: 74.0060,
       },
+      birthday: "1755-01-11".to_string(),
       accounts: vec![],
       snapshots: vec![
         Snapshot {
@@ -59,6 +60,7 @@ fn main() {
         lat: 38.0086,
         lon: 78.4532,
       },
+      birthday: "1743-04-13".to_string(),
       accounts: vec![],
       snapshots: vec![
         Snapshot {
@@ -93,6 +95,7 @@ fn main() {
         lat: 48.4201,
         lon: 122.3375,
       },
+      birthday: "1732-02-22".to_string(),
       accounts: vec![],
       snapshots: vec![
         Snapshot {

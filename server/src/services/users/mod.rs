@@ -45,6 +45,7 @@ impl UserService {
       last_name: data.last_name,
       income: data.income,
       location: data.location,
+      birthday: data.birthday,
       accounts: vec![],
       snapshots: vec![],
       recurrings: vec![],
@@ -103,6 +104,9 @@ impl UserService {
     }
     if let Some(location) = data.location {
       user.location = location;
+    }
+    if let Some(birthday) = data.birthday {
+      user.birthday = birthday;
     }
 
     user.save(&self.db, None).await.map_or_else(
@@ -268,6 +272,7 @@ mod test {
       location: Location {
         ..Default::default()
       },
+      birthday: "1970-01-01".to_string(),
       accounts: accounts_array,
       snapshots: Vec::new(),
       recurrings: Vec::new(),

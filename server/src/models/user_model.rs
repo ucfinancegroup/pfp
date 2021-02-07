@@ -30,6 +30,7 @@ pub struct User {
   pub last_name: String,
   pub income: Decimal,
   pub location: Location,
+  pub birthday: String, // %Y-%m-%d
   pub accounts: Vec<PlaidItem>,
   pub snapshots: Vec<Snapshot>,
   pub recurrings: Vec<Recurring>,
@@ -207,6 +208,14 @@ impl Migrating for User {
         ),
         unset: None,
       }),
+      Box::new(wither::IntervalMigration {
+        name: "add birthday field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"birthday": doc!{"$exists": false}},
+        set: Some(doc! {"birthday": "1970-01-01"}),
+        unset: None,
+      }),
     ]
   }
 }
@@ -264,6 +273,7 @@ mod test {
       last_name: "last_name".to_string(),
       income: 0.into(),
       location: Location::default(),
+      birthday: "1970-01-01".to_string(),
       accounts: vec![],
       snapshots: vec![],
       recurrings: vec![],

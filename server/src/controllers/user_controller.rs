@@ -19,6 +19,8 @@ pub struct SignupPayload {
   #[validate(custom = "crate::common::decimal_at_least_zero")]
   pub income: Decimal,
   pub location: Location,
+  #[validate(custom = "crate::common::min_age_13yo")]
+  pub birthday: String,
 }
 
 #[derive(Serialize, PartialEq)]
@@ -65,6 +67,8 @@ pub struct UpdatePayload {
   #[validate(custom = "crate::common::decimal_at_least_zero")]
   pub income: Option<Decimal>,
   pub location: Option<Location>,
+  #[validate(custom = "crate::common::min_age_13yo")]
+  pub birthday: Option<String>,
 }
 
 type UpdateResponse = SignupResponse;
@@ -173,6 +177,8 @@ mod test {
 
   #[test]
   fn test_signup_payload() {
+    let birthday = "1970-01-01".to_string();
+
     assert_eq!(
       Ok(()),
       SignupPayload {
@@ -182,6 +188,7 @@ mod test {
         last_name: "last name".to_string(),
         income: 1000.into(),
         location: Location::default(),
+        birthday: birthday.clone(),
       }
       .validate()
     );
@@ -194,6 +201,7 @@ mod test {
       last_name: "last name".to_string(),
       income: Decimal::new(-1, 0),
       location: Location::default(),
+      birthday: birthday.clone(),
     }
     .validate()
     .is_err());
@@ -206,6 +214,7 @@ mod test {
       last_name: "last name".to_string(),
       income: 1000.into(),
       location: Location::default(),
+      birthday: birthday.clone(),
     }
     .validate()
     .is_err());
@@ -218,6 +227,7 @@ mod test {
       last_name: "last name".to_string(),
       income: 1000.into(),
       location: Location::default(),
+      birthday: birthday.clone(),
     }
     .validate()
     .is_err());
@@ -230,6 +240,20 @@ mod test {
       last_name: "".to_string(),
       income: 1000.into(),
       location: Location::default(),
+      birthday: birthday.clone(),
+    }
+    .validate()
+    .is_err());
+
+    // fail on too young
+    assert!(SignupPayload {
+      email: "me@chucknorris.com".to_string(),
+      password: "fadfdf".to_string(),
+      first_name: "a".to_string(),
+      last_name: "b".to_string(),
+      income: 1000.into(),
+      location: Location::default(),
+      birthday: chrono::Utc::now().format("%Y-%m-%d").to_string(),
     }
     .validate()
     .is_err());

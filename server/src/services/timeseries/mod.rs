@@ -2,7 +2,7 @@
 pub mod TimeseriesService {
     use crate::common::{errors::ApiError, Money};
     use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
-    use crate::models::plan_model::Plan;
+    use crate::models::plan_model::{Allocation, Event, Plan};
     use crate::models::user_model::{Snapshot, User};
     use crate::services::finchplaid::ApiClient;
     use crate::services::users::UserService;
@@ -62,6 +62,10 @@ pub mod TimeseriesService {
             .collect()
     }
 
+    pub fn calculate_apy_from_allocation(allocation: Allocation, current_apy: f64) -> f64 {
+        current_apy
+    }
+
     pub fn generate_timeseries_from_plan(
         plan: Plan,
         days: i64,
@@ -69,10 +73,10 @@ pub mod TimeseriesService {
         start_date: i64,
     ) -> Vec<TimeseriesEntry> {
         let mut date = Utc.timestamp(start_date, 0);
-        let mut apy = 0;
+        let mut apy: f64 = 0.0;
 
         (1..days)
-            .map(|d| {
+            .map(|_d| {
                 date = date + Duration::days(1);
 
                 match plan
@@ -81,21 +85,20 @@ pub mod TimeseriesService {
                     .into_iter()
                     .find(|a| a.date >= date.timestamp())
                 {
-                    Some(a) if a.date <= date.timestamp() => apy = 0, // recalculate apy
-                    Some(_) => (),
+                    Some(a) => apy = calculate_apy_from_allocation(a, apy),
                     None => (),
                 };
 
+                /* idk how to incorporate events into apy calculations yet
                 match plan
                     .events
                     .clone()
                     .into_iter()
                     .find(|a| a.start >= date.timestamp())
                 {
-                    Some(a) if a.start <= date.timestamp() => apy = 0, //recalculate apy
-                    Some(_) => (),
+                    Some(a) => (),
                     None => (),
-                };
+                };*/
 
                 TimeseriesEntry {
                     date: date.timestamp(),
@@ -112,8 +115,7 @@ pub mod TimeseriesService {
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<TimeseriesResponse, ApiError> {
         let mut past: Vec<TimeseriesEntry>;
-        let mut future: Vec<TimeseriesEntry>;
-        let apy: f64 = 1.1; //temporary
+        //let mut future: Vec<TimeseriesEntry>;
 
         let snapshots = user_service.get_snapshots(&mut user, plaid_client).await?;
         let last_day = snapshots[snapshots.len() - 1].clone();
@@ -126,5 +128,62 @@ pub mod TimeseriesService {
             start: last_day.snapshot_time,
             series: past,
         })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    use chrono::{offset, DateTime, Duration, Utc};
+    use rust_decimal_macros::dec;
+
+    use crate::common::Money;
+    use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
+    use crate::models::user_model::Snapshot;
+    use rust_decimal::Decimal;
+
+    fn generate_snapshot_test_data(today: DateTime<Utc>) -> Vec<Snapshot> {
+        (0..2)
+            .map(|n| Snapshot {
+                net_worth: Money::new(Decimal::new(n * 100, 0)),
+                running_savings: Money::new(Decimal::new(n, 0)),
+                running_spending: Money::new(Decimal::new(n, 0)),
+                running_income: Money::new(Decimal::new(n, 0)),
+                snapshot_time: (today - Duration::days(2 - n)).timestamp(),
+            })
+            .collect()
+    }
+
+    fn generate_snapshot_timeseries_verification(today: DateTime<Utc>) -> Vec<TimeseriesEntry> {
+        (0..2)
+            .map(|n| TimeseriesEntry {
+                date: (today - Duration::days(2 - n)).timestamp(),
+                net_worth: Money::new(Decimal::new(100 * n, 0)),
+            })
+            .collect()
+    }
+
+    #[test]
+    fn test_snapshot_timeseries_generation() {
+        let today = offset::Utc::now() - Duration::days(10);
+        let generated = TimeseriesService::generate_timeseries_from_snapshots(
+            generate_snapshot_test_data(today),
+        );
+        let verification = generate_snapshot_timeseries_verification(today);
+
+        let mut values_equal = true;
+
+        for i in (0..2) {
+            if generated[i].net_worth != verification[i].net_worth {
+                values_equal = false;
+            }
+
+            if generated[i].date != verification[i].date {
+                values_equal = false;
+            }
+        }
+
+        assert_eq!(values_equal, true);
     }
 }

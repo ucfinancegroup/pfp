@@ -718,6 +718,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /insights/examples:
+    get:
+      summary: "Get example insights"
+      operationId: getInsightExamples
+      tags:
+        - insights
+      security:
+        - sidCookie: []
+      responses:
+        "200":
+          description: "Insights response"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Insight"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 
   /timeseries:
     get:

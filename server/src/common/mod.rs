@@ -76,3 +76,9 @@ pub fn min_age_13yo(birthday: &String) -> Result<(), ValidationError> {
     false => Err(ValidationError::new("Must be at least 13yo to sign up")),
   }
 }
+
+// trait for models that should have examples
+pub trait Examples {
+  type Output;
+  fn examples() -> Vec<Self::Output>;
+}

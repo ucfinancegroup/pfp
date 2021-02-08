@@ -1,4 +1,5 @@
-use crate::models::user_model::User;
+use crate::common::Examples;
+use crate::models::{insight_model::Insight, user_model::User};
 use crate::services::users::UserService;
 use actix_web::{
   get, put,
@@ -25,8 +26,14 @@ pub async fn dismiss_insight(
   )
 }
 
+#[get("/insights/examples")]
+pub async fn get_insight_examples(_: User) -> HttpResponse {
+  crate::common::into_response(Insight::examples())
+}
+
 use actix_web::web::ServiceConfig;
 pub fn init_routes(config: &mut ServiceConfig) {
   config.service(get_insight);
   config.service(dismiss_insight);
+  config.service(get_insight_examples);
 }

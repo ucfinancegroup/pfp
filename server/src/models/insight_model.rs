@@ -68,3 +68,23 @@ impl Default for Insight {
     }
   }
 }
+
+impl crate::common::Examples for Insight {
+  type Output = Self;
+  fn examples() -> Vec<Self::Output> {
+    vec![
+      Insight::new(
+        "Wealthfront Cash Account".to_string(),
+        "Consider a Wealthfront Cash Account to boost your savings APY (0.35%).".to_string(),
+        InsightTypes::ProductRecommendation,
+        Some("https://theme.zdassets.com/theme_assets/586236/49e4904c4910a8ebf63b67d41f9b98b6b0933275.png".to_string()),
+      ),
+      Insight::new(
+        "Savings Insight".to_string(),
+        "You are saving more per month than 63% of users in your income bracket!".to_string(),
+        InsightTypes::Savings,
+        None,
+      ),
+    ]
+  }
+}

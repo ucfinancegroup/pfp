@@ -1076,12 +1076,12 @@ components:
     ValidateUserPayload:
       type: object
       required:
-        - typ
+        - field
         - content
       properties:
-        typ:
+        field:
           type: string
-          enum: [email, password]
+          enum: [Email, Password, Birthday]
         content:
           type: string
 

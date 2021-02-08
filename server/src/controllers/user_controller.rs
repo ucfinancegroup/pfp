@@ -5,6 +5,7 @@ use actix_web::{post, put, web::Data, HttpResponse};
 use actix_web_validator::{Json, Validate};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
+use validator::ValidationError;
 
 #[derive(Validate, Deserialize, PartialEq)]
 pub struct SignupPayload {
@@ -136,6 +137,74 @@ pub async fn logout(session: Session, session_service: Data<SessionService>) -> 
   crate::common::into_response_res(res)
 }
 
+#[derive(Deserialize, Validate)]
+#[validate(schema(function = "validate_validate_user_payload"))]
+pub struct ValidateUserPayload {
+  pub field: ValidateUserContentType,
+  pub content: String,
+}
+
+#[derive(Deserialize, PartialEq)]
+pub enum ValidateUserContentType {
+  Email,
+  Password,
+  Birthday,
+}
+
+pub fn validate_validate_user_payload(
+  payload: &ValidateUserPayload,
+) -> Result<(), ValidationError> {
+  use ValidateUserContentType::*;
+  match payload.field {
+    Email => {
+      if validator::validate_email(payload.content.clone()) {
+        Ok(())
+      } else {
+        Err(ValidationError::new("Email is invaid"))
+      }
+    }
+    Password => {
+      if validator::validate_length(payload.content.clone(), Some(8), None, None) {
+        Ok(())
+      } else {
+        Err(ValidationError::new(
+          "Password must be at least 8 characters long",
+        ))
+      }
+    }
+    Birthday => crate::common::min_age_13yo(&payload.content),
+  }
+}
+
+#[post("/validate/user")]
+pub async fn validate_user(
+  payload: Json<ValidateUserPayload>,
+  user_service: Data<UserService>,
+) -> HttpResponse {
+  let good_response = crate::common::errors::ApiError::new(200, "Ok".to_string());
+
+  // must check for unique user
+  if payload.field == ValidateUserContentType::Email {
+    return crate::common::into_response_res(
+      user_service
+        .email_in_use(&payload.content)
+        .await
+        .and_then(|in_use| {
+          if in_use {
+            Ok(crate::common::errors::ApiError::new(
+              400,
+              "Email in use".to_string(),
+            ))
+          } else {
+            Ok(good_response)
+          }
+        }),
+    );
+  }
+
+  good_response.into()
+}
+
 // you add the services here.
 use actix_web::web::ServiceConfig;
 pub fn init_routes(config: &mut ServiceConfig) {
@@ -143,6 +212,7 @@ pub fn init_routes(config: &mut ServiceConfig) {
   config.service(login);
   config.service(update_user);
   config.service(logout);
+  config.service(validate_user);
 }
 
 #[cfg(test)]

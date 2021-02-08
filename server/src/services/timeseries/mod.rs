@@ -63,17 +63,44 @@ pub mod TimeseriesService {
     }
 
     pub fn generate_timeseries_from_plan(
-        //plan: Plan,
+        plan: Plan,
         days: i64,
         start_net_worth: Money,
         start_date: i64,
     ) -> Vec<TimeseriesEntry> {
-        let date = Utc.timestamp(start_date, 0);
+        let mut date = Utc.timestamp(start_date, 0);
+        let mut apy = 0;
 
         (1..days)
-            .map(|d| TimeseriesEntry {
-                date: (date + Duration::days(d)).timestamp(),
-                net_worth: start_net_worth.clone(),
+            .map(|d| {
+                date = date + Duration::days(1);
+
+                match plan
+                    .allocations
+                    .clone()
+                    .into_iter()
+                    .find(|a| a.date >= date.timestamp())
+                {
+                    Some(a) if a.date <= date.timestamp() => apy = 0, // recalculate apy
+                    Some(_) => (),
+                    None => (),
+                };
+
+                match plan
+                    .events
+                    .clone()
+                    .into_iter()
+                    .find(|a| a.start >= date.timestamp())
+                {
+                    Some(a) if a.start <= date.timestamp() => apy = 0, //recalculate apy
+                    Some(_) => (),
+                    None => (),
+                };
+
+                TimeseriesEntry {
+                    date: date.timestamp(),
+                    net_worth: start_net_worth.clone(),
+                }
             })
             .collect()
     }
@@ -92,8 +119,8 @@ pub mod TimeseriesService {
         let last_day = snapshots[snapshots.len() - 1].clone();
 
         past = generate_timeseries_from_snapshots(snapshots);
-        future = generate_timeseries_from_plan(days, last_day.net_worth, last_day.snapshot_time);
-        past.append(&mut future);
+        //future = generate_timeseries_from_plan(days, last_day.net_worth, last_day.snapshot_time);
+        //past.append(&mut future);
 
         Ok(TimeseriesResponse {
             start: last_day.snapshot_time,

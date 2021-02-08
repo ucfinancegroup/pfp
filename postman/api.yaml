@@ -892,29 +892,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-
-  # Begin remove for iOS (Swift)
-  /plaid/webhook:
-    post:
-      summary: "Where Plaid sends updates about items, transactions, etc https://plaid.com/docs/api/webhooks/"
-      operationId: plaidWebhook
-      tags:
-        - plaid
-      parameters:
-        - in: header
-          name: Plaid-Verification
-          schema:
-            $ref: "#/components/schemas/PlaidJWT"
-      responses:
-        "200":
-          description: "Status"
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-  # End remove for iOS
 components:
   securitySchemes:
     sidCookie:

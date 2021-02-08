@@ -2,6 +2,7 @@
 pub mod TimeseriesService {
     use crate::common::{errors::ApiError, Money};
     use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
+    use crate::models::plan_model::Plan;
     use crate::models::user_model::{Snapshot, User};
     use crate::services::finchplaid::ApiClient;
     use crate::services::users::UserService;
@@ -61,6 +62,22 @@ pub mod TimeseriesService {
             .collect()
     }
 
+    pub fn generate_timeseries_from_plan(
+        //plan: Plan,
+        days: i64,
+        start_net_worth: Money,
+        start_date: i64,
+    ) -> Vec<TimeseriesEntry> {
+        let date = Utc.timestamp(start_date, 0);
+
+        (1..days)
+            .map(|d| TimeseriesEntry {
+                date: (date + Duration::days(d)).timestamp(),
+                net_worth: start_net_worth.clone(),
+            })
+            .collect()
+    }
+
     pub async fn get_timeseries(
         mut user: User,
         days: i64,
@@ -73,20 +90,9 @@ pub mod TimeseriesService {
 
         let snapshots = user_service.get_snapshots(&mut user, plaid_client).await?;
         let last_day = snapshots[snapshots.len() - 1].clone();
-        let next_day = Utc.timestamp(last_day.snapshot_time, 0);
 
         past = generate_timeseries_from_snapshots(snapshots);
-
-        future = (1..days)
-            .map(|s| TimeseriesEntry {
-                date: (next_day + Duration::days(s)).timestamp(),
-                net_worth: last_day.net_worth
-                    * Money::from(Decimal::new(
-                        ((apy / 365.0 + 1.0).powi(s as i32) * 10000.0) as i64,
-                        4,
-                    )),
-            })
-            .collect();
+        future = generate_timeseries_from_plan(days, last_day.net_worth, last_day.snapshot_time);
         past.append(&mut future);
 
         Ok(TimeseriesResponse {

@@ -2,7 +2,7 @@
 pub mod TimeseriesService {
     use crate::common::{errors::ApiError, Money};
     use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
-    use crate::models::user_model::User;
+    use crate::models::user_model::{Snapshot, User};
     use crate::services::finchplaid::ApiClient;
     use crate::services::users::UserService;
     use actix_web::web::Data;
@@ -51,6 +51,16 @@ pub mod TimeseriesService {
         };
     }
 
+    pub fn generate_timeseries_from_snapshots(snapshots: Vec<Snapshot>) -> Vec<TimeseriesEntry> {
+        snapshots
+            .iter()
+            .map(|s| TimeseriesEntry {
+                date: s.snapshot_time.clone(),
+                net_worth: s.net_worth.clone(),
+            })
+            .collect()
+    }
+
     pub async fn get_timeseries(
         mut user: User,
         days: i64,
@@ -62,19 +72,10 @@ pub mod TimeseriesService {
         let apy: f64 = 1.1; //temporary
 
         let snapshots = user_service.get_snapshots(&mut user, plaid_client).await?;
-
-        past = snapshots
-            .iter()
-            .map(|s| TimeseriesEntry {
-                date: s.snapshot_time.clone(),
-                net_worth: s.net_worth.clone(),
-            })
-            .collect();
-
-        // TODO: do something if user has no snapshots
         let last_day = snapshots[snapshots.len() - 1].clone();
-
         let next_day = Utc.timestamp(last_day.snapshot_time, 0);
+
+        past = generate_timeseries_from_snapshots(snapshots);
 
         future = (1..days)
             .map(|s| TimeseriesEntry {

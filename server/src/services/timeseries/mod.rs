@@ -63,15 +63,11 @@ pub mod TimeseriesService {
             .collect()
     }
 
-    pub fn calculate_apy_from_allocation(
-        allocation: Allocation,
-        current_apy: f64,
-        date: i64,
-    ) -> f64 {
+    pub fn calculate_apy_from_allocation(allocation: Allocation, date: i64) -> f64 {
         if date >= allocation.date {
-            return current_apy + 0.1;
+            return 1.0 + 0.1;
         }
-        current_apy
+        1.0
     }
 
     // for now only use static recurrings
@@ -98,14 +94,15 @@ pub mod TimeseriesService {
             .map(|_d| {
                 date = date + Duration::days(1);
 
-                match plan
+                apy = match plan
                     .allocations
                     .clone()
                     .into_iter()
-                    .find(|a| a.date >= date.timestamp())
+                    .rev()
+                    .find(|a| a.date <= date.timestamp())
                 {
-                    Some(a) => apy = calculate_apy_from_allocation(a, apy, date.timestamp()),
-                    None => (),
+                    Some(a) => calculate_apy_from_allocation(a, date.timestamp()),
+                    None => apy,
                 };
 
                 /* idk how to incorporate events into apy calculations yet
@@ -222,7 +219,6 @@ mod test {
 
         let calculated_apy = TimeseriesService::calculate_apy_from_allocation(
             test_allocation,
-            1.0,
             offset::Utc::now().timestamp(),
         );
         assert_eq!(calculated_apy, 1.1);
@@ -260,7 +256,6 @@ mod test {
 
         let calculated_apy = TimeseriesService::calculate_apy_from_allocation(
             test_allocation,
-            1.0,
             offset::Utc::now().timestamp(),
         );
         assert_eq!(calculated_apy, 1.1);
@@ -287,7 +282,6 @@ mod test {
 
         let calculated_apy = TimeseriesService::calculate_apy_from_allocation(
             test_allocation,
-            1.0,
             (offset::Utc::now() - Duration::days(2)).timestamp(),
         );
         assert_eq!(calculated_apy, 1.0);

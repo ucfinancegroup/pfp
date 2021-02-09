@@ -218,6 +218,14 @@ impl Migrating for User {
         set: Some(doc! {"birthday": "1970-01-01"}),
         unset: None,
       }),
+      Box::new(wither::IntervalMigration {
+        name: "add plan field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"plans": doc!{"$exists": false}},
+        set: Some(doc! {"plans": wither::mongodb::bson::to_bson(&Vec::<Plan>::new()).unwrap()}),
+        unset: None,
+      }),
     ]
   }
 }

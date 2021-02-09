@@ -314,4 +314,64 @@ mod test {
         );
         assert_eq!(target_value, calculated_value);
     }
+
+    #[test]
+    fn test_account_value_calculation_from_allocation() {
+        let test_asset1 = Asset {
+            name: String::from("A Test Asset"),
+            class: String::from("Stock"),
+            annualized_performance: dec!(1.2),
+        };
+
+        let test_change1 = AllocationChange {
+            asset: test_asset1,
+            change: dec!(80.0),
+        };
+
+        let test_asset2 = Asset {
+            name: String::from("A Test Asset"),
+            class: String::from("Stock"),
+            annualized_performance: dec!(0.7),
+        };
+
+        let test_change2 = AllocationChange {
+            asset: test_asset2,
+            change: dec!(20.0),
+        };
+
+        let test_allocation = Allocation {
+            description: String::from("A Test Allocation"),
+            date: offset::Utc::now().timestamp(),
+            schema: vec![test_change1, test_change2],
+        };
+
+        let calculated_apy = TimeseriesService::calculate_apy_from_allocation(
+            test_allocation,
+            offset::Utc::now().timestamp(),
+        );
+
+        let initial_value = Money::from(dec!(100.0));
+        let target_value = Money::from(dec!(210.0));
+
+        let test_recurring = Recurring {
+            id: None,
+            name: String::from("Test Recurring"),
+            start: (offset::Utc::now() - Duration::days(2)).timestamp(),
+            end: (offset::Utc::now() + Duration::days(2)).timestamp(),
+            principal: dec!(0.0),
+            amount: dec!(100.0),
+            interest: dec!(0.0),
+            frequency: TimeInterval {
+                typ: Typ::Monthly,
+                content: 1,
+            },
+        };
+
+        let calculated_value = TimeseriesService::calculate_account_value(
+            initial_value,
+            calculated_apy,
+            vec![test_recurring],
+        );
+        assert_eq!(target_value, calculated_value);
+    }
 }

@@ -2,6 +2,7 @@ use crate::common::{errors::ApiError, Money};
 use crate::models::{
   goal_model::Goal,
   insight_model::{Insight, InsightTypes},
+  plan_model::Plan,
   recurring_model::Recurring,
 };
 use crate::services::{sessions::SessionService, users::UserService};
@@ -36,6 +37,7 @@ pub struct User {
   pub recurrings: Vec<Recurring>,
   pub goals: Vec<Goal>,
   pub insights: Vec<Insight>,
+  pub plans: Vec<Plan>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]

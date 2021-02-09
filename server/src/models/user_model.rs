@@ -33,7 +33,7 @@ pub struct User {
   pub recurrings: Vec<Recurring>,
   pub goals: Vec<Goal>,
   pub insights: Vec<Insight>,
-  pub plans: Vec<Plans>,
+  pub plans: Vec<Plan>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]

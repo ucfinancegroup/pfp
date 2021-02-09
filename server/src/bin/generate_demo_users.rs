@@ -45,6 +45,7 @@ fn main() {
       recurrings: vec![],
       goals: vec![],
       insights: vec![],
+      plans: vec![],
     },
     User {
       id: None,
@@ -79,6 +80,7 @@ fn main() {
       recurrings: vec![],
       goals: vec![],
       insights: vec![],
+      plans: vec![],
     },
     User {
       id: None,
@@ -113,6 +115,7 @@ fn main() {
       recurrings: vec![],
       goals: vec![],
       insights: vec![],
+      plans: vec![],
     },
   ];
 

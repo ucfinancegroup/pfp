@@ -77,7 +77,7 @@ pub mod TimeseriesService {
         recurrings: Vec<Recurring>,
     ) -> Money {
         let recurring_value: Decimal = recurrings.iter().map(|r| r.amount).sum();
-        return previous_value * Decimal::new((apy as i64 * 10000), 4)
+        return previous_value * Decimal::new((apy * 10000.0) as i64, 4)
             + Money::from(recurring_value);
     }
 
@@ -156,6 +156,7 @@ mod test {
     use crate::common::Money;
     use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
     use crate::models::plan_model::{Allocation, AllocationChange, Asset};
+    use crate::models::recurring_model::{Recurring, TimeInterval, Typ};
     use crate::models::user_model::Snapshot;
     use rust_decimal::Decimal;
 
@@ -284,5 +285,33 @@ mod test {
             (offset::Utc::now() - Duration::days(2)).timestamp(),
         );
         assert_eq!(calculated_apy, 1.0);
+    }
+
+    #[test]
+    fn test_account_value_calculation() {
+        let test_apy: f64 = 1.1;
+        let initial_value = Money::from(dec!(100.0));
+        let target_value = Money::from(dec!(210.0));
+
+        let test_recurring = Recurring {
+            id: None,
+            name: String::from("Test Recurring"),
+            start: (offset::Utc::now() - Duration::days(2)).timestamp(),
+            end: (offset::Utc::now() + Duration::days(2)).timestamp(),
+            principal: dec!(0.0),
+            amount: dec!(100.0),
+            interest: dec!(0.0),
+            frequency: TimeInterval {
+                typ: Typ::Monthly,
+                content: 1,
+            },
+        };
+
+        let calculated_value = TimeseriesService::calculate_account_value(
+            initial_value,
+            test_apy,
+            vec![test_recurring],
+        );
+        assert_eq!(target_value, calculated_value);
     }
 }

@@ -1,3 +1,4 @@
+pub mod financial_product_model;
 pub mod goal_model;
 pub mod insight_model;
 pub mod plan_model;

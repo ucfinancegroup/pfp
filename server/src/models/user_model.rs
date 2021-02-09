@@ -1,5 +1,7 @@
 use crate::common::{errors::ApiError, Money};
-use crate::models::{goal_model::Goal, insight_model::Insight, recurring_model::Recurring};
+use crate::models::{
+  goal_model::Goal, insight_model::Insight, plan_model::Plan, recurring_model::Recurring,
+};
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
 use actix_web::{
@@ -31,6 +33,7 @@ pub struct User {
   pub recurrings: Vec<Recurring>,
   pub goals: Vec<Goal>,
   pub insights: Vec<Insight>,
+  pub plans: Vec<Plans>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -192,6 +195,14 @@ impl Migrating for User {
         set: Some(
           doc! {"insights": wither::mongodb::bson::to_bson(&Vec::<Insight>::new()).unwrap()},
         ),
+        unset: None,
+      }),
+      Box::new(wither::IntervalMigration {
+        name: "add plans field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"plans": doc!{"$exists": false}},
+        set: Some(doc! {"plans": wither::mongodb::bson::to_bson(&Vec::<Plan>::new()).unwrap()}),
         unset: None,
       }),
     ]

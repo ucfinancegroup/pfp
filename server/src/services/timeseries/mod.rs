@@ -10,6 +10,7 @@ pub mod TimeseriesService {
     use actix_web::web::Data;
     use chrono::{offset, Duration, TimeZone, Utc};
     use rust_decimal::Decimal;
+    use rust_decimal_macros::dec;
     use std::sync::{Arc, Mutex};
 
     pub fn get_example() -> TimeseriesResponse {
@@ -63,19 +64,22 @@ pub mod TimeseriesService {
             .collect()
     }
 
-    pub fn calculate_apy_from_allocation(allocation: Allocation) -> f64 {
-        1.1
+    pub fn calculate_apy_from_allocation(allocation: Allocation) -> Decimal {
+        allocation
+            .schema
+            .iter()
+            .map(|a| a.change * a.asset.annualized_performance / dec!(100.0))
+            .sum()
     }
 
     // for now only use static recurrings
     pub fn calculate_account_value(
         previous_value: Money,
-        apy: f64,
+        apy: Decimal,
         recurrings: Vec<Recurring>,
     ) -> Money {
         let recurring_value: Decimal = recurrings.iter().map(|r| r.amount).sum();
-        return previous_value * Decimal::new((apy * 10000.0) as i64, 4)
-            + Money::from(recurring_value);
+        return previous_value * Money::from(apy) + Money::from(recurring_value);
     }
 
     pub fn generate_timeseries_from_plan(
@@ -85,7 +89,7 @@ pub mod TimeseriesService {
         start_date: i64,
     ) -> Vec<TimeseriesEntry> {
         let start_date_dt = Utc.timestamp(start_date, 0);
-        let mut apy: f64 = 0.0;
+        let mut apy = dec!(0.0);
 
         (1..days)
             .map(|d| start_date_dt + Duration::days(d))
@@ -215,7 +219,7 @@ mod test {
         };
 
         let calculated_apy = TimeseriesService::calculate_apy_from_allocation(test_allocation);
-        assert_eq!(calculated_apy, 1.1);
+        assert_eq!(calculated_apy, dec!(1.1));
     }
 
     #[test]
@@ -249,12 +253,12 @@ mod test {
         };
 
         let calculated_apy = TimeseriesService::calculate_apy_from_allocation(test_allocation);
-        assert_eq!(calculated_apy, 1.1);
+        assert_eq!(calculated_apy, dec!(1.1));
     }
 
     #[test]
     fn test_account_value_calculation() {
-        let test_apy: f64 = 1.1;
+        let test_apy = dec!(1.1);
         let initial_value = Money::from(dec!(100.0));
         let target_value = Money::from(dec!(210.0));
 
@@ -282,7 +286,7 @@ mod test {
 
     #[test]
     fn test_account_value_calculation_negative_recurring() {
-        let test_apy: f64 = 1.1;
+        let test_apy = dec!(1.1);
         let initial_value = Money::from(dec!(100.0));
         let target_value = Money::from(dec!(10.0));
 

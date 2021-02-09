@@ -63,11 +63,8 @@ pub mod TimeseriesService {
             .collect()
     }
 
-    pub fn calculate_apy_from_allocation(allocation: Allocation, date: i64) -> f64 {
-        if date >= allocation.date {
-            return 1.0 + 0.1;
-        }
-        1.0
+    pub fn calculate_apy_from_allocation(allocation: Allocation) -> f64 {
+        1.1
     }
 
     // for now only use static recurrings
@@ -100,7 +97,7 @@ pub mod TimeseriesService {
                     .rev()
                     .find(|a| a.date <= date.timestamp())
                 {
-                    Some(a) => calculate_apy_from_allocation(a, date.timestamp()),
+                    Some(a) => calculate_apy_from_allocation(a),
                     None => apy,
                 };
 
@@ -217,10 +214,7 @@ mod test {
             schema: vec![test_change],
         };
 
-        let calculated_apy = TimeseriesService::calculate_apy_from_allocation(
-            test_allocation,
-            offset::Utc::now().timestamp(),
-        );
+        let calculated_apy = TimeseriesService::calculate_apy_from_allocation(test_allocation);
         assert_eq!(calculated_apy, 1.1);
     }
 
@@ -254,37 +248,8 @@ mod test {
             schema: vec![test_change1, test_change2],
         };
 
-        let calculated_apy = TimeseriesService::calculate_apy_from_allocation(
-            test_allocation,
-            offset::Utc::now().timestamp(),
-        );
+        let calculated_apy = TimeseriesService::calculate_apy_from_allocation(test_allocation);
         assert_eq!(calculated_apy, 1.1);
-    }
-
-    #[test]
-    fn test_allocation_apy_calculation_unchanged() {
-        let test_asset = Asset {
-            name: String::from("A Test Asset"),
-            class: String::from("Stock"),
-            annualized_performance: dec!(1.1),
-        };
-
-        let test_change = AllocationChange {
-            asset: test_asset,
-            change: dec!(100.0),
-        };
-
-        let test_allocation = Allocation {
-            description: String::from("A Test Allocation"),
-            date: offset::Utc::now().timestamp(),
-            schema: vec![test_change],
-        };
-
-        let calculated_apy = TimeseriesService::calculate_apy_from_allocation(
-            test_allocation,
-            (offset::Utc::now() - Duration::days(2)).timestamp(),
-        );
-        assert_eq!(calculated_apy, 1.0);
     }
 
     #[test]
@@ -373,10 +338,7 @@ mod test {
             schema: vec![test_change1, test_change2],
         };
 
-        let calculated_apy = TimeseriesService::calculate_apy_from_allocation(
-            test_allocation,
-            offset::Utc::now().timestamp(),
-        );
+        let calculated_apy = TimeseriesService::calculate_apy_from_allocation(test_allocation);
 
         let initial_value = Money::from(dec!(100.0));
         let target_value = Money::from(dec!(210.0));

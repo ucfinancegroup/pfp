@@ -62,7 +62,14 @@ pub mod TimeseriesService {
             .collect()
     }
 
-    pub fn calculate_apy_from_allocation(allocation: Allocation, current_apy: f64) -> f64 {
+    pub fn calculate_apy_from_allocation(
+        allocation: Allocation,
+        current_apy: f64,
+        date: i64,
+    ) -> f64 {
+        if date >= allocation.date {
+            return current_apy + 0.1;
+        }
         current_apy
     }
 
@@ -85,7 +92,7 @@ pub mod TimeseriesService {
                     .into_iter()
                     .find(|a| a.date >= date.timestamp())
                 {
-                    Some(a) => apy = calculate_apy_from_allocation(a, apy),
+                    Some(a) => apy = calculate_apy_from_allocation(a, apy, date.timestamp()),
                     None => (),
                 };
 
@@ -140,6 +147,7 @@ mod test {
 
     use crate::common::Money;
     use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
+    use crate::models::plan_model::{Allocation, AllocationChange, Asset};
     use crate::models::user_model::Snapshot;
     use rust_decimal::Decimal;
 
@@ -185,5 +193,59 @@ mod test {
         }
 
         assert_eq!(values_equal, true);
+    }
+
+    #[test]
+    fn test_allocation_apy_calculation_changed() {
+        let test_asset = Asset {
+            name: String::from("A Test Asset"),
+            class: String::from("Stock"),
+            annualized_performance: dec!(1.1),
+        };
+
+        let test_change = AllocationChange {
+            asset: test_asset,
+            change: dec!(100.0),
+        };
+
+        let test_allocation = Allocation {
+            description: String::from("A Test Allocation"),
+            date: offset::Utc::now().timestamp(),
+            schema: vec![test_change],
+        };
+
+        let calculated_apy = TimeseriesService::calculate_apy_from_allocation(
+            test_allocation,
+            1.0,
+            offset::Utc::now().timestamp(),
+        );
+        assert_eq!(calculated_apy, 1.1);
+    }
+
+    #[test]
+    fn test_allocation_apy_calculation_unchanged() {
+        let test_asset = Asset {
+            name: String::from("A Test Asset"),
+            class: String::from("Stock"),
+            annualized_performance: dec!(1.1),
+        };
+
+        let test_change = AllocationChange {
+            asset: test_asset,
+            change: dec!(100.0),
+        };
+
+        let test_allocation = Allocation {
+            description: String::from("A Test Allocation"),
+            date: offset::Utc::now().timestamp(),
+            schema: vec![test_change],
+        };
+
+        let calculated_apy = TimeseriesService::calculate_apy_from_allocation(
+            test_allocation,
+            1.0,
+            (offset::Utc::now() - Duration::days(2)).timestamp(),
+        );
+        assert_eq!(calculated_apy, 1.0);
     }
 }

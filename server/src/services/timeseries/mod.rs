@@ -223,6 +223,44 @@ mod test {
     }
 
     #[test]
+    fn test_allocation_apy_calculation_multiple_changed() {
+        let test_asset1 = Asset {
+            name: String::from("A Test Asset"),
+            class: String::from("Stock"),
+            annualized_performance: dec!(1.2),
+        };
+
+        let test_change1 = AllocationChange {
+            asset: test_asset1,
+            change: dec!(80.0),
+        };
+
+        let test_asset2 = Asset {
+            name: String::from("A Test Asset"),
+            class: String::from("Stock"),
+            annualized_performance: dec!(0.7),
+        };
+
+        let test_change2 = AllocationChange {
+            asset: test_asset2,
+            change: dec!(20.0),
+        };
+
+        let test_allocation = Allocation {
+            description: String::from("A Test Allocation"),
+            date: offset::Utc::now().timestamp(),
+            schema: vec![test_change1, test_change2],
+        };
+
+        let calculated_apy = TimeseriesService::calculate_apy_from_allocation(
+            test_allocation,
+            1.0,
+            offset::Utc::now().timestamp(),
+        );
+        assert_eq!(calculated_apy, 1.1);
+    }
+
+    #[test]
     fn test_allocation_apy_calculation_unchanged() {
         let test_asset = Asset {
             name: String::from("A Test Asset"),

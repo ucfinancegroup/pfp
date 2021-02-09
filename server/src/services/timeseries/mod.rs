@@ -150,7 +150,9 @@ mod test {
 
     use crate::common::Money;
     use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
-    use crate::models::plan_model::{Allocation, AllocationChange, Asset};
+    use crate::models::plan_model::{
+        Allocation, AllocationChange, Asset, AssetChange, Event, Plan, Transform,
+    };
     use crate::models::recurring_model::{Recurring, TimeInterval, Typ};
     use crate::models::user_model::Snapshot;
     use rust_decimal::Decimal;
@@ -172,6 +174,16 @@ mod test {
             .map(|n| TimeseriesEntry {
                 date: (today - Duration::days(2 - n)).timestamp(),
                 net_worth: Money::new(Decimal::new(100 * n, 0)),
+            })
+            .collect()
+    }
+
+    // not correct values
+    fn generate_plan_timeseries_verification(today: DateTime<Utc>) -> Vec<TimeseriesEntry> {
+        (1..2)
+            .map(|n| TimeseriesEntry {
+                date: (today + Duration::days(n)).timestamp(),
+                net_worth: Money::new(dec!(200.30136986301369863013698630)),
             })
             .collect()
     }
@@ -339,5 +351,72 @@ mod test {
             vec![test_recurring],
         );
         assert_eq!(target_value, calculated_value);
+    }
+
+    #[test]
+    fn test_generate_timeseries_from_plan() {
+        let start_net_worth = Money::from(dec!(100.0));
+        let days = 1;
+        let start_date = offset::Utc::now();
+
+        let test_recurrings = vec![Recurring {
+            id: None,
+            name: String::from("Test Recurring"),
+            start: (offset::Utc::now() - Duration::days(2)).timestamp(),
+            end: (offset::Utc::now() + Duration::days(2)).timestamp(),
+            principal: dec!(0.0),
+            amount: dec!(100.0),
+            interest: dec!(0.0),
+            frequency: TimeInterval {
+                typ: Typ::Monthly,
+                content: 1,
+            },
+        }];
+
+        let test_allocations = vec![generate_test_allocation()];
+
+        let test_events = vec![Event {
+            name: String::from("Test Event"),
+            start: start_date.timestamp(),
+            transforms: vec![Transform {
+                trigger: TimeInterval {
+                    typ: Typ::Monthly,
+                    content: 1,
+                },
+                changes: vec![AssetChange {
+                    asset: Asset {
+                        name: String::from("A Test Asset"),
+                        class: String::from("Stock"),
+                        annualized_performance: dec!(1.2),
+                    },
+                    change: dec!(10.0),
+                }],
+            }],
+        }];
+
+        let test_plan = Plan {
+            id: None,
+            name: String::from("Test Plan"),
+            recurrings: test_recurrings,
+            allocations: test_allocations,
+            events: test_events,
+        };
+
+        let generated = TimeseriesService::generate_timeseries_from_plan(
+            test_plan,
+            days,
+            start_net_worth,
+            start_date.timestamp(),
+        );
+
+        let verification = generate_plan_timeseries_verification(start_date);
+
+        for i in (0..1) {
+            assert_eq!(
+                generated[i].net_worth == verification[i].net_worth
+                    && generated[i].date == verification[i].date,
+                true
+            );
+        }
     }
 }

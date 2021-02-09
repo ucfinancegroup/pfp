@@ -25,11 +25,11 @@ pub struct Allocation {
 pub struct Event {
     pub name: String,
     pub start: i64,
-    pub transforms: Vec<Transfrom>,
+    pub transforms: Vec<Transform>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Transfrom {
+pub struct Transform {
     pub trigger: TimeInterval,
     pub changes: Vec<AssetChange>,
 }

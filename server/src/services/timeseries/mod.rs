@@ -92,8 +92,9 @@ pub mod TimeseriesService {
     ) -> Vec<TimeseriesEntry> {
         let start_date_dt = Utc.timestamp(start_date, 0);
         let mut apy = dec!(0.0);
+        let mut net_worth = start_net_worth;
 
-        (1..days)
+        (1..days + 1)
             .map(|d| start_date_dt + Duration::days(d))
             .map(|date| {
                 apy = match plan
@@ -107,9 +108,11 @@ pub mod TimeseriesService {
                     None => apy,
                 };
 
+                net_worth = calculate_account_value(net_worth, apy, plan.recurrings.clone());
+
                 TimeseriesEntry {
                     date: date.timestamp(),
-                    net_worth: start_net_worth.clone(),
+                    net_worth: net_worth.clone(),
                 }
             })
             .collect()
@@ -173,6 +176,36 @@ mod test {
             .collect()
     }
 
+    fn generate_test_allocation() -> Allocation {
+        let test_asset1 = Asset {
+            name: String::from("A Test Asset"),
+            class: String::from("Stock"),
+            annualized_performance: dec!(1.2),
+        };
+
+        let test_change1 = AllocationChange {
+            asset: test_asset1,
+            change: dec!(80.0),
+        };
+
+        let test_asset2 = Asset {
+            name: String::from("A Test Asset"),
+            class: String::from("Stock"),
+            annualized_performance: dec!(0.7),
+        };
+
+        let test_change2 = AllocationChange {
+            asset: test_asset2,
+            change: dec!(20.0),
+        };
+
+        Allocation {
+            description: String::from("A Test Allocation"),
+            date: offset::Utc::now().timestamp(),
+            schema: vec![test_change1, test_change2],
+        }
+    }
+
     #[test]
     fn test_snapshot_timeseries_generation() {
         let today = offset::Utc::now() - Duration::days(10);
@@ -215,33 +248,7 @@ mod test {
 
     #[test]
     fn test_allocation_apy_calculation_multiple_changed() {
-        let test_asset1 = Asset {
-            name: String::from("A Test Asset"),
-            class: String::from("Stock"),
-            annualized_performance: dec!(1.2),
-        };
-
-        let test_change1 = AllocationChange {
-            asset: test_asset1,
-            change: dec!(80.0),
-        };
-
-        let test_asset2 = Asset {
-            name: String::from("A Test Asset"),
-            class: String::from("Stock"),
-            annualized_performance: dec!(0.7),
-        };
-
-        let test_change2 = AllocationChange {
-            asset: test_asset2,
-            change: dec!(20.0),
-        };
-
-        let test_allocation = Allocation {
-            description: String::from("A Test Allocation"),
-            date: offset::Utc::now().timestamp(),
-            schema: vec![test_change1, test_change2],
-        };
+        let test_allocation = generate_test_allocation();
 
         let calculated_apy = TimeseriesService::calculate_apy_from_allocation(test_allocation);
         assert_eq!(calculated_apy, dec!(1.1));
@@ -305,33 +312,7 @@ mod test {
 
     #[test]
     fn test_account_value_calculation_from_allocation() {
-        let test_asset1 = Asset {
-            name: String::from("A Test Asset"),
-            class: String::from("Stock"),
-            annualized_performance: dec!(1.2),
-        };
-
-        let test_change1 = AllocationChange {
-            asset: test_asset1,
-            change: dec!(80.0),
-        };
-
-        let test_asset2 = Asset {
-            name: String::from("A Test Asset"),
-            class: String::from("Stock"),
-            annualized_performance: dec!(0.7),
-        };
-
-        let test_change2 = AllocationChange {
-            asset: test_asset2,
-            change: dec!(20.0),
-        };
-
-        let test_allocation = Allocation {
-            description: String::from("A Test Allocation"),
-            date: offset::Utc::now().timestamp(),
-            schema: vec![test_change1, test_change2],
-        };
+        let test_allocation = generate_test_allocation();
 
         let calculated_apy = TimeseriesService::calculate_apy_from_allocation(test_allocation);
 

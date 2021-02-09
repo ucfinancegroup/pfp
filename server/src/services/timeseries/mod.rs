@@ -2,7 +2,7 @@
 pub mod TimeseriesService {
     use crate::common::{errors::ApiError, Money};
     use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
-    use crate::models::plan_model::{Allocation, Event, Plan};
+    use crate::models::plan_model::{Allocation, Plan};
     use crate::models::recurring_model::Recurring;
     use crate::models::user_model::{Snapshot, User};
     use crate::services::finchplaid::ApiClient;
@@ -120,11 +120,11 @@ pub mod TimeseriesService {
 
     pub async fn get_timeseries(
         mut user: User,
-        days: i64,
+        _days: i64,
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<TimeseriesResponse, ApiError> {
-        let mut past: Vec<TimeseriesEntry>;
+        let past: Vec<TimeseriesEntry>;
         //let mut future: Vec<TimeseriesEntry>;
 
         let snapshots = user_service.get_snapshots(&mut user, plaid_client).await?;
@@ -149,7 +149,7 @@ mod test {
     use rust_decimal_macros::dec;
 
     use crate::common::Money;
-    use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
+    use crate::controllers::timeseries_controller::TimeseriesEntry;
     use crate::models::plan_model::{
         Allocation, AllocationChange, Asset, AssetChange, Event, Plan, Transform,
     };
@@ -178,7 +178,6 @@ mod test {
             .collect()
     }
 
-    // not correct values
     fn generate_plan_timeseries_verification(today: DateTime<Utc>) -> Vec<TimeseriesEntry> {
         (1..2)
             .map(|n| TimeseriesEntry {
@@ -186,6 +185,22 @@ mod test {
                 net_worth: Money::new(dec!(200.30136986301369863013698630)),
             })
             .collect()
+    }
+
+    fn generate_test_recurring() -> Recurring {
+        Recurring {
+            id: None,
+            name: String::from("Test Recurring"),
+            start: (offset::Utc::now() - Duration::days(2)).timestamp(),
+            end: (offset::Utc::now() + Duration::days(2)).timestamp(),
+            principal: dec!(0.0),
+            amount: dec!(100.0),
+            interest: dec!(0.0),
+            frequency: TimeInterval {
+                typ: Typ::Monthly,
+                content: 1,
+            },
+        }
     }
 
     fn generate_test_allocation() -> Allocation {
@@ -226,7 +241,7 @@ mod test {
         );
         let verification = generate_snapshot_timeseries_verification(today);
 
-        for i in (0..2) {
+        for i in 0..2 {
             assert_eq!(
                 generated[i].net_worth == verification[i].net_worth
                     && generated[i].date == verification[i].date,
@@ -272,19 +287,7 @@ mod test {
         let initial_value = Money::from(dec!(100.0));
         let target_value = Money::from(dec!(205.0));
 
-        let test_recurring = Recurring {
-            id: None,
-            name: String::from("Test Recurring"),
-            start: (offset::Utc::now() - Duration::days(2)).timestamp(),
-            end: (offset::Utc::now() + Duration::days(2)).timestamp(),
-            principal: dec!(0.0),
-            amount: dec!(100.0),
-            interest: dec!(0.0),
-            frequency: TimeInterval {
-                typ: Typ::Monthly,
-                content: 1,
-            },
-        };
+        let test_recurring = generate_test_recurring();
 
         let calculated_value = TimeseriesService::calculate_account_value(
             initial_value,
@@ -331,19 +334,7 @@ mod test {
         let initial_value = Money::from(dec!(100.0));
         let target_value = Money::from(dec!(200.30136986301369863013698630));
 
-        let test_recurring = Recurring {
-            id: None,
-            name: String::from("Test Recurring"),
-            start: (offset::Utc::now() - Duration::days(2)).timestamp(),
-            end: (offset::Utc::now() + Duration::days(2)).timestamp(),
-            principal: dec!(0.0),
-            amount: dec!(100.0),
-            interest: dec!(0.0),
-            frequency: TimeInterval {
-                typ: Typ::Monthly,
-                content: 1,
-            },
-        };
+        let test_recurring = generate_test_recurring();
 
         let calculated_value = TimeseriesService::calculate_account_value(
             initial_value,
@@ -359,19 +350,7 @@ mod test {
         let days = 1;
         let start_date = offset::Utc::now();
 
-        let test_recurrings = vec![Recurring {
-            id: None,
-            name: String::from("Test Recurring"),
-            start: (offset::Utc::now() - Duration::days(2)).timestamp(),
-            end: (offset::Utc::now() + Duration::days(2)).timestamp(),
-            principal: dec!(0.0),
-            amount: dec!(100.0),
-            interest: dec!(0.0),
-            frequency: TimeInterval {
-                typ: Typ::Monthly,
-                content: 1,
-            },
-        }];
+        let test_recurrings = vec![generate_test_recurring()];
 
         let test_allocations = vec![generate_test_allocation()];
 
@@ -411,7 +390,7 @@ mod test {
 
         let verification = generate_plan_timeseries_verification(start_date);
 
-        for i in (0..1) {
+        for i in 0..1 {
             assert_eq!(
                 generated[i].net_worth == verification[i].net_worth
                     && generated[i].date == verification[i].date,

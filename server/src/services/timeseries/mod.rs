@@ -3,6 +3,7 @@ pub mod TimeseriesService {
     use crate::common::{errors::ApiError, Money};
     use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
     use crate::models::plan_model::{Allocation, Event, Plan};
+    use crate::models::recurring_model::Recurring;
     use crate::models::user_model::{Snapshot, User};
     use crate::services::finchplaid::ApiClient;
     use crate::services::users::UserService;
@@ -71,6 +72,17 @@ pub mod TimeseriesService {
             return current_apy + 0.1;
         }
         current_apy
+    }
+
+    // for now only use static recurrings
+    pub fn calculate_account_value(
+        previous_value: Money,
+        apy: f64,
+        recurrings: Vec<Recurring>,
+    ) -> Money {
+        let recurring_value: Decimal = recurrings.iter().map(|r| r.amount).sum();
+        return previous_value * Decimal::new((apy as i64 * 10000), 4)
+            + Money::from(recurring_value);
     }
 
     pub fn generate_timeseries_from_plan(
@@ -180,19 +192,13 @@ mod test {
         );
         let verification = generate_snapshot_timeseries_verification(today);
 
-        let mut values_equal = true;
-
         for i in (0..2) {
-            if generated[i].net_worth != verification[i].net_worth {
-                values_equal = false;
-            }
-
-            if generated[i].date != verification[i].date {
-                values_equal = false;
-            }
+            assert_eq!(
+                generated[i].net_worth == verification[i].net_worth
+                    && generated[i].date == verification[i].date,
+                true
+            );
         }
-
-        assert_eq!(values_equal, true);
     }
 
     #[test]

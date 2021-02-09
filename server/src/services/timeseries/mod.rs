@@ -79,7 +79,9 @@ pub mod TimeseriesService {
         recurrings: Vec<Recurring>,
     ) -> Money {
         let recurring_value: Decimal = recurrings.iter().map(|r| r.amount).sum();
-        return previous_value * Money::from(apy) + Money::from(recurring_value);
+        return previous_value
+            + previous_value * Money::from(apy / dec!(365.0))
+            + Money::from(recurring_value);
     }
 
     pub fn generate_timeseries_from_plan(
@@ -104,17 +106,6 @@ pub mod TimeseriesService {
                     Some(a) => calculate_apy_from_allocation(a),
                     None => apy,
                 };
-
-                /* idk how to incorporate events into apy calculations yet
-                match plan
-                    .events
-                    .clone()
-                    .into_iter()
-                    .find(|a| a.start >= date.timestamp())
-                {
-                    Some(a) => (),
-                    None => (),
-                };*/
 
                 TimeseriesEntry {
                     date: date.timestamp(),
@@ -258,9 +249,9 @@ mod test {
 
     #[test]
     fn test_account_value_calculation() {
-        let test_apy = dec!(1.1);
+        let test_apy = dec!(18.25);
         let initial_value = Money::from(dec!(100.0));
-        let target_value = Money::from(dec!(210.0));
+        let target_value = Money::from(dec!(205.0));
 
         let test_recurring = Recurring {
             id: None,
@@ -286,9 +277,9 @@ mod test {
 
     #[test]
     fn test_account_value_calculation_negative_recurring() {
-        let test_apy = dec!(1.1);
+        let test_apy = dec!(18.25);
         let initial_value = Money::from(dec!(100.0));
-        let target_value = Money::from(dec!(10.0));
+        let target_value = Money::from(dec!(5.0));
 
         let test_recurring = Recurring {
             id: None,
@@ -345,7 +336,7 @@ mod test {
         let calculated_apy = TimeseriesService::calculate_apy_from_allocation(test_allocation);
 
         let initial_value = Money::from(dec!(100.0));
-        let target_value = Money::from(dec!(210.0));
+        let target_value = Money::from(dec!(200.30136986301369863013698630));
 
         let test_recurring = Recurring {
             id: None,

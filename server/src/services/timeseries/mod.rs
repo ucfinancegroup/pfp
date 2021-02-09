@@ -87,13 +87,12 @@ pub mod TimeseriesService {
         start_net_worth: Money,
         start_date: i64,
     ) -> Vec<TimeseriesEntry> {
-        let mut date = Utc.timestamp(start_date, 0);
+        let start_date_dt = Utc.timestamp(start_date, 0);
         let mut apy: f64 = 0.0;
 
         (1..days)
-            .map(|_d| {
-                date = date + Duration::days(1);
-
+            .map(|d| start_date_dt + Duration::days(d))
+            .map(|date| {
                 apy = match plan
                     .allocations
                     .clone()

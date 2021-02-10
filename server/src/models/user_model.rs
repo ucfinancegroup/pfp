@@ -267,6 +267,7 @@ mod test {
       recurrings: vec![],
       goals: vec![],
       insights: vec![],
+      plans: vec![],
     };
 
     assert_eq!(Ok(true), user.compare_password("password".to_string()));

@@ -247,6 +247,7 @@ mod test {
       recurrings: Vec::new(),
       goals: Vec::new(),
       insights: Vec::new(),
+      plans: Vec::new(),
     };
 
     let mut found = false;

@@ -11,6 +11,7 @@ pub mod TimeseriesService {
     use crate::services::users::UserService;
     use actix_web::web::Data;
     use chrono::{offset, Duration, TimeZone, Utc};
+    use rust_decimal::prelude::ToPrimitive;
     use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
     use std::sync::{Arc, Mutex};
@@ -81,8 +82,14 @@ pub mod TimeseriesService {
         recurrings: Vec<Recurring>,
     ) -> Money {
         let recurring_value: Decimal = recurrings.iter().map(|r| r.amount).sum();
-        return previous_value
-            + previous_value * Money::from(apy / dec!(365.0))
+
+        // do something else if it doesnt work
+        let dpy = match apy.to_f64() {
+            Some(p) => p.powf(1.0 / 365.0) * 10.0_f64.powi(9),
+            None => 10.0_f64.powi(9),
+        };
+
+        return previous_value * Money::from(Decimal::new(dpy as i64, 9))
             + Money::from(recurring_value);
     }
 

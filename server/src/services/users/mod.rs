@@ -57,6 +57,7 @@ impl UserService {
       recurrings: vec![],
       goals: vec![],
       insights: vec![],
+      plans: vec![],
     };
 
     user.save(&self.db, None).await.map_or_else(
@@ -284,6 +285,7 @@ mod test {
       recurrings: Vec::new(),
       goals: Vec::new(),
       insights: Vec::new(),
+      plans: Vec::new(),
     };
 
     let mut found = false;

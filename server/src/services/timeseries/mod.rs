@@ -368,7 +368,7 @@ mod test {
         let calculated_value = TimeseriesService::calculate_account_value(
             initial_value,
             test_apy,
-            vec![test_recurring],
+            &vec![test_recurring],
         );
         assert_eq!(target_value, calculated_value);
     }
@@ -396,7 +396,7 @@ mod test {
         let calculated_value = TimeseriesService::calculate_account_value(
             initial_value,
             test_apy,
-            vec![test_recurring],
+            &vec![test_recurring],
         );
         assert_eq!(target_value, calculated_value);
     }
@@ -415,7 +415,7 @@ mod test {
         let calculated_value = TimeseriesService::calculate_account_value(
             initial_value,
             calculated_apy,
-            vec![test_recurring],
+            &vec![test_recurring],
         );
         assert_eq!(target_value, calculated_value);
     }
@@ -467,11 +467,7 @@ mod test {
         let verification = generate_plan_timeseries_verification(start_date);
 
         for i in 0..1 {
-            assert_eq!(
-                generated[i].net_worth == verification[i].net_worth
-                    && generated[i].date == verification[i].date,
-                true
-            );
+            assert_eq!(generated[i], verification[i]);
         }
     }
 }

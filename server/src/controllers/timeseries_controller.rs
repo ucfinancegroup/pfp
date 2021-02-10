@@ -7,7 +7,7 @@ use actix_web::{get, HttpResponse};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct TimeseriesEntry {
     pub date: i64,
     pub net_worth: Money,

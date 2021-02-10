@@ -79,9 +79,9 @@ pub mod TimeseriesService {
     pub fn calculate_account_value(
         previous_value: Money,
         apy: Decimal,
-        recurrings: Vec<Recurring>,
+        recurrings: &Vec<Recurring>,
     ) -> Money {
-        let recurring_value: Decimal = recurrings.iter().map(|r| r.amount).sum();
+        let recurring_value: Decimal = recurrings.into_iter().map(|r| r.amount).sum();
 
         // do something else if it doesnt work
         let dpy = match apy.to_f64() {
@@ -117,7 +117,7 @@ pub mod TimeseriesService {
                     None => apy,
                 };
 
-                net_worth = calculate_account_value(net_worth, apy, plan.recurrings.clone());
+                net_worth = calculate_account_value(net_worth, apy, &plan.recurrings);
 
                 TimeseriesEntry {
                     date: date.timestamp(),
@@ -194,9 +194,6 @@ pub mod TimeseriesService {
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<TimeseriesResponse, ApiError> {
-        let mut past: Vec<TimeseriesEntry>;
-        let mut future: Vec<TimeseriesEntry>;
-
         let plan = if user.plans.len() > 0 {
             user.plans[0].clone()
         } else {
@@ -205,14 +202,17 @@ pub mod TimeseriesService {
         let snapshots = user_service.get_snapshots(&mut user, plaid_client).await?;
         let last_day = snapshots[snapshots.len() - 1].clone();
 
-        past = generate_timeseries_from_snapshots(snapshots);
-        future =
-            generate_timeseries_from_plan(plan, days, last_day.net_worth, last_day.snapshot_time);
-        past.append(&mut future);
-
         Ok(TimeseriesResponse {
             start: last_day.snapshot_time,
-            series: past,
+            series: generate_timeseries_from_snapshots(snapshots)
+                .into_iter()
+                .chain(generate_timeseries_from_plan(
+                    plan,
+                    days,
+                    last_day.net_worth,
+                    last_day.snapshot_time,
+                ))
+                .collect(),
         })
     }
 }

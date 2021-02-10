@@ -2,7 +2,7 @@ use crate::common::Money;
 use crate::models::user_model::User;
 use crate::services::finchplaid::ApiClient;
 use crate::services::{timeseries::TimeseriesService, users::UserService};
-use actix_web::web::Data;
+use actix_web::web::{Data, Path};
 use actix_web::{get, HttpResponse};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
@@ -24,14 +24,15 @@ pub async fn get_example(_: User) -> HttpResponse {
     crate::common::into_response(TimeseriesService::get_example())
 }
 
-#[get("/timeseries/")]
+#[get("/timeseries/{days}")]
 pub async fn get_timeseries(
+    Path(timeseries_days): Path<i64>,
     user: User,
     user_service: Data<UserService>,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> HttpResponse {
     crate::common::into_response_res(
-        TimeseriesService::get_timeseries(user, 365, user_service, plaid_client).await,
+        TimeseriesService::get_timeseries(user, timeseries_days, user_service, plaid_client).await,
     )
 }
 

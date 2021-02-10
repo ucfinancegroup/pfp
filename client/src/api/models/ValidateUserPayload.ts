@@ -24,7 +24,7 @@ export interface ValidateUserPayload {
      * @type {string}
      * @memberof ValidateUserPayload
      */
-    typ: ValidateUserPayloadTypEnum;
+    field: ValidateUserPayloadFieldEnum;
     /**
      * 
      * @type {string}
@@ -43,7 +43,7 @@ export function ValidateUserPayloadFromJSONTyped(json: any, ignoreDiscriminator:
     }
     return {
         
-        'typ': json['typ'],
+        'field': json['field'],
         'content': json['content'],
     };
 }
@@ -57,7 +57,7 @@ export function ValidateUserPayloadToJSON(value?: ValidateUserPayload | null): a
     }
     return {
         
-        'typ': value.typ,
+        'field': value.field,
         'content': value.content,
     };
 }
@@ -66,9 +66,10 @@ export function ValidateUserPayloadToJSON(value?: ValidateUserPayload | null): a
 * @export
 * @enum {string}
 */
-export enum ValidateUserPayloadTypEnum {
-    Email = 'email',
-    Password = 'password'
+export enum ValidateUserPayloadFieldEnum {
+    Email = 'Email',
+    Password = 'Password',
+    Birthday = 'Birthday'
 }
 
 

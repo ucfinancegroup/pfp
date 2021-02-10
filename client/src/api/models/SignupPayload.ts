@@ -62,6 +62,12 @@ export interface SignupPayload {
      * @memberof SignupPayload
      */
     location: Location;
+    /**
+     * 
+     * @type {Date}
+     * @memberof SignupPayload
+     */
+    birthday: Date;
 }
 
 export function SignupPayloadFromJSON(json: any): SignupPayload {
@@ -80,6 +86,7 @@ export function SignupPayloadFromJSONTyped(json: any, ignoreDiscriminator: boole
         'last_name': json['last_name'],
         'income': json['income'],
         'location': LocationFromJSON(json['location']),
+        'birthday': (new Date(json['birthday'])),
     };
 }
 
@@ -98,6 +105,7 @@ export function SignupPayloadToJSON(value?: SignupPayload | null): any {
         'last_name': value.last_name,
         'income': value.income,
         'location': LocationToJSON(value.location),
+        'birthday': (value.birthday.toISOString().substr(0,10)),
     };
 }
 

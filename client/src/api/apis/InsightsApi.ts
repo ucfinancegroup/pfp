@@ -63,6 +63,32 @@ export class InsightsApi extends runtime.BaseAPI {
     }
 
     /**
+     * Get example insights
+     */
+    async getInsightExamplesRaw(): Promise<runtime.ApiResponse<Array<Insight>>> {
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/insights/examples`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(InsightFromJSON));
+    }
+
+    /**
+     * Get example insights
+     */
+    async getInsightExamples(): Promise<Array<Insight>> {
+        const response = await this.getInsightExamplesRaw();
+        return await response.value();
+    }
+
+    /**
      * Get all a user\'s (non-dismissed) insights
      */
     async getInsightsRaw(): Promise<runtime.ApiResponse<Array<Insight>>> {

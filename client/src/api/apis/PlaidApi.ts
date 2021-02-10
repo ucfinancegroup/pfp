@@ -27,9 +27,6 @@ import {
     LinkTokenCreateResponse,
     LinkTokenCreateResponseFromJSON,
     LinkTokenCreateResponseToJSON,
-    PlaidJWT,
-    PlaidJWTFromJSON,
-    PlaidJWTToJSON,
     PublicTokenExchangeRequest,
     PublicTokenExchangeRequestFromJSON,
     PublicTokenExchangeRequestToJSON,
@@ -41,10 +38,6 @@ export interface DeleteAccountRequest {
 
 export interface PlaidLinkAccessRequest {
     publicTokenExchangeRequest: PublicTokenExchangeRequest;
-}
-
-export interface PlaidWebhookRequest {
-    plaidVerification?: PlaidJWT;
 }
 
 /**
@@ -165,35 +158,6 @@ export class PlaidApi extends runtime.BaseAPI {
     async plaidLinkAccess(requestParameters: PlaidLinkAccessRequest): Promise<ItemIdResponse> {
         const response = await this.plaidLinkAccessRaw(requestParameters);
         return await response.value();
-    }
-
-    /**
-     * Where Plaid sends updates about items, transactions, etc https://plaid.com/docs/api/webhooks/
-     */
-    async plaidWebhookRaw(requestParameters: PlaidWebhookRequest): Promise<runtime.ApiResponse<void>> {
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (requestParameters.plaidVerification !== undefined && requestParameters.plaidVerification !== null) {
-            headerParameters['Plaid-Verification'] = String(requestParameters.plaidVerification);
-        }
-
-        const response = await this.request({
-            path: `/plaid/webhook`,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * Where Plaid sends updates about items, transactions, etc https://plaid.com/docs/api/webhooks/
-     */
-    async plaidWebhook(requestParameters: PlaidWebhookRequest): Promise<void> {
-        await this.plaidWebhookRaw(requestParameters);
     }
 
 }

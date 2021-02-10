@@ -10,6 +10,7 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import AccountPage from "./pages/AccountPage";
 import GoalsPage from "./pages/GoalsPage";
+import LeaderboardPage from "./pages/LeaderboardPage";
 
 export default function Routes() {
     return <Router>
@@ -22,6 +23,9 @@ export default function Routes() {
             </Route>
             <Route exact path="/goals">
                 <GoalsPage/>
+            </Route>
+            <Route exact path="/leaderboard">
+                <LeaderboardPage/>
             </Route>
             <Route exact path="/account">
                 <AccountPage/>

@@ -30,7 +30,7 @@ export * from './SignupPayload';
 export * from './Snapshot';
 export * from './TimeInterval';
 export * from './TimePeriod';
-export * from './TimeSeries';
+export * from './TimeSeriesEntry';
 export * from './Transform';
 export * from './UpdateUserRequest';
 export * from './User';

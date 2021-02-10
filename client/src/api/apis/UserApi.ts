@@ -76,6 +76,31 @@ export class UserApi extends runtime.BaseAPI {
     }
 
     /**
+     * Log out a user
+     */
+    async logoutUserRaw(): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/logout`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Log out a user
+     */
+    async logoutUser(): Promise<void> {
+        await this.logoutUserRaw();
+    }
+
+    /**
      * Sign up a user
      */
     async signupUserRaw(requestParameters: SignupUserRequest): Promise<runtime.ApiResponse<User>> {

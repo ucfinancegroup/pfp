@@ -97,12 +97,6 @@ pub mod InsightsService {
     db_service: &DatabaseService,
   ) -> Result<Insight, AppError> {
     similar_user::generate_similar_user_insight(user, db_service).await
-    // Ok(Insight::new(
-    //   "Wealthfront Cash Account".to_string(),
-    //   "Consider a Wealthfront Cash Account to boost your savings APY (0.35%).".to_string(),
-    //   InsightTypes::ProductRecommendation,
-    //   None,
-    // ))
   }
 
   // Determines how long to wait before checking again to see

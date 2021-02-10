@@ -80,6 +80,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
     }
 
     function doExample(example: RecurringNewPayload) {
+        example.amount = Math.abs(example.amount);
         setInitialValues(example);
     }
 
@@ -176,7 +177,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
                         {!isCompounding &&
                         <div className="col">
                           <div className="form-group">
-                            <label>$ Amount:</label>
+                            <label>$ {props.mode === RecurringType.Expense ? "Cost" : "Amount"}:</label>
                             <Field name="amount" type="number"
                                    className={cx("form-control", {"is-invalid": errors.amount && touched.amount})}/>
                             <div className="invalid-feedback"><ErrorMessage name="amount"/></div>

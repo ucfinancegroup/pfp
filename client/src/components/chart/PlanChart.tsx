@@ -4,6 +4,8 @@ import * as d3 from "d3";
 import {useEffect, useState} from "react";
 import React from "react";
 import { curveBasis } from "d3";
+import {Recurring, RecurringApi} from "../../api";
+import handleFetchError from "../../hooks/handleFetchError";
 
 const cx = classNames.bind(styles);
 
@@ -11,75 +13,34 @@ type PlanChartProps = {
 
 };
 
+const recurringApi = new RecurringApi();
+
 export function PlanChart(props: PlanChartProps) {
     const focusHeight = 100;
     const height = 440;
     const width = 1000;
     const margin = ({top: 20, right: 20, bottom: 30, left: 40});
     const predictionStart = new Date("2011-01-01");
-
-
-    const recurrings: GraphRecurring[] = [
-        {
-            name: "College Job",
-            start: new Date("2010-05-01"),
-            end: new Date("2011-05-14"),
-            color: '#ffa7cf',
-        },
-        {
-            name: "Test",
-            start: new Date("2011-04-01"),
-            end: new Date("2011-07-14"),
-            color: '#dda7ff',
-        },
-        {
-            name: "Test Overlap 1",
-            start: new Date("2011-07-22"),
-            end: new Date("2011-09-30"),
-            color: '#c9ffa7',
-        },
-        {
-            name: "Test Overlap 2",
-            start: new Date("2011-10-15"),
-            end: new Date("2011-12-03"),
-            color: '#ffa7f6',
-        },
-        {
-            name: "Test 2",
-            start: new Date("2010-06-04"),
-            end: new Date("2012-01-29"),
-            color: '#ffdca7',
-        },
-        {
-            name: "Another recurring",
-            start: new Date("2011-05-04"),
-            end: new Date("2011-08-25"),
-            color: '#a7ffd2',
-        },
-        {
-            name: "Long Recurring",
-            start: new Date("2008-07-24"),
-            end: new Date("2010-03-14"),
-            color: '#a7d9ff',
-        },
-
-        {
-            name: "Recurring 3",
-            start: new Date("2009-04-13"),
-            end: new Date("2010-03-03"),
-            color: '#a7fff5',
-        },
-        {
-            name: "Final Recurring",
-            start: new Date("2012-02-24"),
-            end: new Date("2012-03-14"),
-            color: '#ffa7a7',
-        }
-    ];
+    const [recurrings, setRecurrings] = useState<Recurring[]>();
+    const [error, setError] = useState<string>();
 
     useEffect(() => {
-        getData();
+        getRecurrings();
     }, []);
+
+    async function getRecurrings() {
+        try {
+            const recurrings = await recurringApi.getRecurrings();
+            setRecurrings(recurrings);
+        } catch (e) {
+            setError(await handleFetchError(e));
+        }
+    }
+
+    useEffect(() => {
+        if (recurrings)
+        getData();
+    }, [recurrings]);
 
     async function getData() {
         const d = await d3.csv("/data.csv");
@@ -277,15 +238,35 @@ export function PlanChart(props: PlanChartProps) {
             const betweenPadding = 2;
             const bottom = height - betweenPadding; // Padding
 
-            const sortedRecurrings = recurrings.sort((a, b) => a.start.getTime() - b.start.getTime());
+            const colors = [
+                '#da9090',
+                '#E7A8E3',
+                '#90DAD9',
+                '#F2DDC0',
+                '#F3BEBC',
+                '#A09CF3',
+                '#ADEAC3',
+                '#c4da90',
+            ]
 
-            for (let a of sortedRecurrings) {
-                a.level = -1;
-            }
+            const graphRecurrings: GraphRecurring[] = recurrings.map((x, i) => {
+                return {
+                    start: new Date(x.start),
+                    end: new Date(x.end),
+                    level: -1,
+                    name: x.name,
+                    color: null,
+                }
+            });
+
+            const sortedRecurrings = graphRecurrings.sort((a, b) =>
+                a.start.getTime() - b.start.getTime());
 
             // Slow overlap algo
+            let ai = 0;
             for (let a of sortedRecurrings) {
                 let level = 0;
+                a.color = colors[ai % (colors.length)];
 
                 for (let b of sortedRecurrings) {
                     const overlap = a.end > b.start && a.start < b.end;
@@ -295,6 +276,8 @@ export function PlanChart(props: PlanChartProps) {
                 }
 
                 a.level = level;
+                ai++;
+
             }
 
             const rects = svg.append('g')
@@ -340,6 +323,16 @@ export function PlanChart(props: PlanChartProps) {
         }
 
         update();
+    }
+
+    if (error) {
+        return <div className="alert alert-danger" role="alert">
+                {error}
+            </div>;
+    }
+
+    if (!recurrings) {
+        return <p>Loading...</p>
     }
 
     return <div id="d3test">

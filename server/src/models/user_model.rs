@@ -1,6 +1,9 @@
 use crate::common::{errors::ApiError, Money};
 use crate::models::{
-  goal_model::Goal, insight_model::Insight, plan_model::Plan, recurring_model::Recurring,
+  goal_model::Goal,
+  insight_model::{Insight, InsightTypes},
+  plan_model::Plan,
+  recurring_model::Recurring,
 };
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
@@ -28,6 +31,7 @@ pub struct User {
   pub last_name: String,
   pub income: Decimal,
   pub location: Location,
+  pub birthday: String, // %Y-%m-%d
   pub accounts: Vec<PlaidItem>,
   pub snapshots: Vec<Snapshot>,
   pub recurrings: Vec<Recurring>,
@@ -125,6 +129,15 @@ impl User {
       )
     })
   }
+
+  pub fn get_non_dismissed_insights(&self) -> Vec<Insight> {
+    self
+      .insights
+      .iter()
+      .filter(|insight| !insight.dismissed && insight.insight_type != InsightTypes::Incomplete)
+      .cloned()
+      .collect()
+  }
 }
 
 impl Default for Snapshot {
@@ -198,7 +211,15 @@ impl Migrating for User {
         unset: None,
       }),
       Box::new(wither::IntervalMigration {
-        name: "add plans field".to_string(),
+        name: "add birthday field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"birthday": doc!{"$exists": false}},
+        set: Some(doc! {"birthday": "1970-01-01"}),
+        unset: None,
+      }),
+      Box::new(wither::IntervalMigration {
+        name: "add plan field".to_string(),
         // NOTE: use a logical time here. A day after your deployment date, or the like.
         threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
         filter: doc! {"plans": doc!{"$exists": false}},
@@ -262,6 +283,7 @@ mod test {
       last_name: "last_name".to_string(),
       income: 0.into(),
       location: Location::default(),
+      birthday: "1970-01-01".to_string(),
       accounts: vec![],
       snapshots: vec![],
       recurrings: vec![],

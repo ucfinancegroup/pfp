@@ -17,6 +17,7 @@ const RegisterSchema = Yup.object().shape({
     email: Yup.string()
         .email('Invalid email.')
         .required('Email is required.'),
+    birthday: Yup.string().required("Birthdate is required"),
     firstName: Yup.string().required('Last name is required'),
     lastName: Yup.string().required('Last name is required'),
 });
@@ -34,6 +35,11 @@ export default function RegisterPage() {
         lon: 0,
     });
 
+    const now = new Date();
+    const currentDate = formatDate(now);
+    const minAge = new Date();
+    minAge.setFullYear(minAge.getFullYear() - 13);
+
     useEffect(() => {
         getLocation();
     });
@@ -50,10 +56,20 @@ export default function RegisterPage() {
          }, e => console.warn("Unable to get location", e));
     }
 
-    async function submit({email, password, firstName, lastName}:
-                              { email: string, password: string, firstName: string, lastName: string }) {
+    async function submit({email, password, firstName, lastName, birthday}:
+                              { email: string, password: string, firstName: string, lastName: string,
+                              birthday: string}) {
         // Prevent submitting the form twice.
         if (loading) return;
+
+
+        const theirDob = new Date(birthday);
+        if (theirDob > minAge) {
+            alert("You must be over 13 to use Finch.");
+            return;
+        }
+
+
         setLoading(true);
 
         try {
@@ -89,6 +105,7 @@ export default function RegisterPage() {
                     initialValues={{
                         password: '',
                         email: '',
+                        birthday: '',
                         firstName: '',
                         lastName: '',
                     }}
@@ -123,7 +140,13 @@ export default function RegisterPage() {
                                        className={cx("form-control", {"is-invalid": errors.email && touched.email})}/>
                                 <div className="invalid-feedback"><ErrorMessage name="email"/></div>
                             </div>
-
+                            <div className="form-group">
+                                <label>Date of Birth:</label>
+                                <Field name="birthday" type="date"
+                                       max={currentDate}
+                                       className={cx("form-control", {"is-invalid": errors.birthday && touched.birthday})}/>
+                                <div className="invalid-feedback"><ErrorMessage name="birthday"/></div>
+                            </div>
                             <div className="form-group">
                                 <label>Password:</label>
                                 <Field name="password" type="password"
@@ -140,4 +163,18 @@ export default function RegisterPage() {
             </div>
         </div>
     </>
+}
+
+function formatDate(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2)
+        month = '0' + month;
+    if (day.length < 2)
+        day = '0' + day;
+
+    return [year, month, day].join('-');
 }

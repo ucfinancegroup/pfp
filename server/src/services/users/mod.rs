@@ -2,6 +2,7 @@ use crate::common::errors::ApiError;
 use crate::controllers::plaid_controller::{AccountError, AccountResponse};
 use crate::controllers::user_controller::{LoginPayload, SignupPayload, UpdatePayload};
 use crate::models::{
+  insight_model::Insight,
   session_model,
   user_model::{PlaidItem, Snapshot, User},
 };
@@ -25,11 +26,17 @@ impl UserService {
     UserService { db: db.db.clone() }
   }
 
+  pub async fn email_in_use(&self, email: &String) -> Result<bool, ApiError> {
+    User::find_one(&self.db, Some(doc! {"email": email}), None)
+      .await
+      .map_or_else(
+        |_| Err(ApiError::new(500, "Db Error".to_string())),
+        |good| Ok(good.is_some()),
+      )
+  }
+
   pub async fn signup(&self, data: SignupPayload) -> Result<User, ApiError> {
-    // check for unused email
-    if let Ok(Some(_)) =
-      User::find_one(&self.db, Some(doc! {"email": data.email.clone()}), None).await
-    {
+    if self.email_in_use(&data.email).await? {
       return Err(ApiError::new(400, "Email is in use".to_string()));
     }
 
@@ -44,6 +51,7 @@ impl UserService {
       last_name: data.last_name,
       income: data.income,
       location: data.location,
+      birthday: data.birthday,
       accounts: vec![],
       snapshots: vec![],
       recurrings: vec![],
@@ -103,6 +111,9 @@ impl UserService {
     }
     if let Some(location) = data.location {
       user.location = location;
+    }
+    if let Some(birthday) = data.birthday {
+      user.birthday = birthday;
     }
 
     user.save(&self.db, None).await.map_or_else(
@@ -196,6 +207,32 @@ impl UserService {
     Ok(user.snapshots.clone())
   }
 
+  pub async fn dismiss_insight(
+    &self,
+    user: &mut User,
+    insight_id: String,
+  ) -> Result<Insight, ApiError> {
+    let insight_id = wither::mongodb::bson::oid::ObjectId::with_string(insight_id.as_str())
+      .or(Err(ApiError::new(400, "Malformed Object Id".to_string())))?;
+    let insight_id_opt = Some(insight_id.clone());
+
+    let updated = user
+      .insights
+      .iter_mut()
+      .find(|rec| rec.id == insight_id_opt)
+      .ok_or(ApiError::new(
+        400,
+        format!("No insight with id {} found in current user", insight_id),
+      ))
+      .and_then(|rec: &mut Insight| {
+        rec.dismissed = true;
+        Ok(rec)
+      })?
+      .clone();
+
+    self.save(user).await.and_then(|_| Ok(updated))
+  }
+
   pub async fn save(&self, u: &mut User) -> Result<(), ApiError> {
     u.save(&self.db, None)
       .await
@@ -242,6 +279,7 @@ mod test {
       location: Location {
         ..Default::default()
       },
+      birthday: "1970-01-01".to_string(),
       accounts: accounts_array,
       snapshots: Vec::new(),
       recurrings: Vec::new(),

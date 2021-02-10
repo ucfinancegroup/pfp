@@ -26,11 +26,17 @@ impl UserService {
     UserService { db: db.db.clone() }
   }
 
+  pub async fn email_in_use(&self, email: &String) -> Result<bool, ApiError> {
+    User::find_one(&self.db, Some(doc! {"email": email}), None)
+      .await
+      .map_or_else(
+        |_| Err(ApiError::new(500, "Db Error".to_string())),
+        |good| Ok(good.is_some()),
+      )
+  }
+
   pub async fn signup(&self, data: SignupPayload) -> Result<User, ApiError> {
-    // check for unused email
-    if let Ok(Some(_)) =
-      User::find_one(&self.db, Some(doc! {"email": data.email.clone()}), None).await
-    {
+    if self.email_in_use(&data.email).await? {
       return Err(ApiError::new(400, "Email is in use".to_string()));
     }
 
@@ -45,11 +51,13 @@ impl UserService {
       last_name: data.last_name,
       income: data.income,
       location: data.location,
+      birthday: data.birthday,
       accounts: vec![],
       snapshots: vec![],
       recurrings: vec![],
       goals: vec![],
       insights: vec![],
+      plans: vec![],
     };
 
     user.save(&self.db, None).await.map_or_else(
@@ -103,6 +111,9 @@ impl UserService {
     }
     if let Some(location) = data.location {
       user.location = location;
+    }
+    if let Some(birthday) = data.birthday {
+      user.birthday = birthday;
     }
 
     user.save(&self.db, None).await.map_or_else(
@@ -268,11 +279,13 @@ mod test {
       location: Location {
         ..Default::default()
       },
+      birthday: "1970-01-01".to_string(),
       accounts: accounts_array,
       snapshots: Vec::new(),
       recurrings: Vec::new(),
       goals: Vec::new(),
       insights: Vec::new(),
+      plans: Vec::new(),
     };
 
     let mut found = false;

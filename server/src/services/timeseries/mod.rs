@@ -258,7 +258,7 @@ mod test {
         (1..2)
             .map(|n| TimeseriesEntry {
                 date: (today + Duration::days(n)).timestamp(),
-                net_worth: Money::new(dec!(200.30136986301369863013698630)),
+                net_worth: Money::new(dec!(200.0261157000)),
             })
             .collect()
     }
@@ -359,9 +359,9 @@ mod test {
 
     #[test]
     fn test_account_value_calculation() {
-        let test_apy = dec!(18.25);
+        let test_apy = dec!(1.1);
         let initial_value = Money::from(dec!(100.0));
-        let target_value = Money::from(dec!(205.0));
+        let target_value = Money::from(dec!(200.0261157000));
 
         let test_recurring = generate_test_recurring();
 
@@ -375,9 +375,9 @@ mod test {
 
     #[test]
     fn test_account_value_calculation_negative_recurring() {
-        let test_apy = dec!(18.25);
+        let test_apy = dec!(1.1);
         let initial_value = Money::from(dec!(100.0));
-        let target_value = Money::from(dec!(5.0));
+        let target_value = Money::from(dec!(0.0261157000));
 
         let test_recurring = Recurring {
             id: None,
@@ -408,7 +408,7 @@ mod test {
         let calculated_apy = TimeseriesService::calculate_apy_from_allocation(test_allocation);
 
         let initial_value = Money::from(dec!(100.0));
-        let target_value = Money::from(dec!(200.30136986301369863013698630));
+        let target_value = Money::from(dec!(200.0261157000));
 
         let test_recurring = generate_test_recurring();
 

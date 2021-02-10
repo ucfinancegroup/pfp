@@ -183,24 +183,25 @@ pub mod TimeseriesService {
 
     pub async fn get_timeseries(
         mut user: User,
-        _days: i64,
+        days: i64,
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<TimeseriesResponse, ApiError> {
-        let past: Vec<TimeseriesEntry>;
-        //let mut future: Vec<TimeseriesEntry>;
+        let mut past: Vec<TimeseriesEntry>;
+        let mut future: Vec<TimeseriesEntry>;
 
-        let plans = if user.plans.len() > 0 {
-            user.plans.clone()
+        let plan = if user.plans.len() > 0 {
+            user.plans[0].clone()
         } else {
-            vec![generate_sample_plan()]
+            generate_sample_plan()
         };
         let snapshots = user_service.get_snapshots(&mut user, plaid_client).await?;
         let last_day = snapshots[snapshots.len() - 1].clone();
 
         past = generate_timeseries_from_snapshots(snapshots);
-        //future = generate_timeseries_from_plan(days, last_day.net_worth, last_day.snapshot_time);
-        //past.append(&mut future);
+        future =
+            generate_timeseries_from_plan(plan, days, last_day.net_worth, last_day.snapshot_time);
+        past.append(&mut future);
 
         Ok(TimeseriesResponse {
             start: last_day.snapshot_time,

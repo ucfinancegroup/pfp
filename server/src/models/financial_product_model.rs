@@ -1,4 +1,3 @@
-use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use wither::{mongodb::bson::oid::ObjectId, Model};
 
@@ -22,11 +21,43 @@ pub struct FinancialProduct {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum FinancialProductInfo {
-  CreditCard { apr: Decimal },
-  Loan { apr: Decimal },
-  Savings { apy: Decimal },
-  Checking { apy: Decimal },
+  CreditCard,
+  Loan,
+  Savings,
+  Checking,
   Investment,
   Retirement,
   Other,
+}
+
+impl FinancialProduct {
+  pub fn new(
+    name: &str,
+    description: &str,
+    perks: Vec<String>,
+    url: Option<String>,
+    image_url: Option<String>,
+    product_info: FinancialProductInfo,
+  ) -> Self {
+    Self {
+      id: None,
+      name: name.to_string(),
+      description: description.to_string(),
+      perks,
+      url,
+      image_url,
+      product_info,
+    }
+  }
+}
+
+#[allow(unused_imports)]
+use chrono::TimeZone;
+use wither::mongodb::bson::doc;
+use wither::prelude::Migrating;
+
+impl Migrating for FinancialProduct {
+  fn migrations() -> Vec<Box<dyn wither::Migration>> {
+    vec![]
+  }
 }

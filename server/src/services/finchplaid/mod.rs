@@ -1,6 +1,8 @@
 use crate::common::{errors::ApiError, Money};
 use crate::controllers::plaid_controller::AccountSuccess;
-use crate::models::user_model::PlaidItem;
+use crate::controllers::plaid_controller::ItemIdResponse;
+use crate::models::user_model::{PlaidItem, User};
+use crate::services::users::UserService;
 use actix_web::web::Data;
 use plaid::models::{Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse};
 use rust_decimal::Decimal;
@@ -124,4 +126,34 @@ async fn get_item_accounts(
   )
   .await
   .map_err(|_| ApiError::new(500, "Error while getting accounts".to_string()))
+}
+
+pub async fn exchange_public_token_for_access_token(
+  public_token: String,
+  plaid_client: Data<Arc<Mutex<ApiClient>>>,
+  user: User,
+  user_service: Data<UserService>,
+) -> Result<ItemIdResponse, ApiError> {
+  let pc = plaid_client.lock().unwrap();
+  let config = &(pc.configuration);
+
+  let exchanged = plaid::apis::item_creation_api::exchange_token(
+    config,
+    plaid::models::ExchangeTokenRequest::new(pc.client_id.clone(), pc.secret.clone(), public_token),
+  )
+  .await
+  .map_err(|_| ApiError::new(500, "Plaid Client Error".to_string()))?;
+
+  use plaid::models::ExchangeTokenResponse;
+
+  let ExchangeTokenResponse {
+    access_token: item_access_token,
+    item_id,
+    request_id: _,
+  } = exchanged;
+
+  user_service
+    .add_new_account(user, item_access_token, item_id.clone())
+    .await
+    .and_then(|_| Ok(ItemIdResponse { item_id: item_id }))
 }

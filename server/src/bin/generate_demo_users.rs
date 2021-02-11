@@ -27,6 +27,7 @@ fn main() {
       },
       birthday: "1755-01-11".to_string(),
       accounts: vec![],
+      account_records: vec![],
       snapshots: vec![
         Snapshot {
           net_worth: Money::new(dec!(1_000_000)),
@@ -63,6 +64,7 @@ fn main() {
       },
       birthday: "1743-04-13".to_string(),
       accounts: vec![],
+      account_records: vec![],
       snapshots: vec![
         Snapshot {
           net_worth: Money::new(dec!(1_000_000)),
@@ -99,6 +101,7 @@ fn main() {
       },
       birthday: "1732-02-22".to_string(),
       accounts: vec![],
+      account_records: vec![],
       snapshots: vec![
         Snapshot {
           net_worth: Money::new(dec!(1_000_000)),

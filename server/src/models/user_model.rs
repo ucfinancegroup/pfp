@@ -33,6 +33,7 @@ pub struct User {
   pub location: Location,
   pub birthday: String, // %Y-%m-%d
   pub accounts: Vec<PlaidItem>,
+  pub account_records: Vec<AccountRecord>,
   pub snapshots: Vec<Snapshot>,
   pub recurrings: Vec<Recurring>,
   pub goals: Vec<Goal>,
@@ -107,6 +108,16 @@ impl Default for Location {
       lon: 0.0,
     }
   }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct AccountRecord {
+  pub item_id: String,
+  pub account_id: String,
+  pub account_name: String,
+  pub hidden: bool,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub known_account_id: Option<wither::mongodb::bson::oid::ObjectId>,
 }
 
 impl User {
@@ -226,6 +237,16 @@ impl Migrating for User {
         set: Some(doc! {"plans": wither::mongodb::bson::to_bson(&Vec::<Plan>::new()).unwrap()}),
         unset: None,
       }),
+      Box::new(wither::IntervalMigration {
+        name: "add account_records field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"account_records": doc!{"$exists": false}},
+        set: Some(
+          doc! {"account_records": wither::mongodb::bson::to_bson(&Vec::<AccountRecord>::new()).unwrap()},
+        ),
+        unset: None,
+      }),
     ]
   }
 }
@@ -285,6 +306,7 @@ mod test {
       location: Location::default(),
       birthday: "1970-01-01".to_string(),
       accounts: vec![],
+      account_records: vec![],
       snapshots: vec![],
       recurrings: vec![],
       goals: vec![],

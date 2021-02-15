@@ -1,0 +1,38 @@
+.stack {
+  position: relative;
+  margin: 1em 0;
+  height: 100px;
+  width: 100%;
+}
+
+.badge {
+  z-index: 100;
+  background-color: #333;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  top: -12px;
+  left: -12px;
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.stack > div:not(.badge) {
+  width: 100%;
+  position: absolute;
+}
+
+.card {
+  padding: 1em 1.5em;
+  background-color: #fff;
+  border-radius: 5px;
+  display: flex;
+}
+
+.shadow {
+  box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+}

@@ -5,6 +5,7 @@ import {PlaidService} from "../services/PlaidService";
 import {RecurringList} from "../components/recurring/RecurringList";
 import {Redirect} from "react-router-dom";
 import {PlanChart} from "../components/chart/PlanChart";
+import {InsightStack} from "../components/insights/InsightStack";
 
 /**
  * The logged in user default page
@@ -28,6 +29,7 @@ export default function DashboardPage() {
             <Redirect to="/"/>
         }
         <h1>Dashboard</h1>
+        <InsightStack/>
         <div className="box">
             <PlanChart/>
         </div>

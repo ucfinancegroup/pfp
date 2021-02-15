@@ -132,13 +132,17 @@ impl UserService {
 
   pub async fn add_new_account(
     &self,
-    user: User,
+    mut user: User,
     access_token: String,
     item_id: String,
   ) -> Result<(), ApiError> {
-    user.update(&self.db, None, doc! {"$push": doc!{"accounts" : crate::common::into_bson_document(&PlaidItem{item_id, access_token})}}, None).await
-    .map_err(|_| ApiError::new(500, "Database Error".to_string()))
-    .and_then(|_| Ok(()))
+    user.accounts.push(PlaidItem {
+      item_id,
+      access_token,
+    });
+    self.save(&mut user).await?;
+
+    Ok(())
   }
 
   pub async fn get_accounts(

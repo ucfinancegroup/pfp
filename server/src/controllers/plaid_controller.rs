@@ -1,12 +1,13 @@
 use crate::common::errors::ApiError;
 use crate::models::user_model::User;
-use crate::services::finchplaid::ApiClient;
+use crate::services::finchplaid;
 use crate::services::users::UserService;
 use actix_web::{
   delete, get, post,
   web::{Data, Path},
   HttpResponse,
 };
+use finchplaid::ApiClient;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
@@ -72,7 +73,7 @@ async fn access_token(
   user: User,
   user_service: Data<UserService>,
 ) -> HttpResponse {
-  let res = help_access_token(
+  let res: Result<ItemIdResponse, ApiError> = finchplaid::exchange_public_token_for_access_token(
     payload.into_inner().public_token,
     plaid_client,
     user,
@@ -81,36 +82,6 @@ async fn access_token(
   .await;
 
   crate::common::into_response_res(res)
-}
-
-async fn help_access_token(
-  public_token: String,
-  plaid_client: Data<Arc<Mutex<ApiClient>>>,
-  user: User,
-  user_service: Data<UserService>,
-) -> Result<ItemIdResponse, ApiError> {
-  let pc = plaid_client.lock().unwrap();
-  let config = &(pc.configuration);
-
-  let exchanged = plaid::apis::item_creation_api::exchange_token(
-    config,
-    plaid::models::ExchangeTokenRequest::new(pc.client_id.clone(), pc.secret.clone(), public_token),
-  )
-  .await
-  .map_err(|_| ApiError::new(500, "Plaid Client Error".to_string()))?;
-
-  use plaid::models::ExchangeTokenResponse;
-
-  let ExchangeTokenResponse {
-    access_token: item_access_token,
-    item_id,
-    request_id: _,
-  } = exchanged;
-
-  user_service
-    .add_new_account(user, item_access_token, item_id.clone())
-    .await
-    .and_then(|_| Ok(ItemIdResponse { item_id: item_id }))
 }
 
 #[get("/plaid/accounts")]

@@ -13,12 +13,25 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    MongoObjectID,
+    MongoObjectIDFromJSON,
+    MongoObjectIDFromJSONTyped,
+    MongoObjectIDToJSON,
+} from './';
+
 /**
  * 
  * @export
  * @interface Insight
  */
 export interface Insight {
+    /**
+     * 
+     * @type {MongoObjectID}
+     * @memberof Insight
+     */
+    _id: MongoObjectID;
     /**
      * 
      * @type {string}
@@ -67,6 +80,7 @@ export function InsightFromJSONTyped(json: any, ignoreDiscriminator: boolean): I
     }
     return {
         
+        '_id': MongoObjectIDFromJSON(json['_id']),
         'title': json['title'],
         'description': json['description'],
         'insight_type': json['insight_type'],
@@ -85,6 +99,7 @@ export function InsightToJSON(value?: Insight | null): any {
     }
     return {
         
+        '_id': MongoObjectIDToJSON(value._id),
         'title': value.title,
         'description': value.description,
         'insight_type': value.insight_type,

@@ -50,10 +50,6 @@ export function PlanChart(props: PlanChartProps) {
         const knownData = data.filter(f => f.date <= predictionStart);
         const predictedData = data.filter(f => f.date >= predictionStart);
 
-        console.log(knownData, predictedData);
-
-
-
         const area = (x, y) => d3.area()
             .defined((d: any) => !isNaN(d.value))
             .x((d: any)  => x(d.date))

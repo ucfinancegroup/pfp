@@ -28,12 +28,10 @@ export function InsightStack(props: InsightStackProps) {
         const index = insights.indexOf(insight);
         insights.splice(index, 1);
         setInsights([...insights]);
-        /*
-        await insightsApi.dismissInsight({
-            id: insight.
-        });
 
-         */
+        await insightsApi.dismissInsight({
+            id: insight._id.$oid
+        });
     }
 
     if (!insights || insights.length === 0)
@@ -43,7 +41,7 @@ export function InsightStack(props: InsightStackProps) {
         <div className={styles.badge}>{insights.length}</div>
         {
             insights.filter(i => !i.dismissed).map((i, index) =>
-                    <TinderCard onCardLeftScreen={() => dismiss(i)} key={i.generation_time}>
+                    <TinderCard onCardLeftScreen={() => dismiss(i)} key={i._id.$oid}>
                         <div className={cx(styles.card, {[styles.shadow]: index === 0})}>
                             <div className={styles.image}>
                                 <img src={i.imageURL}/>

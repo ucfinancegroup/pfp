@@ -18,9 +18,9 @@ import {
     ApiError,
     ApiErrorFromJSON,
     ApiErrorToJSON,
-    TimeSeriesEntry,
-    TimeSeriesEntryFromJSON,
-    TimeSeriesEntryToJSON,
+    TimeSeriesResponse,
+    TimeSeriesResponseFromJSON,
+    TimeSeriesResponseToJSON,
 } from '../models';
 
 /**
@@ -31,7 +31,7 @@ export class TimeseriesApi extends runtime.BaseAPI {
     /**
      * Get a user\'s projection timeseries
      */
-    async getTimeseriesRaw(): Promise<runtime.ApiResponse<Array<TimeSeriesEntry>>> {
+    async getTimeseriesRaw(): Promise<runtime.ApiResponse<TimeSeriesResponse>> {
         const queryParameters: runtime.HTTPQuery = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -43,13 +43,13 @@ export class TimeseriesApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TimeSeriesEntryFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => TimeSeriesResponseFromJSON(jsonValue));
     }
 
     /**
      * Get a user\'s projection timeseries
      */
-    async getTimeseries(): Promise<Array<TimeSeriesEntry>> {
+    async getTimeseries(): Promise<TimeSeriesResponse> {
         const response = await this.getTimeseriesRaw();
         return await response.value();
     }
@@ -57,7 +57,7 @@ export class TimeseriesApi extends runtime.BaseAPI {
     /**
      * Get an example timeseries
      */
-    async getTimeseriesExampleRaw(): Promise<runtime.ApiResponse<Array<TimeSeriesEntry>>> {
+    async getTimeseriesExampleRaw(): Promise<runtime.ApiResponse<TimeSeriesResponse>> {
         const queryParameters: runtime.HTTPQuery = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -69,13 +69,13 @@ export class TimeseriesApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TimeSeriesEntryFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => TimeSeriesResponseFromJSON(jsonValue));
     }
 
     /**
      * Get an example timeseries
      */
-    async getTimeseriesExample(): Promise<Array<TimeSeriesEntry>> {
+    async getTimeseriesExample(): Promise<TimeSeriesResponse> {
         const response = await this.getTimeseriesExampleRaw();
         return await response.value();
     }

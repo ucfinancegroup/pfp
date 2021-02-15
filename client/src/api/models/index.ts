@@ -31,6 +31,7 @@ export * from './Snapshot';
 export * from './TimeInterval';
 export * from './TimePeriod';
 export * from './TimeSeriesEntry';
+export * from './TimeSeriesResponse';
 export * from './Transform';
 export * from './UpdateUserRequest';
 export * from './User';

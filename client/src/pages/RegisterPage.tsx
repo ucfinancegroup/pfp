@@ -37,8 +37,6 @@ export default function RegisterPage() {
 
     const now = new Date();
     const currentDate = formatDate(now);
-    const minAge = new Date();
-    minAge.setFullYear(minAge.getFullYear() - 13);
 
     useEffect(() => {
         getLocation();
@@ -62,19 +60,14 @@ export default function RegisterPage() {
         // Prevent submitting the form twice.
         if (loading) return;
 
-
         const theirDob = new Date(birthday);
-        if (theirDob > minAge) {
-            alert("You must be over 13 to use Finch.");
-            return;
-        }
-
 
         setLoading(true);
 
         try {
             await userApi.signupUser({
                 signupPayload: {
+                    birthday: theirDob,
                     email,
                     password,
                     first_name: firstName,

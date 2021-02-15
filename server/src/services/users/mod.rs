@@ -6,7 +6,9 @@ use crate::models::{
   session_model,
   user_model::{PlaidItem, Snapshot, User},
 };
-use crate::services::{db, finchplaid::ApiClient, snapshots::SnapshotService};
+use crate::services::{
+  db, financial_products::FinProductService, finchplaid::ApiClient, snapshots::SnapshotService,
+};
 use actix_web::web::Data;
 use std::sync::{Arc, Mutex};
 use wither::{
@@ -135,19 +137,42 @@ impl UserService {
     mut user: User,
     access_token: String,
     item_id: String,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    fin_product_service: Data<FinProductService>,
   ) -> Result<(), ApiError> {
     user.accounts.push(PlaidItem {
-      item_id,
+      item_id: item_id.clone(),
       access_token,
     });
     self.save(&mut user).await?;
 
-    Ok(())
+    let accounts_info =
+      crate::services::finchplaid::get_item_accounts(&user.accounts.last().unwrap(), plaid_client)
+        .await;
+    let accounts = accounts_info?.accounts;
+
+    let mut state = Ok(());
+    for account in accounts.iter() {
+      let found_product = fin_product_service.resolve_account(&account).await;
+
+      let res =
+        FinProductService::make_account_record(item_id.clone(), account, &found_product.ok())
+          .and_then(|record| {
+            user.account_records.push(record);
+            Ok(())
+          });
+
+      state = state.and(res);
+    }
+
+    self.save(&mut user).await?;
+
+    state
   }
 
   pub async fn get_accounts(
     &self,
-    user: User,
+    user: &User,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<AccountResponse, ApiError> {
     let mut account_successes = Vec::new();

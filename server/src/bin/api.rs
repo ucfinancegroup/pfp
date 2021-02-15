@@ -58,6 +58,7 @@ async fn main() -> std::io::Result<()> {
 
   let user_service = services::users::UserService::new(&db_service).await;
   let session_service = services::sessions::SessionService::new(&db_service).await;
+  let fin_product_service = services::financial_products::FinProductService::new(&db_service).await;
 
   HttpServer::new(move || {
     App::new()
@@ -66,6 +67,7 @@ async fn main() -> std::io::Result<()> {
       .data(plaid_client.clone())
       .data(user_service.clone())
       .data(session_service.clone())
+      .data(fin_product_service.clone())
       .configure(controllers::configure)
       .service(root_route)
   })

@@ -199,7 +199,7 @@ impl UserService {
     &self,
     account_id: String,
     mut user: User,
-  ) -> Result<PlaidItem, ApiError> {
+  ) -> Result<String, ApiError> {
     let item = Self::delete_account(account_id, &mut user)?;
 
     self.save(&mut user).await?;
@@ -207,7 +207,7 @@ impl UserService {
     Ok(item)
   }
 
-  pub fn delete_account(item_id: String, user: &mut User) -> Result<PlaidItem, ApiError> {
+  pub fn delete_account(item_id: String, user: &mut User) -> Result<String, ApiError> {
     let item = user
       .accounts
       .iter()
@@ -225,7 +225,7 @@ impl UserService {
       .cloned() // pain
       .collect();
 
-    Ok(item)
+    Ok(item.item_id)
   }
 
   pub async fn get_snapshots(

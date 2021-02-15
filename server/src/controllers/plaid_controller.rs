@@ -102,11 +102,11 @@ pub async fn delete_account(
   user: User,
   user_service: Data<UserService>,
 ) -> HttpResponse {
-  // TODO(c650): remove all records from account_records
   crate::common::into_response_res(
     user_service
       .delete_account_and_save(accounts_id.clone(), user)
-      .await,
+      .await
+      .map(|item_id| ItemIdResponse { item_id }),
   )
 }
 

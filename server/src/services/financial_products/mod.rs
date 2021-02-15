@@ -29,6 +29,10 @@ impl FinProductService {
         "Could not get name for Account".to_string(),
       ))?;
 
+    self.resolve_with_name(&name).await
+  }
+
+  pub async fn resolve_with_name(&self, name: &str) -> Result<FinancialProduct, ApiError> {
     FinancialProduct::find_one(&self.db, doc! {"name": name.clone()}, None)
       .await
       .map_err(|_| ApiError::new(500, "Database Error".to_string()))?

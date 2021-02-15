@@ -4,7 +4,7 @@ use crate::controllers::user_controller::{LoginPayload, SignupPayload, UpdatePay
 use crate::models::{
   insight_model::Insight,
   session_model,
-  user_model::{PlaidItem, Snapshot, User},
+  user_model::{AccountRecord, PlaidItem, Snapshot, User},
 };
 use crate::services::{
   db, financial_products::FinProductService, finchplaid::ApiClient, snapshots::SnapshotService,
@@ -195,29 +195,37 @@ impl UserService {
     })
   }
 
-  pub async fn delete_account(&self, account_id: String, user: User) -> Result<(), ApiError> {
-    match UserService::delete(account_id, user) {
-      Ok(mut res) => res
-        .save(&self.db, None)
-        .await
-        .map_err(|_| ApiError::new(500, "Database Error".to_string()))
-        .and_then(|_| Ok(())),
-      Err(e) => Err(e),
-    }
+  pub async fn delete_account_and_save(
+    &self,
+    account_id: String,
+    mut user: User,
+  ) -> Result<PlaidItem, ApiError> {
+    let item = Self::delete_account(account_id, &mut user)?;
+
+    self.save(&mut user).await?;
+
+    Ok(item)
   }
 
-  pub fn delete(account_id: String, mut user: User) -> Result<User, ApiError> {
-    user
+  pub fn delete_account(item_id: String, user: &mut User) -> Result<PlaidItem, ApiError> {
+    let item = user
       .accounts
       .iter()
-      .position(|rec| rec.item_id == account_id)
+      .position(|rec| rec.item_id == item_id)
       .ok_or(ApiError::new(
         400,
-        format!("No account with id {} found in current user", account_id),
+        format!("No account with id {} found in current user", item_id),
       ))
       .and_then(|pos| Ok(user.accounts.swap_remove(pos)))?;
 
-    return Ok(user);
+    user.account_records = user
+      .account_records
+      .iter()
+      .filter(|e: &&AccountRecord| e.item_id != item_id)
+      .cloned() // pain
+      .collect();
+
+    Ok(item)
   }
 
   pub async fn get_snapshots(
@@ -299,7 +307,7 @@ mod test {
     let mut accounts_array: Vec<PlaidItem> = Vec::new();
     accounts_array.push(to_delete);
 
-    let user = User {
+    let mut user = User {
       id: None,
       email: String::from("test@test.com"),
       password: String::from("test@test.com"),
@@ -321,13 +329,9 @@ mod test {
 
     let mut found = false;
 
-    let obj = match UserService::delete(accounts.accounts[0].account_id.clone(), user) {
-      Ok(new_user) => new_user,
+    let _ = UserService::delete_account(accounts.accounts[0].account_id.clone(), &mut user);
 
-      Err(_) => return assert_eq!(false, true),
-    };
-
-    for account in obj.accounts.iter() {
+    for account in user.accounts.iter() {
       if account.item_id.eq(&accounts.accounts[0].account_id) {
         found = true;
         break;

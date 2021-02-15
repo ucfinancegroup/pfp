@@ -103,17 +103,11 @@ pub async fn delete_account(
   user_service: Data<UserService>,
 ) -> HttpResponse {
   // TODO(c650): remove all records from account_records
-
-  let res = user_service
-    .delete_account(accounts_id.clone(), user)
-    .await
-    .and_then(|_| {
-      Ok(ItemIdResponse {
-        item_id: accounts_id,
-      })
-    });
-
-  crate::common::into_response_res(res)
+  crate::common::into_response_res(
+    user_service
+      .delete_account_and_save(accounts_id.clone(), user)
+      .await,
+  )
 }
 
 pub fn init_routes(config: &mut actix_web::web::ServiceConfig) {

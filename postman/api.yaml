@@ -1420,6 +1420,8 @@ components:
         - dismissed
         - generation_time
       properties:
+        _id:
+          $ref: "#/components/schemas/MongoObjectID"
         title:
           type: string
         description:

@@ -4,9 +4,11 @@ use crate::controllers::user_controller::{LoginPayload, SignupPayload, UpdatePay
 use crate::models::{
   insight_model::Insight,
   session_model,
-  user_model::{PlaidItem, Snapshot, User},
+  user_model::{AccountRecord, PlaidItem, Snapshot, User},
 };
-use crate::services::{db, finchplaid::ApiClient, snapshots::SnapshotService};
+use crate::services::{
+  db, financial_products::FinProductService, finchplaid::ApiClient, snapshots::SnapshotService,
+};
 use actix_web::web::Data;
 use std::sync::{Arc, Mutex};
 use wither::{
@@ -132,18 +134,45 @@ impl UserService {
 
   pub async fn add_new_account(
     &self,
-    user: User,
+    mut user: User,
     access_token: String,
     item_id: String,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    fin_product_service: Data<FinProductService>,
   ) -> Result<(), ApiError> {
-    user.update(&self.db, None, doc! {"$push": doc!{"accounts" : crate::common::into_bson_document(&PlaidItem{item_id, access_token})}}, None).await
-    .map_err(|_| ApiError::new(500, "Database Error".to_string()))
-    .and_then(|_| Ok(()))
+    user.accounts.push(PlaidItem {
+      item_id: item_id.clone(),
+      access_token,
+    });
+    self.save(&mut user).await?;
+
+    let accounts_info =
+      crate::services::finchplaid::get_item_accounts(&user.accounts.last().unwrap(), plaid_client)
+        .await;
+    let accounts = accounts_info?.accounts;
+
+    let mut state = Ok(());
+    for account in accounts.iter() {
+      let found_product = fin_product_service.resolve_account(&account).await;
+
+      let res =
+        FinProductService::make_account_record(item_id.clone(), account, &found_product.ok())
+          .and_then(|record| {
+            user.account_records.push(record);
+            Ok(())
+          });
+
+      state = state.and(res);
+    }
+
+    self.save(&mut user).await?;
+
+    state
   }
 
   pub async fn get_accounts(
     &self,
-    user: User,
+    user: &User,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<AccountResponse, ApiError> {
     let mut account_successes = Vec::new();
@@ -166,29 +195,37 @@ impl UserService {
     })
   }
 
-  pub async fn delete_account(&self, account_id: String, user: User) -> Result<(), ApiError> {
-    match UserService::delete(account_id, user) {
-      Ok(mut res) => res
-        .save(&self.db, None)
-        .await
-        .map_err(|_| ApiError::new(500, "Database Error".to_string()))
-        .and_then(|_| Ok(())),
-      Err(e) => Err(e),
-    }
+  pub async fn delete_account_and_save(
+    &self,
+    account_id: String,
+    mut user: User,
+  ) -> Result<String, ApiError> {
+    let item = Self::delete_account(account_id, &mut user)?;
+
+    self.save(&mut user).await?;
+
+    Ok(item)
   }
 
-  pub fn delete(account_id: String, mut user: User) -> Result<User, ApiError> {
-    user
+  pub fn delete_account(item_id: String, user: &mut User) -> Result<String, ApiError> {
+    let item = user
       .accounts
       .iter()
-      .position(|rec| rec.item_id == account_id)
+      .position(|rec| rec.item_id == item_id)
       .ok_or(ApiError::new(
         400,
-        format!("No account with id {} found in current user", account_id),
+        format!("No account with id {} found in current user", item_id),
       ))
       .and_then(|pos| Ok(user.accounts.swap_remove(pos)))?;
 
-    return Ok(user);
+    user.account_records = user
+      .account_records
+      .iter()
+      .filter(|e: &&AccountRecord| e.item_id != item_id)
+      .cloned() // pain
+      .collect();
+
+    Ok(item.item_id)
   }
 
   pub async fn get_snapshots(
@@ -270,7 +307,7 @@ mod test {
     let mut accounts_array: Vec<PlaidItem> = Vec::new();
     accounts_array.push(to_delete);
 
-    let user = User {
+    let mut user = User {
       id: None,
       email: String::from("test@test.com"),
       password: String::from("test@test.com"),
@@ -292,13 +329,9 @@ mod test {
 
     let mut found = false;
 
-    let obj = match UserService::delete(accounts.accounts[0].account_id.clone(), user) {
-      Ok(new_user) => new_user,
+    let _ = UserService::delete_account(accounts.accounts[0].account_id.clone(), &mut user);
 
-      Err(_) => return assert_eq!(false, true),
-    };
-
-    for account in obj.accounts.iter() {
+    for account in user.accounts.iter() {
       if account.item_id.eq(&accounts.accounts[0].account_id) {
         found = true;
         break;

@@ -1,5 +1,6 @@
 use crate::common::errors::ApiError;
 use crate::models::user_model::User;
+use crate::services::financial_products::FinProductService;
 use crate::services::finchplaid;
 use crate::services::users::UserService;
 use actix_web::{
@@ -72,12 +73,14 @@ async fn access_token(
   payload: actix_web::web::Json<PublicTokenExchangeRequest>,
   user: User,
   user_service: Data<UserService>,
+  fin_product_service: Data<FinProductService>,
 ) -> HttpResponse {
   let res: Result<ItemIdResponse, ApiError> = finchplaid::exchange_public_token_for_access_token(
     payload.into_inner().public_token,
     plaid_client,
     user,
     user_service,
+    fin_product_service,
   )
   .await;
 
@@ -90,7 +93,7 @@ pub async fn get_accounts(
   user_service: Data<UserService>,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> HttpResponse {
-  crate::common::into_response_res(user_service.get_accounts(user, plaid_client).await)
+  crate::common::into_response_res(user_service.get_accounts(&user, plaid_client).await)
 }
 
 #[delete("plaid/accounts/{id}")]
@@ -99,16 +102,12 @@ pub async fn delete_account(
   user: User,
   user_service: Data<UserService>,
 ) -> HttpResponse {
-  let res = user_service
-    .delete_account(accounts_id.clone(), user)
-    .await
-    .and_then(|_| {
-      Ok(ItemIdResponse {
-        item_id: accounts_id,
-      })
-    });
-
-  crate::common::into_response_res(res)
+  crate::common::into_response_res(
+    user_service
+      .delete_account_and_save(accounts_id.clone(), user)
+      .await
+      .map(|item_id| ItemIdResponse { item_id }),
+  )
 }
 
 pub fn init_routes(config: &mut actix_web::web::ServiceConfig) {

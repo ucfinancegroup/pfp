@@ -2,7 +2,7 @@ use crate::common::{errors::ApiError, Money};
 use crate::controllers::plaid_controller::AccountSuccess;
 use crate::controllers::plaid_controller::ItemIdResponse;
 use crate::models::user_model::{PlaidItem, User};
-use crate::services::users::UserService;
+use crate::services::{financial_products::FinProductService, users::UserService};
 use actix_web::web::Data;
 use plaid::models::{Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse};
 use rust_decimal::Decimal;
@@ -109,7 +109,7 @@ pub fn calculate_net_worth(accounts: &Vec<Account>) -> Money {
     })
 }
 
-async fn get_item_accounts(
+pub async fn get_item_accounts(
   item: &PlaidItem,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> Result<RetrieveAnItemsAccountsResponse, ApiError> {
@@ -133,16 +133,22 @@ pub async fn exchange_public_token_for_access_token(
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
   user: User,
   user_service: Data<UserService>,
+  fin_product_service: Data<FinProductService>,
 ) -> Result<ItemIdResponse, ApiError> {
-  let pc = plaid_client.lock().unwrap();
-  let config = &(pc.configuration);
-
-  let exchanged = plaid::apis::item_creation_api::exchange_token(
-    config,
-    plaid::models::ExchangeTokenRequest::new(pc.client_id.clone(), pc.secret.clone(), public_token),
-  )
-  .await
-  .map_err(|_| ApiError::new(500, "Plaid Client Error".to_string()))?;
+  let exchanged = {
+    let pc = plaid_client.lock().unwrap();
+    let config = &(pc.configuration);
+    plaid::apis::item_creation_api::exchange_token(
+      config,
+      plaid::models::ExchangeTokenRequest::new(
+        pc.client_id.clone(),
+        pc.secret.clone(),
+        public_token,
+      ),
+    )
+    .await
+    .map_err(|_| ApiError::new(500, "Plaid Client Error".to_string()))
+  }?;
 
   use plaid::models::ExchangeTokenResponse;
 
@@ -153,7 +159,13 @@ pub async fn exchange_public_token_for_access_token(
   } = exchanged;
 
   user_service
-    .add_new_account(user, item_access_token, item_id.clone())
+    .add_new_account(
+      user,
+      item_access_token,
+      item_id.clone(),
+      plaid_client.clone(),
+      fin_product_service,
+    )
     .await
     .and_then(|_| Ok(ItemIdResponse { item_id: item_id }))
 }

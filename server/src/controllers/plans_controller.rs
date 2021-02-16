@@ -55,5 +55,5 @@ pub async fn create_new_plan(
 pub async fn edit_plan(user: User, payload: PlanUpdatePayload) -> HttpResponse {}
 */
 pub fn init_routes(config: &mut ServiceConfig) {
-    //config.service(get_example);
+    config.service(create_new_plan);
 }

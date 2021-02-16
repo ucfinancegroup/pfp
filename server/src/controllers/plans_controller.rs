@@ -33,14 +33,14 @@ impl Into<Plan> for PlanNewPayload {
 pub struct PlanUpdatePayload {}
 
 /*
-#[get("/plans/example")]
+#[get("/plan/example")]
 pub async fn get_example(_: User) -> HttpResponse {}
 
 #[get("/plans")]
 pub async fn get_plans(user: User) -> HttpResponse {}
 */
 
-#[post("/plans/new")]
+#[post("/plan/new")]
 pub async fn create_new_plan(
     user: User,
     payload: Json<PlanNewPayload>,
@@ -51,7 +51,7 @@ pub async fn create_new_plan(
     )
 }
 /*
-#[put("/plans/edit")]
+#[put("/plan/{id}}")]
 pub async fn edit_plan(user: User, payload: PlanUpdatePayload) -> HttpResponse {}
 */
 pub fn init_routes(config: &mut ServiceConfig) {

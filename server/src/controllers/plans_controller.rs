@@ -35,10 +35,12 @@ pub struct PlanUpdatePayload {}
 /*
 #[get("/plan/example")]
 pub async fn get_example(_: User) -> HttpResponse {}
+*/
 
 #[get("/plans")]
-pub async fn get_plans(user: User) -> HttpResponse {}
-*/
+pub async fn get_plans(user: User) -> HttpResponse {
+    crate::common::into_response(user.plans)
+}
 
 #[post("/plan/new")]
 pub async fn create_new_plan(
@@ -56,4 +58,5 @@ pub async fn edit_plan(user: User, payload: PlanUpdatePayload) -> HttpResponse {
 */
 pub fn init_routes(config: &mut ServiceConfig) {
     config.service(create_new_plan);
+    config.service(get_plans);
 }

@@ -6,11 +6,20 @@ pub mod PlansService {
     use crate::models::user_model::User;
     use crate::services::users::UserService;
     use actix_web::web::Data;
+    use wither::{mongodb::bson::oid::ObjectId, Model};
 
     pub async fn new_plan(
         payload: PlanNewPayload,
-        mut User: User,
+        mut user: User,
         user_service: Data<UserService>,
     ) -> Result<Plan, ApiError> {
+        let mut plan: Plan = payload.into();
+        plan.set_id(ObjectId::new());
+
+        user.plans.push(plan.clone());
+
+        user_service.save(&mut user).await?;
+
+        Ok(plan)
     }
 }

@@ -1,7 +1,12 @@
-use crate::models::plan_model::{Allocation, Event, Plan};
+use crate::models::plan_model::*;
 use crate::models::recurring_model::Recurring;
-use actix_web::web::ServiceConfig;
-use actix_web::web::{Data, Path};
+use crate::models::user_model::User;
+use crate::services::{plans::PlansService, users::UserService};
+use actix_web::{
+    delete, get, post, put,
+    web::{Data, Path, ServiceConfig},
+    HttpResponse,
+};
 use actix_web_validator::{Json, Validate};
 use serde::{Deserialize, Serialize};
 
@@ -33,10 +38,19 @@ pub async fn get_example(_: User) -> HttpResponse {}
 
 #[get("/plans")]
 pub async fn get_plans(user: User) -> HttpResponse {}
+*/
 
 #[post("/plans/new")]
-pub async fn create_new_plan(user: User, payload: PlanNewPayload) -> HttpResponse {}
-
+pub async fn create_new_plan(
+    user: User,
+    payload: Json<PlanNewPayload>,
+    user_service: Data<UserService>,
+) -> HttpResponse {
+    crate::common::into_response_res(
+        PlansService::new_plan(payload.into_inner(), user, user_service).await,
+    )
+}
+/*
 #[put("/plans/edit")]
 pub async fn edit_plan(user: User, payload: PlanUpdatePayload) -> HttpResponse {}
 */

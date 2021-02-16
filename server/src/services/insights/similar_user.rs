@@ -3,15 +3,12 @@ use crate::models::{
   insight_model::{Insight, InsightTypes},
   user_model::{Snapshot, User},
 };
-use crate::services::db::DatabaseService;
+use crate::services::{db::DatabaseService, insights::common::match_income_range};
 use chrono::{DateTime, Utc};
 use futures::stream::{Stream, StreamExt};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
-use wither::{
-  mongodb::bson::{bson, doc, Bson},
-  Model,
-};
+use wither::{mongodb::bson::doc, Model};
 
 #[derive(Clone, Copy)]
 struct SimilarUserMetrics {
@@ -83,25 +80,6 @@ impl Default for UserMetricRates {
       spending_rate: dec!(0),
       savings_rate: dec!(0),
       income_rate: dec!(0),
-    }
-  }
-}
-
-pub fn match_income_range(u: &User) -> bson::Document {
-  doc! {
-    "$match": {
-      "income": {
-        "$gte": wither::mongodb::bson::ser::to_bson(&(u.income * dec!(0.9))).unwrap(),
-        "$lte": wither::mongodb::bson::ser::to_bson(&(u.income * dec!(1.1))).unwrap()
-      },
-      "snapshots": {
-        "$not": {
-          "$size": 0
-        }
-      },
-      "_id": {
-        "$ne": u.id().map_or_else(|| Bson::Null, |id| bson!(id))
-      }
     }
   }
 }

@@ -1,4 +1,7 @@
+mod products;
 mod similar_user;
+
+pub mod common;
 
 #[allow(non_snake_case)]
 pub mod InsightsService {

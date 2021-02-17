@@ -1,7 +1,7 @@
 #[allow(non_snake_case)]
 pub mod PlansService {
     use crate::common::errors::ApiError;
-    use crate::controllers::plans_controller::{PlanNewPayload, PlanUpdatePayload};
+    use crate::controllers::plans_controller::PlanNewPayload;
     use crate::models::plan_model::*;
     use crate::models::user_model::User;
     use crate::services::users::UserService;

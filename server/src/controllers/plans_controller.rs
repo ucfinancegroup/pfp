@@ -1,7 +1,7 @@
 use crate::models::plan_model::*;
 use crate::models::recurring_model::Recurring;
 use crate::models::user_model::User;
-use crate::services::{plans::PlansService, users::UserService};
+use crate::services::{plans::PlansService, timeseries::TimeseriesService, users::UserService};
 use actix_web::{
     delete, get, post, put,
     web::{Data, Path, ServiceConfig},
@@ -30,18 +30,37 @@ impl Into<Plan> for PlanNewPayload {
     }
 }
 
-pub struct PlanUpdatePayload {}
-
-/*
 #[get("/plan/example")]
-pub async fn get_example(_: User) -> HttpResponse {}
-*/
+pub async fn get_example(_: User) -> HttpResponse {
+    crate::common::into_response(TimeseriesService::generate_sample_plan())
+}
 
 #[get("/plans")]
 pub async fn get_plans(user: User) -> HttpResponse {
     crate::common::into_response(user.plans)
 }
+/*
+#[get("plan/{id}")]
+pub async fn get_plan(user: User, Path(plan_id): Path<String>) -> HttpResponse {}
 
+
+#[delete("/plan/{id}")]
+pub async fn delete_plan(
+    Path(plan_id): Path<String>,
+    user: User,
+    user_service: Data<UserService>,
+) -> HttpResponse {
+}
+
+#[put("/plan/{id}")]
+pub async fn update_plan(
+    Path(plan_id): Path<String>,
+    payload: Json<PlanNewPayload>,
+    user: User,
+    user_service: Data<UserService>,
+) -> HttpResponse {
+}
+*/
 #[post("/plan/new")]
 pub async fn create_new_plan(
     user: User,
@@ -52,11 +71,9 @@ pub async fn create_new_plan(
         PlansService::new_plan(payload.into_inner(), user, user_service).await,
     )
 }
-/*
-#[put("/plan/{id}}")]
-pub async fn edit_plan(user: User, payload: PlanUpdatePayload) -> HttpResponse {}
-*/
+
 pub fn init_routes(config: &mut ServiceConfig) {
+    config.service(get_example);
     config.service(create_new_plan);
     config.service(get_plans);
 }

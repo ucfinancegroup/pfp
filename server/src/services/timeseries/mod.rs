@@ -127,7 +127,7 @@ pub mod TimeseriesService {
             .collect()
     }
 
-    fn generate_sample_plan() -> Plan {
+    pub fn generate_sample_plan() -> Plan {
         let recurrings = vec![Recurring {
             id: None,
             name: String::from("Test Recurring"),

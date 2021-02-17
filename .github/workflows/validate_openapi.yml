@@ -1,0 +1,24 @@
+on:
+  push:
+    branches: [master]
+    paths:
+      - postman/api.yaml
+  pull_request:
+    branches: [master]
+    paths:
+      - postman/api.yaml
+
+name: Validate OpenAPI spec
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout repo"
+        uses: actions/checkout@main
+
+      - name: "Validate OpenAPI"
+        uses: mbowman100/swagger-validator-action@master
+        with:
+          files: |
+            postman/api.yaml

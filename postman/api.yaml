@@ -773,6 +773,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
+  /timeseries:
+    get:
+      summary: "Get timeseries with 365 future days generated"
+      operationId: getTimeseriesExample
+      tags:
+        - timeseries
+      security:
+        - sidCookie: []
+
+      responses:
+        "200":
+          description: "Timeseries response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimeSeriesResponse"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
   /timeseries/example:
     get:
       summary: "Get an example timeseries"

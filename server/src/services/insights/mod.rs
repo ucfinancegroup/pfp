@@ -99,6 +99,7 @@ pub mod InsightsService {
     user: &User,
     db_service: &DatabaseService,
   ) -> Result<Insight, AppError> {
+    // TODO(c650) -- pick which insight to make.
     log::info!("Generating insight for {}", user.email);
     // similar_user::generate_similar_user_insight(user, db_service).await
     products::generate_product_insight(user, db_service).await

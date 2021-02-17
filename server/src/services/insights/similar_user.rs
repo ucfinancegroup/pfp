@@ -3,15 +3,12 @@ use crate::models::{
   insight_model::{Insight, InsightTypes},
   user_model::{Snapshot, User},
 };
-use crate::services::db::DatabaseService;
+use crate::services::{db::DatabaseService, insights::common::match_income_range};
 use chrono::{DateTime, Utc};
 use futures::stream::{Stream, StreamExt};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
-use wither::{
-  mongodb::bson::{bson, doc, Bson},
-  Model,
-};
+use wither::{mongodb::bson::doc, Model};
 
 #[derive(Clone, Copy)]
 struct SimilarUserMetrics {
@@ -87,25 +84,6 @@ impl Default for UserMetricRates {
   }
 }
 
-pub fn match_income_range(u: &User) -> bson::Document {
-  doc! {
-    "$match": {
-      "income": {
-        "$gte": wither::mongodb::bson::ser::to_bson(&(u.income * dec!(0.9))).unwrap(),
-        "$lte": wither::mongodb::bson::ser::to_bson(&(u.income * dec!(1.1))).unwrap()
-      },
-      "snapshots": {
-        "$not": {
-          "$size": 0
-        }
-      },
-      "_id": {
-        "$ne": u.id().map_or_else(|| Bson::Null, |id| bson!(id))
-      }
-    }
-  }
-}
-
 pub fn project_snapshots(since: DateTime<Utc>) -> bson::Document {
   doc! {
     "$project": {
@@ -125,6 +103,11 @@ pub async fn generate_similar_user_insight(
   user: &User,
   db_service: &DatabaseService,
 ) -> Result<Insight, AppError> {
+  log::info!(
+    "generating a similar user insight for {}",
+    user.email.clone()
+  );
+
   let lookback = chrono::Duration::days(30);
   let since = Utc::now() - lookback;
 

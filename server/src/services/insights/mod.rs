@@ -1,4 +1,7 @@
+mod products;
 mod similar_user;
+
+pub mod common;
 
 #[allow(non_snake_case)]
 pub mod InsightsService {
@@ -96,7 +99,13 @@ pub mod InsightsService {
     user: &User,
     db_service: &DatabaseService,
   ) -> Result<Insight, AppError> {
-    similar_user::generate_similar_user_insight(user, db_service).await
+    // TODO(c650) -- pick which insight to make.
+    log::info!("Generating insight for {}", user.email);
+
+    match rand::random::<u8>() % 2 {
+      1 => similar_user::generate_similar_user_insight(user, db_service).await,
+      _ => products::generate_product_insight(user, db_service).await,
+    }
   }
 
   // Determines how long to wait before checking again to see

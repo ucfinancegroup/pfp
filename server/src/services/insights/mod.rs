@@ -99,7 +99,9 @@ pub mod InsightsService {
     user: &User,
     db_service: &DatabaseService,
   ) -> Result<Insight, AppError> {
-    similar_user::generate_similar_user_insight(user, db_service).await
+    log::info!("Generating insight for {}", user.email);
+    // similar_user::generate_similar_user_insight(user, db_service).await
+    products::generate_product_insight(user, db_service).await
   }
 
   // Determines how long to wait before checking again to see

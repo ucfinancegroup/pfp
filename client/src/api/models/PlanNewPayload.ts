@@ -14,6 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    Allocation,
+    AllocationFromJSON,
+    AllocationFromJSONTyped,
+    AllocationToJSON,
     Event,
     EventFromJSON,
     EventFromJSONTyped,
@@ -22,10 +26,6 @@ import {
     RecurringFromJSON,
     RecurringFromJSONTyped,
     RecurringToJSON,
-    Transform,
-    TransformFromJSON,
-    TransformFromJSONTyped,
-    TransformToJSON,
 } from './';
 
 /**
@@ -48,10 +48,10 @@ export interface PlanNewPayload {
     recurrings?: Array<Recurring>;
     /**
      * 
-     * @type {Array<Transform>}
+     * @type {Array<Allocation>}
      * @memberof PlanNewPayload
      */
-    allocations?: Array<Transform>;
+    allocations?: Array<Allocation>;
     /**
      * 
      * @type {Array<Event>}
@@ -72,7 +72,7 @@ export function PlanNewPayloadFromJSONTyped(json: any, ignoreDiscriminator: bool
         
         'name': json['name'],
         'recurrings': !exists(json, 'recurrings') ? undefined : ((json['recurrings'] as Array<any>).map(RecurringFromJSON)),
-        'allocations': !exists(json, 'allocations') ? undefined : ((json['allocations'] as Array<any>).map(TransformFromJSON)),
+        'allocations': !exists(json, 'allocations') ? undefined : ((json['allocations'] as Array<any>).map(AllocationFromJSON)),
         'events': !exists(json, 'events') ? undefined : ((json['events'] as Array<any>).map(EventFromJSON)),
     };
 }
@@ -88,7 +88,7 @@ export function PlanNewPayloadToJSON(value?: PlanNewPayload | null): any {
         
         'name': value.name,
         'recurrings': value.recurrings === undefined ? undefined : ((value.recurrings as Array<any>).map(RecurringToJSON)),
-        'allocations': value.allocations === undefined ? undefined : ((value.allocations as Array<any>).map(TransformToJSON)),
+        'allocations': value.allocations === undefined ? undefined : ((value.allocations as Array<any>).map(AllocationToJSON)),
         'events': value.events === undefined ? undefined : ((value.events as Array<any>).map(EventToJSON)),
     };
 }

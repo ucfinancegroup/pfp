@@ -23,6 +23,10 @@ import {
     TimeSeriesResponseToJSON,
 } from '../models';
 
+export interface GetTimeseriesRequest {
+    days: number;
+}
+
 /**
  * 
  */
@@ -31,13 +35,17 @@ export class TimeseriesApi extends runtime.BaseAPI {
     /**
      * Get a user\'s projection timeseries
      */
-    async getTimeseriesRaw(): Promise<runtime.ApiResponse<TimeSeriesResponse>> {
+    async getTimeseriesRaw(requestParameters: GetTimeseriesRequest): Promise<runtime.ApiResponse<TimeSeriesResponse>> {
+        if (requestParameters.days === null || requestParameters.days === undefined) {
+            throw new runtime.RequiredError('days','Required parameter requestParameters.days was null or undefined when calling getTimeseries.');
+        }
+
         const queryParameters: runtime.HTTPQuery = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/timeseries`,
+            path: `/timeseries/{days}`.replace(`{${"days"}}`, encodeURIComponent(String(requestParameters.days))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -49,8 +57,8 @@ export class TimeseriesApi extends runtime.BaseAPI {
     /**
      * Get a user\'s projection timeseries
      */
-    async getTimeseries(): Promise<TimeSeriesResponse> {
-        const response = await this.getTimeseriesRaw();
+    async getTimeseries(requestParameters: GetTimeseriesRequest): Promise<TimeSeriesResponse> {
+        const response = await this.getTimeseriesRaw(requestParameters);
         return await response.value();
     }
 

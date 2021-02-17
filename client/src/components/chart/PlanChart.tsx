@@ -4,7 +4,7 @@ import * as d3 from "d3";
 import {useEffect, useState} from "react";
 import React from "react";
 import { curveBasis } from "d3";
-import {Recurring, RecurringApi} from "../../api";
+import {Recurring, RecurringApi, TimeseriesApi} from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
 
 const cx = classNames.bind(styles);
@@ -14,13 +14,13 @@ type PlanChartProps = {
 };
 
 const recurringApi = new RecurringApi();
+const tsApi = new TimeseriesApi();
 
 export function PlanChart(props: PlanChartProps) {
     const focusHeight = 100;
     const height = 440;
     const width = 1000;
     const margin = ({top: 20, right: 20, bottom: 30, left: 40});
-    const predictionStart = new Date("2011-01-01");
     const [recurrings, setRecurrings] = useState<Recurring[]>();
     const [error, setError] = useState<string>();
 
@@ -36,16 +36,22 @@ export function PlanChart(props: PlanChartProps) {
             setError(await handleFetchError(e));
         }
     }
-
     useEffect(() => {
         if (recurrings)
-        getData();
+            getData();
     }, [recurrings]);
 
     async function getData() {
-        const d = await d3.csv("/data.csv");
-        const data = Object.assign((d).map(({date, close}) =>
-            ({date: new Date(date), value: parseFloat(close)})));
+        /*const ts = await tsApi.getTimeseries({
+            days: 60,
+        });*/
+        const ts = await tsApi.getTimeseriesExample();
+
+        const predictionStart = new Date(ts.start * 1000);
+        const series = ts.series;
+        const data = Object.assign(series.map(({date, net_worth}) =>
+            ({date: new Date(date * 1000), value: net_worth.amount})));
+
 
         const knownData = data.filter(f => f.date <= predictionStart);
         const predictedData = data.filter(f => f.date >= predictionStart);

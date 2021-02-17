@@ -36,7 +36,7 @@ export interface Asset {
      * @type {number}
      * @memberof Asset
      */
-    performance: number;
+    annualized_performance?: number;
 }
 
 export function AssetFromJSON(json: any): Asset {
@@ -51,7 +51,7 @@ export function AssetFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ass
         
         'name': json['name'],
         '_class': json['class'],
-        'performance': json['performance'],
+        'annualized_performance': !exists(json, 'annualized_performance') ? undefined : json['annualized_performance'],
     };
 }
 
@@ -66,7 +66,7 @@ export function AssetToJSON(value?: Asset | null): any {
         
         'name': value.name,
         'class': value._class,
-        'performance': value.performance,
+        'annualized_performance': value.annualized_performance,
     };
 }
 

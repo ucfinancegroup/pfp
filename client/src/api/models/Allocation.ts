@@ -40,10 +40,10 @@ export interface Allocation {
     date: number;
     /**
      * 
-     * @type {AllocationChange}
+     * @type {Array<AllocationChange>}
      * @memberof Allocation
      */
-    schema: AllocationChange;
+    schema: Array<AllocationChange>;
 }
 
 export function AllocationFromJSON(json: any): Allocation {
@@ -58,7 +58,7 @@ export function AllocationFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         
         'description': json['description'],
         'date': json['date'],
-        'schema': AllocationChangeFromJSON(json['schema']),
+        'schema': ((json['schema'] as Array<any>).map(AllocationChangeFromJSON)),
     };
 }
 
@@ -73,7 +73,7 @@ export function AllocationToJSON(value?: Allocation | null): any {
         
         'description': value.description,
         'date': value.date,
-        'schema': AllocationChangeToJSON(value.schema),
+        'schema': ((value.schema as Array<any>).map(AllocationChangeToJSON)),
     };
 }
 

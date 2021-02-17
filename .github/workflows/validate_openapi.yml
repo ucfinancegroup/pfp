@@ -1,4 +1,12 @@
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [master]
+    paths:
+      - postman/api.yaml
+  pull_request:
+    branches: [master]
+    paths:
+      - postman/api.yaml
 
 name: Validate OpenAPI spec
 

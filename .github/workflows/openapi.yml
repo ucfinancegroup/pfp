@@ -1,0 +1,16 @@
+on: [push, workflow_dispatch]
+
+name: Validate openapi documentation
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get OpenAPI files
+        id: getfiles
+        uses: actions/checkout@v2
+      - name: swagger-validator
+        uses: mbowman100/swagger-validator-action@master
+        with:
+          files: postman/api.yaml

@@ -751,6 +751,14 @@ paths:
       security:
         - sidCookie: []
 
+      parameters:
+        - in: path
+          name: days
+          schema:
+            type: number
+            format: int64
+          required: true
+          description: Number of days in the future to generate timeseries data for
       responses:
         "200":
           description: "Timeseries response"

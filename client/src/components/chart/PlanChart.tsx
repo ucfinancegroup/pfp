@@ -42,10 +42,11 @@ export function PlanChart(props: PlanChartProps) {
     }, [recurrings]);
 
     async function getData() {
-        /*const ts = await tsApi.getTimeseries({
-            days: 60,
-        });*/
+        //const ts = await tsApi.getTimeseries({
+        //    days: 60,
+        //});
         const ts = await tsApi.getTimeseriesExample();
+
 
         const predictionStart = new Date(ts.start * 1000);
         const series = ts.series;
@@ -83,7 +84,7 @@ export function PlanChart(props: PlanChartProps) {
 
         const yAxis = (g, y, title) => g
             .attr("transform", `translate(${margin.left},0)`)
-            .call(d3.axisLeft(y))
+            .call(d3.axisLeft(y).tickFormat(d3.format(".0s")))
             .call(g => g.select(".domain").remove())
             .call(g => g.selectAll(".title").data([title]).join("text")
                 .attr("class", "title")

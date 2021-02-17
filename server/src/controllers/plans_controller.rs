@@ -39,10 +39,11 @@ pub async fn get_example(_: User) -> HttpResponse {
 pub async fn get_plans(user: User) -> HttpResponse {
     crate::common::into_response(user.plans)
 }
-/*
-#[get("plan/{id}")]
-pub async fn get_plan(user: User, Path(plan_id): Path<String>) -> HttpResponse {}
 
+#[get("/plan/{id}")]
+pub async fn get_plan(user: User, Path(plan_id): Path<String>) -> HttpResponse {
+    crate::common::into_response_res(PlansService::get_plan(plan_id, user).await)
+}
 
 #[delete("/plan/{id}")]
 pub async fn delete_plan(
@@ -50,6 +51,7 @@ pub async fn delete_plan(
     user: User,
     user_service: Data<UserService>,
 ) -> HttpResponse {
+    crate::common::into_response_res(PlansService::delete_plan(plan_id, user, user_service).await)
 }
 
 #[put("/plan/{id}")]
@@ -59,8 +61,11 @@ pub async fn update_plan(
     user: User,
     user_service: Data<UserService>,
 ) -> HttpResponse {
+    crate::common::into_response_res(
+        PlansService::update_plan(plan_id, payload.into_inner(), user, user_service).await,
+    )
 }
-*/
+
 #[post("/plan/new")]
 pub async fn create_new_plan(
     user: User,
@@ -76,4 +81,7 @@ pub fn init_routes(config: &mut ServiceConfig) {
     config.service(get_example);
     config.service(create_new_plan);
     config.service(get_plans);
+    config.service(get_plan);
+    config.service(update_plan);
+    config.service(delete_plan);
 }

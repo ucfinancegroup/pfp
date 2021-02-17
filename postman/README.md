@@ -8,7 +8,7 @@ Before generating Swift code it is recommended to comment out the `/api/plaid/we
 After doing any modification to the yaml, the Swift client can be generated as follows:
 
 ```
-openapi-generator generate -i path/to/api.yml -g swift5 -o path/to/output/folder
+openapi-generator generate -i ./api.yaml -g swift5 -o path/to/output/folder
 ```
 
 Additionally, to generate on iOS none of the responses in `api.yaml` can be of type `object` as this translates to `Any` in Swift which is not Codable.

@@ -742,7 +742,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
-  /timeseries:
+  /timeseries/{days}:
     get:
       summary: "Get a user's projection timeseries"
       operationId: getTimeseries

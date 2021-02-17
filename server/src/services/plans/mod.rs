@@ -3,9 +3,12 @@ pub mod PlansService {
     use crate::common::errors::ApiError;
     use crate::controllers::plans_controller::PlanNewPayload;
     use crate::models::plan_model::*;
+    use crate::models::recurring_model::*;
     use crate::models::user_model::User;
     use crate::services::users::UserService;
     use actix_web::web::Data;
+    use chrono::offset;
+    use rust_decimal_macros::dec;
     use wither::{mongodb::bson::oid::ObjectId, Model};
 
     pub async fn new_plan(
@@ -90,5 +93,66 @@ pub mod PlansService {
         user_service.save(&mut user).await?;
 
         Ok(removed)
+    }
+
+    pub fn generate_sample_plan() -> Plan {
+        let recurrings = vec![Recurring {
+            id: None,
+            name: String::from("Test Recurring"),
+            start: (offset::Utc::now()).timestamp(),
+            end: (offset::Utc::now()).timestamp(),
+            principal: dec!(0.0),
+            amount: dec!(0.0),
+            interest: dec!(0.0),
+            frequency: TimeInterval {
+                typ: Typ::Monthly,
+                content: 1,
+            },
+        }];
+
+        let test_asset = Asset {
+            name: String::from("Finch Savings Account"),
+            class: String::from("Savings Account"),
+            annualized_performance: dec!(1.05),
+        };
+
+        let test_change = AllocationChange {
+            asset: test_asset,
+            change: dec!(100.0),
+        };
+
+        let test_allocation = Allocation {
+            description: String::from("A Test Allocation"),
+            date: offset::Utc::now().timestamp(),
+            schema: vec![test_change],
+        };
+        let allocations = vec![test_allocation];
+
+        let events = vec![Event {
+            name: String::from("Test Event"),
+            start: offset::Utc::now().timestamp(),
+            transforms: vec![Transform {
+                trigger: TimeInterval {
+                    typ: Typ::Monthly,
+                    content: 1,
+                },
+                changes: vec![AssetChange {
+                    asset: Asset {
+                        name: String::from("A Test Asset"),
+                        class: String::from("Stock"),
+                        annualized_performance: dec!(1.2),
+                    },
+                    change: dec!(10.0),
+                }],
+            }],
+        }];
+
+        Plan {
+            id: None,
+            name: String::from("Test Plan"),
+            recurrings: recurrings,
+            allocations: allocations,
+            events: events,
+        }
     }
 }

@@ -1,7 +1,7 @@
 use crate::models::plan_model::*;
 use crate::models::recurring_model::Recurring;
 use crate::models::user_model::User;
-use crate::services::{plans::PlansService, timeseries::TimeseriesService, users::UserService};
+use crate::services::{plans::PlansService, users::UserService};
 use actix_web::{
     delete, get, post, put,
     web::{Data, Path, ServiceConfig},
@@ -32,7 +32,7 @@ impl Into<Plan> for PlanNewPayload {
 
 #[get("/plan/example")]
 pub async fn get_example(_: User) -> HttpResponse {
-    crate::common::into_response(TimeseriesService::generate_sample_plan())
+    crate::common::into_response(PlansService::generate_sample_plan())
 }
 
 #[get("/plans")]

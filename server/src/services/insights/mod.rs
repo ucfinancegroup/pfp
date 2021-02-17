@@ -101,8 +101,11 @@ pub mod InsightsService {
   ) -> Result<Insight, AppError> {
     // TODO(c650) -- pick which insight to make.
     log::info!("Generating insight for {}", user.email);
-    // similar_user::generate_similar_user_insight(user, db_service).await
-    products::generate_product_insight(user, db_service).await
+
+    match rand::random::<u8>() % 2 {
+      1 => similar_user::generate_similar_user_insight(user, db_service).await,
+      _ => products::generate_product_insight(user, db_service).await,
+    }
   }
 
   // Determines how long to wait before checking again to see

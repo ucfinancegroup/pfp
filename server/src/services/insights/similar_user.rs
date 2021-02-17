@@ -103,6 +103,11 @@ pub async fn generate_similar_user_insight(
   user: &User,
   db_service: &DatabaseService,
 ) -> Result<Insight, AppError> {
+  log::info!(
+    "generating a similar user insight for {}",
+    user.email.clone()
+  );
+
   let lookback = chrono::Duration::days(30);
   let since = Utc::now() - lookback;
 

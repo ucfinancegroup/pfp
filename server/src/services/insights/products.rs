@@ -31,6 +31,8 @@ pub async fn generate_product_insight(
   user: &User,
   db_service: &DatabaseService,
 ) -> Result<Insight, AppError> {
+  log::info!("generating a product insight for {}", user.email.clone());
+
   let agg = User::collection(&db_service.db)
     .aggregate(
       vec![match_income_range(&user), project_account_records()],

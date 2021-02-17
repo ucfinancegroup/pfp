@@ -1,4 +1,5 @@
 pub mod errors;
+pub mod finchlog;
 mod money;
 use actix_web::HttpResponse;
 use chrono::{Datelike, TimeZone, Utc};

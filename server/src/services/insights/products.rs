@@ -1,10 +1,11 @@
 use crate::common::errors::AppError;
 use crate::models::{
+  financial_product_model::FinancialProduct,
   insight_model::{Insight, InsightTypes},
   user_model::User,
 };
 use crate::services::{db::DatabaseService, insights::common::match_income_range};
-use futures::stream::{Stream, StreamExt};
+use futures::stream::StreamExt;
 use std::collections::HashMap;
 use wither::{
   mongodb::bson::{self, doc, oid::ObjectId},
@@ -57,18 +58,39 @@ pub async fn generate_product_insight(
     )
     .await;
 
-  Err(AppError::new(""))
+  let (most_frequent, _) = hm.iter().fold(
+    (ObjectId::new(), -1),
+    |(most_frequent, frequency), (k, v)| {
+      log::info!("{}", k);
+      if frequency < *v {
+        (k.clone(), v.clone())
+      } else {
+        (most_frequent, frequency)
+      }
+    },
+  );
 
-  // Ok(Insight::new(
-  //   "Savings Insight".to_string(),
-  //   format!(
-  //     "Your savings over the last {} days puts you above {}% of similar users!",
-  //     lookback.num_days(),
-  //     100 * metrics.savings_less / metrics.total_similar_users
-  //   ),
-  //   InsightTypes::Savings,
-  //   None,
-  // ))
+  let fp = FinancialProduct::find_one(&db_service.db, doc! {"_id" : most_frequent.clone()}, None)
+    .await
+    .map_err(|_| AppError::new("could not resolve financial product"))?
+    .ok_or(AppError::new("Could not deserialise financial product"))?;
+
+  log::info!(
+    "Recommending {} ({:?}) to user {}",
+    &fp.name,
+    fp.id(),
+    user.email.clone()
+  );
+
+  Ok(Insight::new(
+    "Try this new account others like you are using".to_string(),
+    format!(
+      "Many users similar to you are using a {} account: {}",
+      fp.name, fp.description
+    ),
+    InsightTypes::ProductRecommendation,
+    fp.image_url,
+  ))
 }
 
 fn extract_known_account_ids(

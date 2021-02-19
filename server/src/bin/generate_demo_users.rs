@@ -19,6 +19,7 @@ fn main() {
       first_name: "Alexander".to_string(),
       last_name: "Hamilton".to_string(),
       income: dec!(30_000.0),
+      net_worth: dec!(10_000_000.00),
       location: Location {
         // new york city
         has_location: true,
@@ -56,6 +57,7 @@ fn main() {
       first_name: "Thomas".to_string(),
       last_name: "Jefferson".to_string(),
       income: dec!(30_000.0),
+      net_worth: dec!(12_000_000.00),
       location: Location {
         // monticello
         has_location: true,
@@ -93,6 +95,7 @@ fn main() {
       first_name: "George".to_string(),
       last_name: "Washington".to_string(),
       income: dec!(30_000.0),
+      net_worth: dec!(22_000_000.00),
       location: Location {
         // mt vernon
         has_location: true,

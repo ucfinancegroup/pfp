@@ -19,6 +19,7 @@ pub struct SignupPayload {
   pub last_name: String,
   #[validate(custom = "crate::common::decimal_at_least_zero")]
   pub income: Decimal,
+  pub net_worth: Decimal,
   pub location: Location,
   #[validate(custom = "crate::common::min_age_13yo")]
   pub birthday: String,
@@ -30,6 +31,7 @@ struct SignupResponse {
   pub first_name: String,
   pub last_name: String,
   pub income: Decimal,
+  pub net_worth: Decimal,
   pub location: Location,
 }
 
@@ -40,6 +42,7 @@ impl SignupResponse {
       first_name: u.first_name,
       last_name: u.last_name,
       income: u.income,
+      net_worth: u.net_worth,
       location: u.location,
     }
   }
@@ -67,6 +70,7 @@ pub struct UpdatePayload {
   pub last_name: Option<String>,
   #[validate(custom = "crate::common::decimal_at_least_zero")]
   pub income: Option<Decimal>,
+  pub net_worth: Option<Decimal>,
   pub location: Option<Location>,
   #[validate(custom = "crate::common::min_age_13yo")]
   pub birthday: Option<String>,
@@ -257,6 +261,7 @@ mod test {
         first_name: "first name".to_string(),
         last_name: "last name".to_string(),
         income: 1000.into(),
+        net_worth: 10000.into(),
         location: Location::default(),
         birthday: birthday.clone(),
       }
@@ -270,6 +275,7 @@ mod test {
       first_name: "first name".to_string(),
       last_name: "last name".to_string(),
       income: Decimal::new(-1, 0),
+      net_worth: 0.into(),
       location: Location::default(),
       birthday: birthday.clone(),
     }
@@ -283,6 +289,7 @@ mod test {
       first_name: "first name".to_string(),
       last_name: "last name".to_string(),
       income: 1000.into(),
+      net_worth: 1000.into(),
       location: Location::default(),
       birthday: birthday.clone(),
     }
@@ -296,6 +303,7 @@ mod test {
       first_name: "first name".to_string(),
       last_name: "last name".to_string(),
       income: 1000.into(),
+      net_worth: 10000.into(),
       location: Location::default(),
       birthday: birthday.clone(),
     }
@@ -309,6 +317,7 @@ mod test {
       first_name: "".to_string(),
       last_name: "".to_string(),
       income: 1000.into(),
+      net_worth: 100000.into(),
       location: Location::default(),
       birthday: birthday.clone(),
     }
@@ -322,6 +331,7 @@ mod test {
       first_name: "a".to_string(),
       last_name: "b".to_string(),
       income: 1000.into(),
+      net_worth: 10000.into(),
       location: Location::default(),
       birthday: chrono::Utc::now().format("%Y-%m-%d").to_string(),
     }

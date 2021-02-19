@@ -52,6 +52,7 @@ impl UserService {
       first_name: data.first_name,
       last_name: data.last_name,
       income: data.income,
+      net_worth: data.net_worth,
       location: data.location,
       birthday: data.birthday,
       accounts: vec![],
@@ -111,6 +112,9 @@ impl UserService {
     }
     if let Some(income) = data.income {
       user.income = income;
+    }
+    if let Some(net_worth) = data.net_worth {
+      user.net_worth = net_worth;
     }
     if let Some(location) = data.location {
       user.location = location;
@@ -314,6 +318,7 @@ mod test {
       first_name: String::from("fn"),
       last_name: String::from("ln"),
       income: dec!(0.0),
+      net_worth: dec!(0.0),
       location: Location {
         ..Default::default()
       },

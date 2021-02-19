@@ -31,9 +31,18 @@ pub mod SnapshotService {
     // for rolling sums
     let prev = get_last_snapshot(&user.snapshots);
 
+    // if user has no accounts,
+    // calculated net worth will be zero
+    // so we add in the user's self-reported net worth.
+    let net_worth_adjustment = if user.accounts.is_empty() {
+      user.net_worth
+    } else {
+      0.into()
+    };
+
     // create the new snapshot
     let mut curr = Snapshot::new(
-      total_net,
+      total_net + net_worth_adjustment,
       total_money_in - total_money_out,
       total_money_out,
       total_money_in,

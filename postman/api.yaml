@@ -957,6 +957,7 @@ components:
         - first_name
         - last_name
         - income
+        - net_worth
         - location
         - birthday
       properties:
@@ -970,6 +971,9 @@ components:
         last_name:
           type: string
         income:
+          type: number
+          format: float64
+        net_worth:
           type: number
           format: float64
         location:
@@ -998,6 +1002,7 @@ components:
         - last_name
         - location
         - income
+        - net_worth
       properties:
         email:
           type: string
@@ -1010,6 +1015,9 @@ components:
           $ref: "#/components/schemas/Location"
         # birthday: # not returned
         income:
+          type: number
+          format: float64
+        net_worth:
           type: number
           format: float64
         # recurrings: # not returned

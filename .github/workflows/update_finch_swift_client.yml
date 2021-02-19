@@ -1,0 +1,15 @@
+on:
+  push:
+    branches: [master]
+    paths:
+      - postman/api.yaml
+
+name: Update Finch Swift OpenAPI Client
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: tell finch swift client to update
+        run: |
+          curl -XPOST -u "${{ secrets.PAT_USERNAME}}:${{secrets.PFP_ACCESS_TOKEN}}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/ucfinancegroup/FinchSwiftClient/dispatches --data '{"event_type": "build_application"}'

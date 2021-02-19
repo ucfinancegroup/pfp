@@ -54,9 +54,9 @@ export default function RegisterPage() {
          }, e => console.warn("Unable to get location", e));
     }
 
-    async function submit({email, password, firstName, lastName, birthday}:
+    async function submit({email, password, firstName, lastName, birthday, networth}:
                               { email: string, password: string, firstName: string, lastName: string,
-                              birthday: string}) {
+                              birthday: string, networth: number}) {
         // Prevent submitting the form twice.
         if (loading) return;
 
@@ -72,7 +72,7 @@ export default function RegisterPage() {
                     password,
                     first_name: firstName,
                     last_name: lastName,
-                    income: 100,
+                    income: networth,
                     location,
                 }
             })
@@ -101,6 +101,7 @@ export default function RegisterPage() {
                         birthday: '',
                         firstName: '',
                         lastName: '',
+                        networth: 0,
                     }}
                     validationSchema={RegisterSchema}
                     onSubmit={values => {
@@ -145,6 +146,17 @@ export default function RegisterPage() {
                                 <Field name="password" type="password"
                                        className={cx("form-control", {"is-invalid": errors.password && touched.password})}/>
                                 <div className="invalid-feedback"><ErrorMessage name="password"/></div>
+                            </div>
+                            <div className="form-group">
+                                <label>Net Worth:</label>
+                                <div className="input-group">
+                                    <div className="input-group-prepend">
+                                        <span className="input-group-text">$</span>
+                                    </div>
+                                    <Field name="networth" type="number" min={0}
+                                           className={cx("form-control", {"is-invalid": errors.networth && touched.networth})}/>
+                                    <div className="invalid-feedback"><ErrorMessage name="networth"/></div>
+                                </div>
                             </div>
                             <button className="btn btn-primary" type="submit"
                                     disabled={!!errors.password || !!errors.email}>

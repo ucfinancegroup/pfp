@@ -150,9 +150,11 @@ impl UserService {
     });
     self.save(&mut user).await?;
 
-    let accounts_info =
-      crate::services::finchplaid::get_item_accounts(&user.accounts.last().unwrap(), plaid_client)
-        .await;
+    let accounts_info = crate::services::finchplaid::get_item_accounts(
+      &user.accounts.last().unwrap(),
+      plaid_client.clone(),
+    )
+    .await;
     let accounts = accounts_info?.accounts;
 
     let mut state = Ok(());
@@ -168,6 +170,9 @@ impl UserService {
 
       state = state.and(res);
     }
+
+    // update snapshots after account added
+    self.add_new_snapshot(&mut user, plaid_client).await?;
 
     self.save(&mut user).await?;
 
@@ -203,8 +208,12 @@ impl UserService {
     &self,
     account_id: String,
     mut user: User,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<String, ApiError> {
     let item = Self::delete_account(account_id, &mut user)?;
+
+    // update snappshot after account change
+    self.add_new_snapshot(&mut user, plaid_client).await?;
 
     self.save(&mut user).await?;
 
@@ -238,15 +247,25 @@ impl UserService {
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<Vec<Snapshot>, ApiError> {
     if SnapshotService::need_new_snapshot(&user.snapshots) {
-      SnapshotService::add_new_snapshot(user, plaid_client).await?;
-      user.save(&self.db, None).await.map_err(|_| {
-        ApiError::new(
-          500,
-          "Could not save user to database after Snapshot".to_string(),
-        )
-      })?;
+      self.add_new_snapshot(user, plaid_client).await?
     }
     Ok(user.snapshots.clone())
+  }
+
+  pub async fn add_new_snapshot(
+    &self,
+    user: &mut User,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+  ) -> Result<(), ApiError> {
+    SnapshotService::add_new_snapshot(user, plaid_client).await?;
+    user.save(&self.db, None).await.map_err(|_| {
+      ApiError::new(
+        500,
+        "Could not save user to database after Snapshot".to_string(),
+      )
+    })?;
+
+    Ok(())
   }
 
   pub async fn dismiss_insight(

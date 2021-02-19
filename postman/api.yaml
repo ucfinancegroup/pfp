@@ -776,7 +776,7 @@ paths:
   /timeseries:
     get:
       summary: "Get timeseries with 365 future days generated"
-      operationId: getTimeseriesExample
+      operationId: getTimeseriesYear
       tags:
         - timeseries
       security:

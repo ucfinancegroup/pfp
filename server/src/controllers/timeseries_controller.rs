@@ -36,9 +36,21 @@ pub async fn get_timeseries(
     )
 }
 
+#[get("/timeseries")]
+pub async fn get_timeseries_year(
+    user: User,
+    user_service: Data<UserService>,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+) -> HttpResponse {
+    crate::common::into_response_res(
+        TimeseriesService::get_timeseries(user, 365, user_service, plaid_client).await,
+    )
+}
+
 // you add the services here.
 use actix_web::web::ServiceConfig;
 pub fn init_routes(config: &mut ServiceConfig) {
     config.service(get_example);
     config.service(get_timeseries);
+    config.service(get_timeseries_year);
 }

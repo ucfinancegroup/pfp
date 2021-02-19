@@ -84,7 +84,7 @@ pub mod TimeseriesService {
         // do something else if it doesnt work
         let dpy = match apy.to_f64() {
             Some(p) => p.powf(1.0 / 365.0) * 1e9,
-            None => 10.0_f64.powi(9),
+            None => 1e9,
         };
 
         return previous_value * Money::from(Decimal::new(dpy as i64, 9))

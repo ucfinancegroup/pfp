@@ -101,10 +101,11 @@ pub async fn delete_account(
   Path(accounts_id): Path<String>,
   user: User,
   user_service: Data<UserService>,
+  plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> HttpResponse {
   crate::common::into_response_res(
     user_service
-      .delete_account_and_save(accounts_id.clone(), user)
+      .delete_account_and_save(accounts_id.clone(), user, plaid_client)
       .await
       .map(|item_id| ItemIdResponse { item_id }),
   )

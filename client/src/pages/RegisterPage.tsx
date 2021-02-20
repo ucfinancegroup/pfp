@@ -20,6 +20,8 @@ const RegisterSchema = Yup.object().shape({
     birthday: Yup.string().required("Birthdate is required"),
     firstName: Yup.string().required('Last name is required'),
     lastName: Yup.string().required('Last name is required'),
+    networth: Yup.number().required('Net worth is required'),
+    income: Yup.number().required('Income is required'),
 });
 
 const userApi = new UserApi();
@@ -54,9 +56,9 @@ export default function RegisterPage() {
          }, e => console.warn("Unable to get location", e));
     }
 
-    async function submit({email, password, firstName, lastName, birthday, networth}:
+    async function submit({email, password, firstName, lastName, birthday, networth, income}:
                               { email: string, password: string, firstName: string, lastName: string,
-                              birthday: string, networth: number}) {
+                              birthday: string, networth: number, income: number}) {
         // Prevent submitting the form twice.
         if (loading) return;
 
@@ -72,7 +74,8 @@ export default function RegisterPage() {
                     password,
                     first_name: firstName,
                     last_name: lastName,
-                    income: networth,
+                    net_worth: networth,
+                    income: income,
                     location,
                 }
             })
@@ -102,6 +105,7 @@ export default function RegisterPage() {
                         firstName: '',
                         lastName: '',
                         networth: 0,
+                        income: 0,
                     }}
                     validationSchema={RegisterSchema}
                     onSubmit={values => {
@@ -147,15 +151,32 @@ export default function RegisterPage() {
                                        className={cx("form-control", {"is-invalid": errors.password && touched.password})}/>
                                 <div className="invalid-feedback"><ErrorMessage name="password"/></div>
                             </div>
-                            <div className="form-group">
-                                <label>Net Worth:</label>
-                                <div className="input-group">
-                                    <div className="input-group-prepend">
-                                        <span className="input-group-text">$</span>
+                            <div className="form-row">
+                                <div className="col">
+                                    <div className="form-group">
+                                        <label>Net Worth:</label>
+                                        <div className="input-group">
+                                            <div className="input-group-prepend">
+                                                <span className="input-group-text">$</span>
+                                            </div>
+                                            <Field name="networth" type="number" min={0}
+                                                   className={cx("form-control", {"is-invalid": errors.networth && touched.networth})}/>
+                                            <div className="invalid-feedback"><ErrorMessage name="networth"/></div>
+                                        </div>
                                     </div>
-                                    <Field name="networth" type="number" min={0}
-                                           className={cx("form-control", {"is-invalid": errors.networth && touched.networth})}/>
-                                    <div className="invalid-feedback"><ErrorMessage name="networth"/></div>
+                                </div>
+                                <div className="col">
+                                    <div className="form-group">
+                                        <label>Annual Income:</label>
+                                        <div className="input-group">
+                                            <div className="input-group-prepend">
+                                                <span className="input-group-text">$</span>
+                                            </div>
+                                            <Field name="income" type="number" min={0}
+                                                   className={cx("form-control", {"is-invalid": errors.income && touched.income})}/>
+                                            <div className="invalid-feedback"><ErrorMessage name="income"/></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <button className="btn btn-primary" type="submit"

@@ -58,6 +58,12 @@ export interface User {
     income: number;
     /**
      * 
+     * @type {number}
+     * @memberof User
+     */
+    net_worth: number;
+    /**
+     * 
      * @type {string}
      * @memberof User
      */
@@ -79,6 +85,7 @@ export function UserFromJSONTyped(json: any, ignoreDiscriminator: boolean): User
         'last_name': json['last_name'],
         'location': LocationFromJSON(json['location']),
         'income': json['income'],
+        'net_worth': json['net_worth'],
         'device_url': !exists(json, 'device_url') ? undefined : json['device_url'],
     };
 }
@@ -97,6 +104,7 @@ export function UserToJSON(value?: User | null): any {
         'last_name': value.last_name,
         'location': LocationToJSON(value.location),
         'income': value.income,
+        'net_worth': value.net_worth,
         'device_url': value.device_url,
     };
 }

@@ -88,4 +88,30 @@ export class TimeseriesApi extends runtime.BaseAPI {
         return await response.value();
     }
 
+    /**
+     * Get timeseries with 365 future days generated
+     */
+    async getTimeseriesYearRaw(): Promise<runtime.ApiResponse<TimeSeriesResponse>> {
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/timeseries`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => TimeSeriesResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Get timeseries with 365 future days generated
+     */
+    async getTimeseriesYear(): Promise<TimeSeriesResponse> {
+        const response = await this.getTimeseriesYearRaw();
+        return await response.value();
+    }
+
 }

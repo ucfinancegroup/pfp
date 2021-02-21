@@ -1,7 +1,7 @@
 import styles from "./PlanChart.module.scss"
 import classNames from "classnames";
 import * as d3 from "d3";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import React from "react";
 import { curveBasis } from "d3";
 import {Recurring, RecurringApi, TimeseriesApi} from "../../api";
@@ -23,6 +23,9 @@ export function PlanChart(props: PlanChartProps) {
     const margin = ({top: 20, right: 20, bottom: 30, left: 40});
     const [recurrings, setRecurrings] = useState<Recurring[]>();
     const [error, setError] = useState<string>();
+    const scaleRef = useRef<any>();
+    const [menuOpen, setMenuOpen] = useState<{x: number, y: number} | null>(null);
+    const [menuDate, setMenuDate] = useState<Date>();
 
     useEffect(() => {
         getRecurrings();
@@ -40,6 +43,14 @@ export function PlanChart(props: PlanChartProps) {
         if (recurrings)
             getData();
     }, [recurrings]);
+
+    useEffect(() => {
+        const handler = () => {
+            setMenuOpen(null);
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
 
     async function getData() {
         //const ts = await tsApi.getTimeseries({
@@ -98,7 +109,8 @@ export function PlanChart(props: PlanChartProps) {
             const svg = d3.create("svg")
                 .attr("class", styles.svg + " " + styles.chart)
                 .attr("viewBox", [0, 0, width, height] as any)
-                .style("display", "block");
+                .style("display", "block")
+                .on("contextmenu", onContextMenu);
 
             svg.append("linearGradient")
                 .attr("id", "areaGradient")
@@ -158,6 +170,7 @@ export function PlanChart(props: PlanChartProps) {
 
 
             (node as any).update = function(focusX, focusY) {
+                scaleRef.current = focusX;
                 gx.call(xAxis, focusX, height);
                 gy.call(yAxis, focusY, data.y);
                 knownArea.attr("d", area(focusX, focusY) as any);
@@ -328,6 +341,15 @@ export function PlanChart(props: PlanChartProps) {
         update();
     }
 
+    function onContextMenu(e: MouseEvent) {
+        const date = scaleRef.current.invert(e.offsetX);
+
+        setMenuDate(date);
+        setMenuOpen({x: e.pageX + 5, y: e.pageY + 10});
+
+        e.preventDefault();
+    }
+
     if (error) {
         return <div className="alert alert-danger" role="alert">
                 {error}
@@ -338,8 +360,24 @@ export function PlanChart(props: PlanChartProps) {
         return <p>Loading...</p>
     }
 
-    return <div id="d3test">
 
+    return <div>
+        <div id="d3test">
+        </div>
+        {
+            menuOpen && <div className={styles.menu}
+            style={{left: menuOpen.x + "px", top: menuOpen.y + "px"}}>
+              <div>
+                <strong>{menuDate.toDateString()}</strong>
+              </div>
+              <ul>
+                <li>Add Expense</li>
+                <li>Add Income</li>
+                <li>Modify Allocations</li>
+                <li>Simulate Event</li>
+              </ul>
+            </div>
+        }
     </div>
 }
 

@@ -7,7 +7,7 @@ spec:
     matchLabels:
       app: pfp-pfp-server
       tier: backend
-  replicas: 2
+  replicas: 1
   progressDeadlineSeconds: 2400
   template:
     metadata:

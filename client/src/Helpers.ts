@@ -18,7 +18,7 @@ export function addDaysToToday(days: number) {
 }
 
 export function getValue(value: number) {
-    return value / 100;
+    return value;
 }
 
 export function formatPrice(price: number) {

@@ -3,9 +3,11 @@ import classNames from "classnames";
 import * as d3 from "d3";
 import {useEffect, useRef, useState} from "react";
 import React from "react";
-import { curveBasis } from "d3";
+import { curveBasis, bisect } from "d3";
 import {Recurring, RecurringApi, TimeseriesApi} from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
+import {Simulate} from "react-dom/test-utils";
+import {formatPrice} from "../../Helpers";
 
 const cx = classNames.bind(styles);
 
@@ -20,12 +22,18 @@ export function PlanChart(props: PlanChartProps) {
     const focusHeight = 100;
     const height = 440;
     const width = 1000;
-    const margin = ({top: 20, right: 20, bottom: 30, left: 40});
+    const margin = ({top: 0, right: 20, bottom: 30, left: 40});
     const [recurrings, setRecurrings] = useState<Recurring[]>();
     const [error, setError] = useState<string>();
-    const scaleRef = useRef<any>();
+    const scaleRefX = useRef<any>();
+    const scaleRefY = useRef<any>();
+    const dataRef = useRef<any>();
     const [menuOpen, setMenuOpen] = useState<{x: number, y: number} | null>(null);
     const [menuDate, setMenuDate] = useState<Date>();
+    const [mouseX, setMouseX] = useState<number>(null);
+    const updateRef = useRef<any>();
+    const [totalValue, setTotalValue] = useState<number>(null);
+    const [mouseValue, setMouseValue] = useState<number>(null);
 
     useEffect(() => {
         getRecurrings();
@@ -49,7 +57,9 @@ export function PlanChart(props: PlanChartProps) {
             setMenuOpen(null);
         };
         document.addEventListener("mousedown", handler);
-        return () => document.removeEventListener("mousedown", handler);
+        return () => {
+            document.removeEventListener("mouseover", mouseOver);
+        }
     }, []);
 
     async function getData() {
@@ -58,15 +68,16 @@ export function PlanChart(props: PlanChartProps) {
         //});
         const ts = await tsApi.getTimeseriesExample();
 
-
         const predictionStart = new Date(ts.start * 1000);
         const series = ts.series;
         const data = Object.assign(series.map(({date, net_worth}) =>
             ({date: new Date(date * 1000), value: net_worth.amount})));
-
+        dataRef.current = data;
 
         const knownData = data.filter(f => f.date <= predictionStart);
         const predictedData = data.filter(f => f.date >= predictionStart);
+        setTotalValue(knownData[knownData.length - 1].value);
+        setMouseValue(null);
 
         const area = (x, y) => d3.area()
             .defined((d: any) => !isNaN(d.value))
@@ -88,6 +99,8 @@ export function PlanChart(props: PlanChartProps) {
         const y = d3.scaleLinear()
             .domain([0, maxY] as any)
             .range([height - margin.bottom, margin.top]);
+
+        scaleRefY.current = y;
 
         const xAxis = (g, x, height) => g
             .attr("transform", `translate(0,${height - margin.bottom})`)
@@ -146,6 +159,7 @@ export function PlanChart(props: PlanChartProps) {
                 .attr("height", height)
                 .attr("width", width - margin.left - margin.right);
 
+
             const gx = svg.append("g");
 
             const gy = svg.append("g");
@@ -165,12 +179,15 @@ export function PlanChart(props: PlanChartProps) {
                 .attr("clip-path", "url(#" + clipId + ")")
                 .attr("class", styles.path + " " + styles["path--predicted"]);
 
-
             const node = svg.node();
 
+            const mouseLine = svg.append("line")
+                .attr("y1", 0)
+                .attr("y2", 410)
+                .attr("class", styles["mouse-line"]);
 
             (node as any).update = function(focusX, focusY) {
-                scaleRef.current = focusX;
+                scaleRefX.current = focusX;
                 gx.call(xAxis, focusX, height);
                 gy.call(yAxis, focusY, data.y);
                 knownArea.attr("d", area(focusX, focusY) as any);
@@ -179,10 +196,22 @@ export function PlanChart(props: PlanChartProps) {
 
                 createRects(svg, focusX, false, height - margin.bottom);
             };
+
+            updateRef.current = svg;
+            const mouseArea = svg.append("rect")
+                .attr("x", margin.left)
+                .attr("y", margin.top)
+                .attr("height", 400)
+                .attr('pointer-events', 'all')
+                .attr("fill", "none")
+                .attr("width", 1000).node();
+            mouseArea.addEventListener("mousemove",mouseOver);
+            mouseArea.addEventListener("mouseleave",mouseLeave);
             return node;
         }
 
         const chart = createChart();
+
 
         function createFocus() {
             const svg = d3.create("svg")
@@ -342,12 +371,42 @@ export function PlanChart(props: PlanChartProps) {
     }
 
     function onContextMenu(e: MouseEvent) {
-        const date = scaleRef.current.invert(e.offsetX);
+        if (!scaleRefX.current) return;
+        const date = scaleRefX.current.invert(e.offsetX);
 
         setMenuDate(date);
         setMenuOpen({x: e.pageX + 5, y: e.pageY + 10});
 
         e.preventDefault();
+    }
+
+    function mouseOver(e: MouseEvent) {
+        if (!scaleRefX.current) return;
+        // For some reason the offsetX increases slightly faster than the actual mouse position...
+        // this hack fixes it.
+        const x = e.offsetX - e.offsetX * 0.06;
+        if (x <= 0) return;
+
+
+        setMouseX(x);
+        const date = scaleRefX.current.invert(x);
+        var bisect = d3.bisector(function(d) { return (d as any).date; }).left;
+        const point = dataRef.current[bisect(dataRef.current as any, date)];
+        if (point) {
+            setMouseValue(point.value);
+        } else {
+            setMouseValue(null);
+        }
+        updateRef.current.select("." + styles["mouse-line"])
+            .attr("opacity", 1)
+            .attr("x1", x)
+            .attr("x2", x);
+    }
+
+    function mouseLeave() {
+        setMouseX(null);
+        setMouseValue(null);
+        updateRef.current.select("." + styles["mouse-line"]).attr("x1", -1).attr("x2", -1);
     }
 
     if (error) {
@@ -362,6 +421,10 @@ export function PlanChart(props: PlanChartProps) {
 
 
     return <div>
+        {totalValue !== null &&
+            <h2>{formatPrice(mouseValue ?? totalValue)}</h2>
+        }
+
         <div id="d3test">
         </div>
         {

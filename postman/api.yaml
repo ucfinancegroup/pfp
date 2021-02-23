@@ -471,6 +471,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
+  /asset_classes:
+    get:
+      summary: "Gets list of asset classes"
+      tags:
+        - asset_classes
+      security:
+        - sidCookie: []
+      operationId: getAssetClasses
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssetClassAndApy"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
   # goals
   /goal/examples:
     get:

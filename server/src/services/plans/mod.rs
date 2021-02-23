@@ -161,31 +161,27 @@ pub mod PlansService {
         vec![
             AssetClassAndApy {
                 class: Cash,
-                apy: dec!(0),
-            },
-            AssetClassAndApy {
-                class: Derivative,
-                apy: dec!(-1),
+                apy: dec!(1.00),
             },
             AssetClassAndApy {
                 class: Equity,
-                apy: dec!(0.05),
+                apy: dec!(1.05),
             },
             AssetClassAndApy {
                 class: Etf,
-                apy: dec!(0.10),
+                apy: dec!(1.10),
             },
             AssetClassAndApy {
                 class: Fixed,
-                apy: dec!(0.02),
+                apy: dec!(1.02),
             },
             AssetClassAndApy {
                 class: Loan,
-                apy: dec!(-0.03),
+                apy: dec!(0.97),
             },
             AssetClassAndApy {
                 class: MutualFund,
-                apy: dec!(0.20),
+                apy: dec!(1.20),
             },
         ]
     }

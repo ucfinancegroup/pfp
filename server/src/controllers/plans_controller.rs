@@ -55,7 +55,7 @@ pub async fn get_plan(
 }
 
 #[get("/plan/{id}/{days}")]
-pub async fn get_plan_wiht_days(
+pub async fn get_plan_with_days(
     user: User,
     Path(plan_id): Path<String>,
     Path(plan_days): Path<i64>,
@@ -93,9 +93,10 @@ pub async fn create_new_plan(
     user: User,
     payload: Json<PlanNewPayload>,
     user_service: Data<UserService>,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> HttpResponse {
     crate::common::into_response_res(
-        PlansService::new_plan(payload.into_inner(), user, user_service).await,
+        PlansService::new_plan(payload.into_inner(), user, 365, user_service, plaid_client).await,
     )
 }
 

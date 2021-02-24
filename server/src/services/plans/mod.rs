@@ -24,8 +24,10 @@ pub mod PlansService {
     pub async fn new_plan(
         payload: PlanNewPayload,
         mut user: User,
+        days: i64,
         user_service: Data<UserService>,
-    ) -> Result<Plan, ApiError> {
+        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    ) -> Result<PlanResponse, ApiError> {
         let mut plan: Plan = payload.into();
         plan.set_id(ObjectId::new());
 
@@ -33,7 +35,13 @@ pub mod PlansService {
 
         user_service.save(&mut user).await?;
 
-        Ok(plan)
+        let timeseries =
+            TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
+
+        Ok(PlanResponse {
+            plan: plan,
+            timeseries: timeseries,
+        })
     }
 
     pub async fn get_plan(

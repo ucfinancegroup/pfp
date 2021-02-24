@@ -2,6 +2,7 @@
 pub mod PlansService {
     use crate::common::errors::ApiError;
     use crate::controllers::plans_controller::PlanNewPayload;
+    use crate::controllers::timeseries_controller::TimeseriesResponse;
     use crate::models::plan_model::*;
     use crate::models::recurring_model::*;
     use crate::models::user_model::User;
@@ -9,7 +10,14 @@ pub mod PlansService {
     use actix_web::web::Data;
     use chrono::offset;
     use rust_decimal_macros::dec;
+    use serde::{Deserialize, Serialize};
     use wither::{mongodb::bson::oid::ObjectId, Model};
+
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+    pub struct PlanResponse {
+        pub plan: Plan,
+        pub timeseries: TimeseriesResponse,
+    }
 
     pub async fn new_plan(
         payload: PlanNewPayload,

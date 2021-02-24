@@ -131,11 +131,13 @@ pub mod TimeseriesService {
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<TimeseriesResponse, ApiError> {
-        let plan = if user.plans.len() > 0 {
+        let mut plan = if user.plans.len() > 0 {
             user.plans[0].clone()
         } else {
             PlansService::generate_sample_plan()
         };
+        plan.recurrings.append(&mut user.recurrings.clone());
+
         let snapshots = user_service.get_snapshots(&mut user, plaid_client).await?;
         let last_day = snapshots[snapshots.len() - 1].clone();
 

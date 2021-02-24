@@ -37,8 +37,28 @@ pub struct Transform {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Asset {
     pub name: String,
-    pub class: String,
+    pub class: AssetClass,
     pub annualized_performance: Decimal,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "typ", content = "content")]
+pub enum AssetClass {
+    Cash,
+    Derivative,
+    Equity,
+    Etf,
+    Fixed,
+    Loan,
+    MutualFund,
+    Other,
+    Custom(String),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct AssetClassAndApy {
+    pub class: AssetClass,
+    pub apy: Decimal,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

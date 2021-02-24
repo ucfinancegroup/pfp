@@ -1,3 +1,4 @@
+pub mod asset_controller;
 pub mod goal_controller;
 pub mod insights_controller;
 pub mod plaid_controller;
@@ -17,4 +18,5 @@ pub fn configure(config: &mut ServiceConfig) {
   timeseries_controller::init_routes(config);
   insights_controller::init_routes(config);
   plans_controller::init_routes(config);
+  asset_controller::init_routes(config);
 }

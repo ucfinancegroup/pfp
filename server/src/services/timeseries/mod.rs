@@ -163,9 +163,7 @@ mod test {
 
     use crate::common::Money;
     use crate::controllers::timeseries_controller::TimeseriesEntry;
-    use crate::models::plan_model::{
-        Allocation, AllocationChange, Asset, AssetChange, Event, Plan, Transform,
-    };
+    use crate::models::plan_model::*;
     use crate::models::recurring_model::{Recurring, TimeInterval, Typ};
     use crate::models::user_model::Snapshot;
     use rust_decimal::Decimal;
@@ -219,7 +217,7 @@ mod test {
     fn generate_test_allocation() -> Allocation {
         let test_asset1 = Asset {
             name: String::from("A Test Asset"),
-            class: String::from("Stock"),
+            class: AssetClass::Equity,
             annualized_performance: dec!(1.2),
         };
 
@@ -230,7 +228,7 @@ mod test {
 
         let test_asset2 = Asset {
             name: String::from("A Test Asset"),
-            class: String::from("Stock"),
+            class: AssetClass::Equity,
             annualized_performance: dec!(0.7),
         };
 
@@ -267,7 +265,7 @@ mod test {
     fn test_allocation_apy_calculation_changed() {
         let test_asset = Asset {
             name: String::from("A Test Asset"),
-            class: String::from("Stock"),
+            class: AssetClass::Equity,
             annualized_performance: dec!(1.1),
         };
 
@@ -378,7 +376,7 @@ mod test {
                 changes: vec![AssetChange {
                     asset: Asset {
                         name: String::from("A Test Asset"),
-                        class: String::from("Stock"),
+                        class: AssetClass::Equity,
                         annualized_performance: dec!(1.2),
                     },
                     change: dec!(10.0),

@@ -112,7 +112,7 @@ pub mod PlansService {
 
         let test_asset = Asset {
             name: String::from("Finch Savings Account"),
-            class: String::from("Savings Account"),
+            class: AssetClass::Cash,
             annualized_performance: dec!(1.05),
         };
 
@@ -138,8 +138,8 @@ pub mod PlansService {
                 },
                 changes: vec![AssetChange {
                     asset: Asset {
-                        name: String::from("A Test Asset"),
-                        class: String::from("Stock"),
+                        name: String::from("AAPL"),
+                        class: AssetClass::Equity,
                         annualized_performance: dec!(1.2),
                     },
                     change: dec!(10.0),
@@ -154,5 +154,35 @@ pub mod PlansService {
             allocations: allocations,
             events: events,
         }
+    }
+
+    pub fn get_asset_classes_and_default_apys() -> Vec<AssetClassAndApy> {
+        use AssetClass::*;
+        vec![
+            AssetClassAndApy {
+                class: Cash,
+                apy: dec!(1.00),
+            },
+            AssetClassAndApy {
+                class: Equity,
+                apy: dec!(1.05),
+            },
+            AssetClassAndApy {
+                class: Etf,
+                apy: dec!(1.10),
+            },
+            AssetClassAndApy {
+                class: Fixed,
+                apy: dec!(1.02),
+            },
+            AssetClassAndApy {
+                class: Loan,
+                apy: dec!(0.97),
+            },
+            AssetClassAndApy {
+                class: MutualFund,
+                apy: dec!(1.20),
+            },
+        ]
     }
 }

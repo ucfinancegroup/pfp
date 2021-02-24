@@ -471,6 +471,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
+  /asset_classes:
+    get:
+      summary: "Gets list of asset classes"
+      tags:
+        - asset_classes
+      security:
+        - sidCookie: []
+      operationId: getAssetClasses
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssetClassAndApy"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
   # goals
   /goal/examples:
     get:
@@ -1231,11 +1255,36 @@ components:
         name:
           type: string
         class:
-          type: string
+          $ref: "#/components/schemas/AssetClass"
         annualized_performance:
           description: "Annualised Percentage Performance"
           type: number
           format: float64
+
+    AssetClass:
+      type: object
+      required:
+        - typ
+        - content
+      properties:
+        typ:
+          description: "what type of asset it is"
+          type: string
+          enum:
+            [
+              Cash,
+              Derivative,
+              Equity,
+              Etf,
+              Fixed,
+              Loan,
+              MutualFund,
+              Other,
+              Custom,
+            ]
+        content:
+          description: "extra info, such as symbol name, used in Custom"
+          type: string
 
     AssetChange:
       type: object
@@ -1249,6 +1298,18 @@ components:
           type: number
           format: float64
           minimum: -100.0
+
+    AssetClassAndApy:
+      type: object
+      required:
+        - class
+        - apy
+      properties:
+        class:
+          $ref: "#/components/schemas/AssetClass"
+        apy:
+          type: number
+          format: float64
 
     Allocation:
       type: object

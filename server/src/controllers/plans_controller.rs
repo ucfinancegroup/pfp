@@ -82,9 +82,18 @@ pub async fn update_plan(
     payload: Json<PlanNewPayload>,
     user: User,
     user_service: Data<UserService>,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> HttpResponse {
     crate::common::into_response_res(
-        PlansService::update_plan(plan_id, payload.into_inner(), user, user_service).await,
+        PlansService::update_plan(
+            payload.into_inner(),
+            plan_id,
+            user,
+            365,
+            user_service,
+            plaid_client,
+        )
+        .await,
     )
 }
 

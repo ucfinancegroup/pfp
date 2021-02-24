@@ -81,15 +81,18 @@ pub mod PlansService {
     }
 
     pub async fn update_plan(
-        plan_id: String,
         payload: PlanNewPayload,
+        plan_id: String,
         mut user: User,
+        days: i64,
         user_service: Data<UserService>,
-    ) -> Result<Plan, ApiError> {
+        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    ) -> Result<PlanResponse, ApiError> {
         let plan_id_opt = Some(
             ObjectId::with_string(plan_id.as_str())
                 .or(Err(ApiError::new(400, "Malformed Object Id".to_string())))?,
         );
+
         let mut plan: Plan = payload.into();
         plan.set_id(plan_id_opt.unwrap().clone());
         let updated = user
@@ -105,7 +108,14 @@ pub mod PlansService {
                 Ok(plan)
             })?;
         user_service.save(&mut user).await?;
-        Ok(updated)
+
+        let timeseries =
+            TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
+
+        Ok(PlanResponse {
+            plan: updated,
+            timeseries: timeseries,
+        })
     }
 
     pub async fn delete_plan(

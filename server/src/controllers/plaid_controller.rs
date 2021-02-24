@@ -35,6 +35,7 @@ pub struct AccountSuccess {
   pub item_id: String,
   pub name: String,
   pub balance: Decimal,
+  pub account_type: String,
 }
 
 #[derive(Serialize)]

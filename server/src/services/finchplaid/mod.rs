@@ -78,6 +78,7 @@ pub async fn get_account_data<'a>(
           0,
         ),
       name: account.name.clone(),
+      account_type: account._type.to_string(),
     });
   }
 

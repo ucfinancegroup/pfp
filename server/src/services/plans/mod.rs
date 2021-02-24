@@ -31,7 +31,11 @@ pub mod PlansService {
         let mut plan: Plan = payload.into();
         plan.set_id(ObjectId::new());
 
-        user.plans[0] = plan.clone();
+        if user.plans.len() < 1 {
+            user.plans.push(plan.clone());
+        } else {
+            user.plans[0] = plan.clone();
+        }
 
         user_service.save(&mut user).await?;
 
@@ -50,18 +54,20 @@ pub mod PlansService {
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<PlanResponse, ApiError> {
-        let plan = match Some(user.plans[0].clone()) {
-            Some(p) => p,
-            None => return Err(ApiError::new(400, format!("No plan found in current user"))),
-        };
-
-        let timeseries =
-            TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
-
-        Ok(PlanResponse {
-            plan: plan,
-            timeseries: timeseries,
-        })
+        if user.plans.len() < 1 {
+            Err(ApiError::new(400, format!("No plan found in current user")))
+        } else {
+            let plan = match Some(user.plans[0].clone()) {
+                Some(p) => p,
+                None => return Err(ApiError::new(400, format!("No plan found in current user"))),
+            };
+            let timeseries =
+                TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
+            Ok(PlanResponse {
+                plan: plan,
+                timeseries: timeseries,
+            })
+        }
     }
 
     pub async fn delete_plan(

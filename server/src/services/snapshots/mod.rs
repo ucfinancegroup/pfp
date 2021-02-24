@@ -204,7 +204,7 @@ mod test {
   fn test_calculate_net_worth() {
     let transactions = load_test_data().unwrap();
     assert_eq!(
-      Money::new(dec!(-53501.32)),
+      Money::new(dec!(68472.74)),
       crate::services::finchplaid::calculate_net_worth(&transactions.accounts)
     );
   }

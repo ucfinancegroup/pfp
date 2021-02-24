@@ -17,6 +17,7 @@ pub struct ApiClient {
   pub configuration: plaid::apis::configuration::Configuration,
 }
 
+// (23 Feb 2021) -- only use positive-valued accounts
 pub fn get_account_balance_coefficients(accounts: &Vec<Account>) -> HashMap<String, i64> {
   accounts
     .iter()
@@ -25,8 +26,8 @@ pub fn get_account_balance_coefficients(accounts: &Vec<Account>) -> HashMap<Stri
         account.account_id.clone(),
         match account._type.as_str() {
           "depository" => 1,
-          "credit" => -1,
-          "loan" => -1,
+          "credit" => 0,
+          "loan" => 0,
           "investment" => 1,
           _ => 0,
         },

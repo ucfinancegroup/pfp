@@ -115,7 +115,14 @@ pub mod TimeseriesService {
                     None => apy,
                 };
 
-                net_worth = calculate_account_value(net_worth, apy, &plan.recurrings);
+                let recurrings = plan
+                    .recurrings
+                    .clone()
+                    .into_iter()
+                    .filter(|rec| rec.start <= date.timestamp() && rec.end > date.timestamp())
+                    .collect();
+
+                net_worth = calculate_account_value(net_worth, apy, &recurrings);
 
                 TimeseriesEntry {
                     date: date.timestamp(),

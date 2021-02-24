@@ -55,11 +55,11 @@ pub mod PlansService {
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<PlanResponse, ApiError> {
         if user.plans.len() < 1 {
-            Err(ApiError::new(400, format!("No plan found in current user")))
+            Err(ApiError::new(500, format!("No plan found in current user")))
         } else {
             let plan = match Some(user.plans[0].clone()) {
                 Some(p) => p,
-                None => return Err(ApiError::new(400, format!("No plan found in current user"))),
+                None => return Err(ApiError::new(500, format!("No plan found in current user"))),
             };
             let timeseries =
                 TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
@@ -84,7 +84,7 @@ pub mod PlansService {
             .iter()
             .position(|rec| rec.id == plan_id_opt)
             .ok_or(ApiError::new(
-                400,
+                500,
                 format!("No plan with id {} found in current user", plan_id),
             ))
             .and_then(|pos| Ok(user.plans.swap_remove(pos)))?;

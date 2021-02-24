@@ -26,7 +26,7 @@ pub struct Insight {
   pub generation_time: i64,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Hash, Eq)]
 pub enum InsightTypes {
   ProductRecommendation,
   Savings,

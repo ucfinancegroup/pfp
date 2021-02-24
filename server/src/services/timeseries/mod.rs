@@ -115,7 +115,14 @@ pub mod TimeseriesService {
                     None => apy,
                 };
 
-                net_worth = calculate_account_value(net_worth, apy, &plan.recurrings);
+                let recurrings = plan
+                    .recurrings
+                    .clone()
+                    .into_iter()
+                    .filter(|rec| rec.start <= date.timestamp() && rec.end > date.timestamp())
+                    .collect();
+
+                net_worth = calculate_account_value(net_worth, apy, &recurrings);
 
                 TimeseriesEntry {
                     date: date.timestamp(),
@@ -131,11 +138,13 @@ pub mod TimeseriesService {
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<TimeseriesResponse, ApiError> {
-        let plan = if user.plans.len() > 0 {
+        let mut plan = if user.plans.len() > 0 {
             user.plans[0].clone()
         } else {
             PlansService::generate_sample_plan()
         };
+        plan.recurrings.append(&mut user.recurrings.clone());
+
         let snapshots = user_service.get_snapshots(&mut user, plaid_client).await?;
         let last_day = snapshots[snapshots.len() - 1].clone();
 

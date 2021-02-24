@@ -57,10 +57,7 @@ pub mod PlansService {
         if user.plans.len() < 1 {
             Err(ApiError::new(500, format!("No plan found in current user")))
         } else {
-            let plan = match Some(user.plans[0].clone()) {
-                Some(p) => p,
-                None => return Err(ApiError::new(500, format!("No plan found in current user"))),
-            };
+            let plan = user.plans[0].clone();
             let timeseries =
                 TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
             Ok(PlanResponse {

@@ -1,6 +1,7 @@
 use crate::models::plan_model::*;
 use crate::models::recurring_model::Recurring;
 use crate::models::user_model::User;
+use crate::services::finchplaid::ApiClient;
 use crate::services::{plans::PlansService, users::UserService};
 use actix_web::{
     delete, get, post, put,
@@ -9,6 +10,7 @@ use actix_web::{
 };
 use actix_web_validator::{Json, Validate};
 use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
 
 #[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PlanNewPayload {
@@ -41,8 +43,28 @@ pub async fn get_plans(user: User) -> HttpResponse {
 }
 
 #[get("/plan/{id}")]
-pub async fn get_plan(user: User, Path(plan_id): Path<String>) -> HttpResponse {
-    crate::common::into_response_res(PlansService::get_plan(plan_id, user).await)
+pub async fn get_plan(
+    user: User,
+    Path(plan_id): Path<String>,
+    user_service: Data<UserService>,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+) -> HttpResponse {
+    crate::common::into_response_res(
+        PlansService::get_plan(plan_id, user, 365, user_service, plaid_client).await,
+    )
+}
+
+#[get("/plan/{id}/{days}")]
+pub async fn get_plan_wiht_days(
+    user: User,
+    Path(plan_id): Path<String>,
+    Path(plan_days): Path<i64>,
+    user_service: Data<UserService>,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+) -> HttpResponse {
+    crate::common::into_response_res(
+        PlansService::get_plan(plan_id, user, plan_days, user_service, plaid_client).await,
+    )
 }
 
 #[delete("/plan/{id}")]

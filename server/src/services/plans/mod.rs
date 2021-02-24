@@ -6,11 +6,13 @@ pub mod PlansService {
     use crate::models::plan_model::*;
     use crate::models::recurring_model::*;
     use crate::models::user_model::User;
-    use crate::services::users::UserService;
+    use crate::services::finchplaid::ApiClient;
+    use crate::services::{timeseries::TimeseriesService, users::UserService};
     use actix_web::web::Data;
     use chrono::offset;
     use rust_decimal_macros::dec;
     use serde::{Deserialize, Serialize};
+    use std::sync::{Arc, Mutex};
     use wither::{mongodb::bson::oid::ObjectId, Model};
 
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -34,22 +36,40 @@ pub mod PlansService {
         Ok(plan)
     }
 
-    pub async fn get_plan(plan_id: String, user: User) -> Result<Plan, ApiError> {
+    pub async fn get_plan(
+        plan_id: String,
+        user: User,
+        days: i64,
+        user_service: Data<UserService>,
+        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    ) -> Result<PlanResponse, ApiError> {
         let plan_id_opt = Some(
             ObjectId::with_string(plan_id.as_str())
                 .or(Err(ApiError::new(400, "Malformed Object Id".to_string())))?,
         );
 
-        let found = user
+        let plan = match user
             .plans
+            .clone()
             .into_iter()
             .find(|rec| rec.id == plan_id_opt)
-            .clone();
+        {
+            Some(p) => p,
+            None => {
+                return Err(ApiError::new(
+                    400,
+                    format!("No plan with id {} found in current user", plan_id),
+                ))
+            }
+        };
 
-        found.ok_or(ApiError::new(
-            400,
-            format!("No plan with id {} found in current user", plan_id),
-        ))
+        let timeseries =
+            TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
+
+        Ok(PlanResponse {
+            plan: plan,
+            timeseries: timeseries,
+        })
     }
 
     pub async fn update_plan(

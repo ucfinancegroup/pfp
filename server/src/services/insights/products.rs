@@ -177,7 +177,7 @@ mod tests {
     // check that most frequent is returned
     assert_eq!(
       get_most_frequent_account(known_account_frequencies),
-      (object_ids[0].clone(), 3)
+      Some(object_ids[0].clone())
     );
   }
 }

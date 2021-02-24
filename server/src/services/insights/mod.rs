@@ -127,16 +127,20 @@ pub mod InsightsService {
     };
 
     // get least recently generated insight type.
-    let (insight_type, _) = latest_of_each_insight_type.into_iter().fold(
-      (InsightTypes::ProductRecommendation, Utc::now().timestamp()),
-      |(ty, ti), (k, v)| {
-        if v < ti {
-          (k, v)
-        } else {
-          (ty, ti)
-        }
-      },
-    );
+    let (insight_type, _) = latest_of_each_insight_type
+      .into_iter()
+      // prevent us thinking we want Incomplete insight.
+      .filter(|(insight_type, _)| *insight_type != InsightTypes::Incomplete)
+      .fold(
+        (InsightTypes::ProductRecommendation, Utc::now().timestamp()),
+        |(ty, ti), (k, v)| {
+          if v < ti {
+            (k, v)
+          } else {
+            (ty, ti)
+          }
+        },
+      );
 
     // TODO(c650) -- alternate between least recent and random
 

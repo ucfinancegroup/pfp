@@ -6,6 +6,7 @@ use crate::models::{
 };
 use crate::services::{db::DatabaseService, insights::common::match_income_range};
 use futures::stream::{Stream, StreamExt};
+use rand::seq::SliceRandom;
 use std::collections::HashMap;
 use wither::{
   mongodb::bson::{self, doc, oid::ObjectId},
@@ -48,7 +49,8 @@ pub async fn generate_product_insight(
   let known_account_frequencies = get_frequency_of_known_accounts(extracted_known_accounts).await;
 
   // get most frequent one
-  let (most_frequent, _) = get_most_frequent_account(known_account_frequencies);
+  let most_frequent =
+    get_most_frequent_account(known_account_frequencies).ok_or(AppError::new("No accounts"))?;
 
   // try to find the most frequent one by id
   let fp = FinancialProduct::find_one(&db_service.db, doc! {"_id" : most_frequent.clone()}, None)
@@ -97,18 +99,27 @@ async fn get_frequency_of_known_accounts<
     .await
 }
 
-fn get_most_frequent_account(known_account_frequencies: HashMap<ObjectId, i32>) -> (ObjectId, i32) {
-  known_account_frequencies.iter().fold(
-    (ObjectId::new(), -1),
-    |(most_frequent, frequency), (k, v)| {
-      log::debug!("{}", k);
-      if frequency < *v {
-        (k.clone(), v.clone())
-      } else {
-        (most_frequent, frequency)
-      }
-    },
-  )
+// collects accounts and considers the most frequent
+// randomly picks which one to consider the "most" frequent
+fn get_most_frequent_account(
+  known_account_frequencies: HashMap<ObjectId, i32>,
+) -> Option<ObjectId> {
+  let largest_freq = known_account_frequencies
+    .iter()
+    .map(|(_, v)| v)
+    .cloned()
+    .fold(-1i32, i32::max);
+
+  let mut rng = rand::thread_rng();
+
+  known_account_frequencies
+    .iter()
+    .filter(|(_, v)| **v == largest_freq)
+    .map(|(k, _)| k)
+    .cloned()
+    .collect::<Vec<_>>()
+    .choose(&mut rng)
+    .cloned()
 }
 
 fn extract_known_account_ids(

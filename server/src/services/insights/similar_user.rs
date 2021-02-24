@@ -102,6 +102,7 @@ pub fn project_snapshots(since: DateTime<Utc>) -> bson::Document {
 pub async fn generate_similar_user_insight(
   user: &User,
   db_service: &DatabaseService,
+  insight_type: InsightTypes,
 ) -> Result<Insight, AppError> {
   log::info!(
     "generating a similar user insight for {}",
@@ -128,16 +129,41 @@ pub async fn generate_similar_user_insight(
     return Err(AppError::new("No peers for insight generation"));
   }
 
-  Ok(Insight::new(
-    "Savings Insight".to_string(),
-    format!(
-      "Your savings over the last {} days puts you above {}% of similar users!",
-      lookback.num_days(),
-      100 * metrics.savings_less / metrics.total_similar_users
-    ),
-    InsightTypes::Savings,
-    None,
-  ))
+  match insight_type {
+    InsightTypes::Savings => Ok(Insight::new(
+      "Savings Insight".to_string(),
+      format!(
+        "Your savings over the last {} days puts you above {}% of similar users!",
+        lookback.num_days(),
+        100 * metrics.savings_less / metrics.total_similar_users
+      ),
+      InsightTypes::Savings,
+      None,
+    )),
+    InsightTypes::Spending => Ok(Insight::new(
+      "Spending Insight".to_string(),
+      format!(
+        "Your spending rate over the last {} days is higher than {}% of similar users.",
+        lookback.num_days(),
+        100 * metrics.spending_less / metrics.total_similar_users
+      ),
+      InsightTypes::Spending,
+      None,
+    )),
+    InsightTypes::Income => Ok(Insight::new(
+      "Income Insight".to_string(),
+      format!(
+        "Your income over the last {} days is higher than {}% of users.",
+        lookback.num_days(),
+        100 * metrics.income_less / metrics.total_similar_users
+      ),
+      InsightTypes::Income,
+      None,
+    )),
+    _ => Err(AppError::new(
+      "Requested bad insight type from similar_user",
+    )),
+  }
 }
 
 fn extract_snapshots(

@@ -7,12 +7,16 @@ pub mod common;
 pub mod InsightsService {
   use super::*;
   use crate::common::errors::AppError;
-  use crate::models::{insight_model::Insight, user_model::User};
+  use crate::models::{
+    insight_model::{Insight, InsightTypes},
+    user_model::User,
+  };
   use crate::services::{db::DatabaseService, finchplaid};
   use async_std::task;
   use chrono::{Duration, Utc};
   use futures::stream::StreamExt;
   use log::{debug, info};
+  use std::collections::HashMap;
   use std::time; // y is there chrono and time lol
   use wither::{
     mongodb::{
@@ -102,9 +106,53 @@ pub mod InsightsService {
     // TODO(c650) -- pick which insight to make.
     log::info!("Generating insight for {}", user.email);
 
-    match rand::random::<u8>() % 2 {
-      1 => similar_user::generate_similar_user_insight(user, db_service).await,
-      _ => products::generate_product_insight(user, db_service).await,
+    let latest_of_each_insight_type: HashMap<InsightTypes, i64> = {
+      // pre-populate hashmap with each implemented insight type.
+      let mut h = HashMap::new();
+      h.insert(InsightTypes::ProductRecommendation, -1);
+      h.insert(InsightTypes::Savings, -2);
+
+      user
+        .insights
+        .iter()
+        .map(|insight: &Insight| (insight.generation_time, insight.insight_type.clone()))
+        .fold(h, |mut hm, (time, insight_type)| {
+          hm.insert(
+            insight_type.clone(),
+            hm.get(&insight_type)
+              .map_or_else(|| time, |t| (*t).max(time)),
+          );
+          hm
+        })
+    };
+
+    // get least recently generated insight type.
+    let (insight_type, _) = latest_of_each_insight_type
+      .into_iter()
+      // prevent us thinking we want Incomplete insight.
+      .filter(|(insight_type, _)| *insight_type != InsightTypes::Incomplete)
+      .fold(
+        (InsightTypes::ProductRecommendation, Utc::now().timestamp()),
+        |(ty, ti), (k, v)| {
+          if v < ti {
+            (k, v)
+          } else {
+            (ty, ti)
+          }
+        },
+      );
+
+    // TODO(c650) -- alternate between least recent and random
+
+    // finally generate least recent insight type
+    match insight_type {
+      InsightTypes::ProductRecommendation => {
+        products::generate_product_insight(user, db_service).await
+      }
+      // default to savings,spending, or income
+      user_metric => {
+        similar_user::generate_similar_user_insight(user, db_service, user_metric).await
+      }
     }
   }
 

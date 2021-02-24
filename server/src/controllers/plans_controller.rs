@@ -57,8 +57,7 @@ pub async fn get_plan(
 #[get("/plan/{id}/{days}")]
 pub async fn get_plan_with_days(
     user: User,
-    Path(plan_id): Path<String>,
-    Path(plan_days): Path<i64>,
+    Path((plan_id, plan_days)): Path<(String, i64)>,
     user_service: Data<UserService>,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> HttpResponse {
@@ -97,6 +96,27 @@ pub async fn update_plan(
     )
 }
 
+#[put("/plan/{id}/{days}")]
+pub async fn update_plan_with_days(
+    Path((plan_id, plan_days)): Path<(String, i64)>,
+    payload: Json<PlanNewPayload>,
+    user: User,
+    user_service: Data<UserService>,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+) -> HttpResponse {
+    crate::common::into_response_res(
+        PlansService::update_plan(
+            payload.into_inner(),
+            plan_id,
+            user,
+            plan_days,
+            user_service,
+            plaid_client,
+        )
+        .await,
+    )
+}
+
 #[post("/plan/new")]
 pub async fn create_new_plan(
     user: User,
@@ -109,6 +129,26 @@ pub async fn create_new_plan(
     )
 }
 
+#[post("/plan/new/{days}")]
+pub async fn create_new_plan_with_days(
+    Path(plan_days): Path<i64>,
+    user: User,
+    payload: Json<PlanNewPayload>,
+    user_service: Data<UserService>,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+) -> HttpResponse {
+    crate::common::into_response_res(
+        PlansService::new_plan(
+            payload.into_inner(),
+            user,
+            plan_days,
+            user_service,
+            plaid_client,
+        )
+        .await,
+    )
+}
+
 pub fn init_routes(config: &mut ServiceConfig) {
     config.service(get_example);
     config.service(create_new_plan);
@@ -116,4 +156,7 @@ pub fn init_routes(config: &mut ServiceConfig) {
     config.service(get_plan);
     config.service(update_plan);
     config.service(delete_plan);
+    //config.service(create_new_plan_with_days);
+    //config.service(update_plan_with_days);
+    //config.service(get_plan_with_days);
 }

@@ -335,7 +335,7 @@ paths:
   # plans
   /plan/new:
     post:
-      summary: "Creates a new plan for the user"
+      summary: "Creates a new plan for the user and generate timeseries for 365 days"
       operationId: newPlan
       tags:
         - plan
@@ -354,7 +354,43 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Plan"
+                $ref: "#/components/schemas/PlanResponse"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /plan/new/{days}:
+    post:
+      summary: "Creates a new plan for the user and generate timeseries for specified number of days"
+      operationId: newPlanWithDays
+      tags:
+        - plan
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: days
+          schema:
+            type: integer
+            format: i64
+          required: true
+          description: Number of days to generate timeseries for
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanNewPayload"
+      responses:
+        "200":
+          description: "The new plan"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanResponse"
         default:
           description: "Server error or validation error"
           content:
@@ -385,38 +421,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /plan/{id}:
+
+  /plan:
     get:
-      summary: "Get one specific plan by id"
+      summary: "Get one specific plan and generate timeseries for 365 days"
       operationId: getPlan
       tags:
         - plan
       security:
         - sidCookie: []
 
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: Numeric ID of the Plan to get
       responses:
         "200":
           description: ""
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Plan"
+                $ref: "#/components/schemas/PlanResponse"
         default:
           description: "Server error or validation error"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-    put:
-      summary: "Update one specific plan by id"
-      operationId: updatePlan
+
+  /plan/{days}:
+    get:
+      summary: "Get one specific plan and generate timeseries for specified number of days"
+      operationId: getPlanWithDays
       tags:
         - plan
       security:
@@ -424,24 +456,27 @@ paths:
 
       parameters:
         - in: path
-          name: id
+          name: days
           schema:
-            type: string
+            type: integer
+            format: i64
           required: true
-          description: Numeric ID of the Plan to update
+          description: Number of days to generate timeseries for
       responses:
         "200":
           description: ""
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Plan"
+                $ref: "#/components/schemas/PlanResponse"
         default:
           description: "Server error or validation error"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+
+  /plan/{id}:
     delete:
       summary: "Delete one specific plan by id"
       operationId: deletePlan
@@ -1431,6 +1466,17 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Event"
+
+    PlanResponse:
+      type: object
+      required:
+        - plan
+        - timeseries
+      properties:
+        plan:
+          $ref: "#/components/schemas/Plan"
+        timeseries:
+          $ref: "#/components/schemas/TimeSeriesResponse"
 
     GoalNewPayload:
       type: object

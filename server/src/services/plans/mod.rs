@@ -2,74 +2,69 @@
 pub mod PlansService {
     use crate::common::errors::ApiError;
     use crate::controllers::plans_controller::PlanNewPayload;
+    use crate::controllers::timeseries_controller::TimeseriesResponse;
     use crate::models::plan_model::*;
     use crate::models::recurring_model::*;
     use crate::models::user_model::User;
-    use crate::services::users::UserService;
+    use crate::services::finchplaid::ApiClient;
+    use crate::services::{timeseries::TimeseriesService, users::UserService};
     use actix_web::web::Data;
     use chrono::offset;
     use rust_decimal_macros::dec;
+    use serde::{Deserialize, Serialize};
+    use std::sync::{Arc, Mutex};
     use wither::{mongodb::bson::oid::ObjectId, Model};
+
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+    pub struct PlanResponse {
+        pub plan: Plan,
+        pub timeseries: TimeseriesResponse,
+    }
 
     pub async fn new_plan(
         payload: PlanNewPayload,
         mut user: User,
+        days: i64,
         user_service: Data<UserService>,
-    ) -> Result<Plan, ApiError> {
+        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    ) -> Result<PlanResponse, ApiError> {
         let mut plan: Plan = payload.into();
         plan.set_id(ObjectId::new());
 
-        user.plans.push(plan.clone());
+        if user.plans.len() < 1 {
+            user.plans.push(plan.clone());
+        } else {
+            user.plans[0] = plan.clone();
+        }
 
         user_service.save(&mut user).await?;
 
-        Ok(plan)
+        let timeseries =
+            TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
+
+        Ok(PlanResponse {
+            plan: plan,
+            timeseries: timeseries,
+        })
     }
 
-    pub async fn get_plan(plan_id: String, user: User) -> Result<Plan, ApiError> {
-        let plan_id_opt = Some(
-            ObjectId::with_string(plan_id.as_str())
-                .or(Err(ApiError::new(400, "Malformed Object Id".to_string())))?,
-        );
-
-        let found = user
-            .plans
-            .into_iter()
-            .find(|rec| rec.id == plan_id_opt)
-            .clone();
-
-        found.ok_or(ApiError::new(
-            400,
-            format!("No plan with id {} found in current user", plan_id),
-        ))
-    }
-
-    pub async fn update_plan(
-        plan_id: String,
-        payload: PlanNewPayload,
-        mut user: User,
+    pub async fn get_plan(
+        user: User,
+        days: i64,
         user_service: Data<UserService>,
-    ) -> Result<Plan, ApiError> {
-        let plan_id_opt = Some(
-            ObjectId::with_string(plan_id.as_str())
-                .or(Err(ApiError::new(400, "Malformed Object Id".to_string())))?,
-        );
-        let mut plan: Plan = payload.into();
-        plan.set_id(plan_id_opt.unwrap().clone());
-        let updated = user
-            .plans
-            .iter_mut()
-            .find(|rec| rec.id == plan.id)
-            .ok_or(ApiError::new(
-                400,
-                format!("No plan with id {} found in current user", plan_id),
-            ))
-            .and_then(|rec| {
-                *rec = plan.clone();
-                Ok(plan)
-            })?;
-        user_service.save(&mut user).await?;
-        Ok(updated)
+        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    ) -> Result<PlanResponse, ApiError> {
+        if user.plans.len() < 1 {
+            Err(ApiError::new(500, format!("No plan found in current user")))
+        } else {
+            let plan = user.plans[0].clone();
+            let timeseries =
+                TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
+            Ok(PlanResponse {
+                plan: plan,
+                timeseries: timeseries,
+            })
+        }
     }
 
     pub async fn delete_plan(
@@ -86,7 +81,7 @@ pub mod PlansService {
             .iter()
             .position(|rec| rec.id == plan_id_opt)
             .ok_or(ApiError::new(
-                400,
+                500,
                 format!("No plan with id {} found in current user", plan_id),
             ))
             .and_then(|pos| Ok(user.plans.swap_remove(pos)))?;

@@ -10,7 +10,6 @@ use crate::services::{
   db, financial_products::FinProductService, finchplaid::ApiClient, snapshots::SnapshotService,
 };
 use actix_web::web::Data;
-use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use wither::{
   mongodb::{bson::doc, Database},
@@ -202,12 +201,7 @@ impl UserService {
 
     // if we want to exclude hidden accounts, we filter them out
     if !show_all_accounts {
-      let excluded = user
-        .account_records
-        .iter()
-        .filter(|&account: &&AccountRecord| account.hidden)
-        .map(|account| account.account_id.clone())
-        .collect::<HashSet<_>>();
+      let excluded = user.get_excluded_accounts();
 
       account_successes = account_successes
         .into_iter()
@@ -317,7 +311,8 @@ impl UserService {
     item_id: String,
     account_id: String,
     hide_or_not: bool,
-  ) -> Result<(), ApiError> {
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+  ) -> Result<AccountResponse, ApiError> {
     for account in user
       .account_records
       .iter_mut()
@@ -326,7 +321,10 @@ impl UserService {
       account.hidden = hide_or_not;
     }
 
-    self.save(user).await
+    self.save(user).await?;
+    self.add_new_snapshot(user, plaid_client.clone()).await?;
+
+    self.get_accounts(user, plaid_client, false).await
   }
 
   pub async fn save(&self, u: &mut User) -> Result<(), ApiError> {

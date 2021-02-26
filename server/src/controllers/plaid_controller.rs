@@ -154,14 +154,10 @@ pub async fn put_hide_unhide_account(
   } = payload.into_inner();
 
   let hiding_res = user_service
-    .hide_unhide_account(&mut user, item_id, account_id, hide_or_not)
+    .hide_unhide_account(&mut user, item_id, account_id, hide_or_not, plaid_client)
     .await;
 
-  if hiding_res.is_err() {
-    return crate::common::into_response_res(hiding_res);
-  }
-
-  crate::common::into_response_res(user_service.get_accounts(&user, plaid_client, false).await)
+  crate::common::into_response_res(hiding_res)
 }
 
 pub fn init_routes(config: &mut actix_web::web::ServiceConfig) {

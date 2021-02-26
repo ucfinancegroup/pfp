@@ -10,6 +10,7 @@ use crate::services::{
   db, financial_products::FinProductService, finchplaid::ApiClient, snapshots::SnapshotService,
 };
 use actix_web::web::Data;
+use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use wither::{
   mongodb::{bson::doc, Database},
@@ -183,6 +184,7 @@ impl UserService {
     &self,
     user: &User,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    show_all_accounts: bool,
   ) -> Result<AccountResponse, ApiError> {
     let mut account_successes = Vec::new();
     let mut account_errors = Vec::new();
@@ -198,19 +200,34 @@ impl UserService {
       };
     }
 
+    // if we want to exclude hidden accounts, we filter them out
+    if !show_all_accounts {
+      let excluded = user
+        .account_records
+        .iter()
+        .filter(|&account: &&AccountRecord| account.hidden)
+        .map(|account| account.account_id.clone())
+        .collect::<HashSet<_>>();
+
+      account_successes = account_successes
+        .into_iter()
+        .filter(|account| !excluded.contains(&account.account_id))
+        .collect();
+    }
+
     Ok(AccountResponse {
       accounts: account_successes,
       account_errors: account_errors,
     })
   }
 
-  pub async fn delete_account_and_save(
+  pub async fn delete_item_and_save(
     &self,
     account_id: String,
     mut user: User,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<String, ApiError> {
-    let item = Self::delete_account(account_id, &mut user)?;
+    let item = Self::delete_item(account_id, &mut user)?;
 
     // update snappshot after account change
     self.add_new_snapshot(&mut user, plaid_client).await?;
@@ -220,7 +237,7 @@ impl UserService {
     Ok(item)
   }
 
-  pub fn delete_account(item_id: String, user: &mut User) -> Result<String, ApiError> {
+  pub fn delete_item(item_id: String, user: &mut User) -> Result<String, ApiError> {
     let item = user
       .accounts
       .iter()
@@ -294,6 +311,24 @@ impl UserService {
     self.save(user).await.and_then(|_| Ok(updated))
   }
 
+  pub async fn hide_unhide_account(
+    &self,
+    user: &mut User,
+    item_id: String,
+    account_id: String,
+    hide_or_not: bool,
+  ) -> Result<(), ApiError> {
+    for account in user
+      .account_records
+      .iter_mut()
+      .filter(|account| *account.item_id == item_id && *account.account_id == account_id)
+    {
+      account.hidden = hide_or_not;
+    }
+
+    self.save(user).await
+  }
+
   pub async fn save(&self, u: &mut User) -> Result<(), ApiError> {
     u.save(&self.db, None)
       .await
@@ -353,7 +388,7 @@ mod test {
 
     let mut found = false;
 
-    let _ = UserService::delete_account(accounts.accounts[0].account_id.clone(), &mut user);
+    let _ = UserService::delete_item(accounts.accounts[0].account_id.clone(), &mut user);
 
     for account in user.accounts.iter() {
       if account.item_id.eq(&accounts.accounts[0].account_id) {

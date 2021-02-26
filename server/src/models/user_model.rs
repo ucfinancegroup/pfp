@@ -18,6 +18,7 @@ use futures::future::Future;
 use rand::Rng;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::pin::Pin;
 use wither::Model;
 
@@ -149,6 +150,15 @@ impl User {
       .filter(|insight| !insight.dismissed && insight.insight_type != InsightTypes::Incomplete)
       .cloned()
       .collect()
+  }
+
+  pub fn get_excluded_accounts(&self) -> HashSet<String> {
+    self
+      .account_records
+      .iter()
+      .filter(|&account: &&AccountRecord| account.hidden)
+      .map(|account| account.account_id.clone())
+      .collect::<HashSet<_>>()
   }
 }
 

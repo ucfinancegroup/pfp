@@ -217,5 +217,17 @@ mod test {
       Money::new(dec!(68472.74)),
       crate::services::finchplaid::calculate_net_worth(&transactions.accounts, &HashSet::new())
     );
+
+    // exclude plaid money market account and expect that the net worth should be lower, accordingly
+    assert_eq!(
+      Money::new(dec!(68472.74) - dec!(43200)),
+      crate::services::finchplaid::calculate_net_worth(
+        &transactions.accounts,
+        &["jdgBn5mNDjSKwnLQng66C3n3mnRjMEi1mVMqx".to_string()]
+          .iter()
+          .cloned()
+          .collect()
+      )
+    );
   }
 }

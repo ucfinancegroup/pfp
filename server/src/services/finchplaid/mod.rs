@@ -6,7 +6,7 @@ use crate::services::{financial_products::FinProductService, users::UserService}
 use actix_web::web::Data;
 use plaid::models::{Account, RetrieveAnItemsAccountsRequest, RetrieveAnItemsAccountsResponse};
 use rust_decimal::Decimal;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
 use std::sync::{Arc, Mutex};
 
@@ -88,19 +88,21 @@ pub async fn get_account_data<'a>(
 pub async fn get_net_worth(
   item: &PlaidItem,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
+  excluded_accounts: &HashSet<String>,
 ) -> Result<Money, ApiError> {
   let accounts = get_item_accounts(item, plaid_client).await?.accounts;
 
-  Ok(calculate_net_worth(&accounts))
+  Ok(calculate_net_worth(&accounts, excluded_accounts))
 }
 
-pub fn calculate_net_worth(accounts: &Vec<Account>) -> Money {
+pub fn calculate_net_worth(accounts: &Vec<Account>, excluded_accounts: &HashSet<String>) -> Money {
   // map each account to a coefficient for each transaction.
   let account_id_to_coeff = get_account_balance_coefficients(&accounts);
 
   //  calculate "net worth" of the item's accounts.
   accounts
     .iter()
+    .filter(|&account: &&Account| !excluded_accounts.contains(&account.account_id))
     .fold(Money::new(0), |net, account: &Account| {
       let contribution = Money::new(Decimal::try_from(account.balances.current).unwrap())
         * *account_id_to_coeff

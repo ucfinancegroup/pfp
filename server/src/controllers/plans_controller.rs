@@ -4,7 +4,7 @@ use crate::models::user_model::User;
 use crate::services::finchplaid::ApiClient;
 use crate::services::{plans::PlansService, users::UserService};
 use actix_web::{
-    delete, get, post,
+    delete, get, post, put,
     web::{Data, Path, ServiceConfig},
     HttpResponse,
 };
@@ -18,6 +18,14 @@ pub struct PlanNewPayload {
     pub recurrings: Vec<Recurring>,
     pub allocations: Vec<Allocation>,
     pub events: Vec<Event>,
+}
+
+#[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct PlanUpdatePayload {
+    pub name: Option<String>,
+    pub recurrings: Option<Vec<Recurring>>,
+    pub allocations: Option<Vec<Allocation>>,
+    pub events: Option<Vec<Event>>,
 }
 
 impl Into<Plan> for PlanNewPayload {
@@ -106,6 +114,30 @@ pub async fn create_new_plan_with_days(
     )
 }
 
+#[get("/allocations/update")]
+pub async fn update_allocations_from_plaid(
+    user: User,
+    user_service: Data<UserService>,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+) -> HttpResponse {
+    crate::common::into_response_res(
+        PlansService::update_plaid_allocation(user, 365, user_service, plaid_client).await,
+    )
+}
+
+#[put("/plan/update")]
+pub async fn update_plan(
+    user: User,
+    payload: Json<PlanUpdatePayload>,
+    user_service: Data<UserService>,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+) -> HttpResponse {
+    crate::common::into_response_res(
+        PlansService::update_plan(payload.into_inner(), user, 365, user_service, plaid_client)
+            .await,
+    )
+}
+
 pub fn init_routes(config: &mut ServiceConfig) {
     config.service(get_example);
     config.service(get_plans);
@@ -114,4 +146,6 @@ pub fn init_routes(config: &mut ServiceConfig) {
     config.service(delete_plan);
     config.service(create_new_plan);
     config.service(create_new_plan_with_days);
+    config.service(update_allocations_from_plaid);
+    config.service(update_plan);
 }

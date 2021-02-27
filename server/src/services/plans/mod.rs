@@ -1,7 +1,7 @@
 #[allow(non_snake_case)]
 pub mod PlansService {
     use crate::common::errors::ApiError;
-    use crate::controllers::plans_controller::PlanNewPayload;
+    use crate::controllers::plans_controller::{PlanNewPayload, PlanUpdatePayload};
     use crate::controllers::timeseries_controller::TimeseriesResponse;
     use crate::models::plan_model::*;
     use crate::models::recurring_model::*;
@@ -37,6 +37,78 @@ pub mod PlansService {
             user.plans[0] = plan.clone();
         }
 
+        user_service.save(&mut user).await?;
+
+        let timeseries =
+            TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
+
+        Ok(PlanResponse {
+            plan: plan,
+            timeseries: timeseries,
+        })
+    }
+
+    pub async fn update_plan(
+        payload: PlanUpdatePayload,
+        mut user: User,
+        days: i64,
+        user_service: Data<UserService>,
+        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    ) -> Result<PlanResponse, ApiError> {
+        if user.plans.len() < 1 {
+            Err(ApiError::new(500, format!("No plan found in current user")))
+        } else {
+            let mut plan = user.plans[0].clone();
+
+            if let Some(name) = payload.name {
+                plan.name = name;
+            }
+
+            if let Some(recurrings) = payload.recurrings {
+                plan.recurrings = recurrings;
+            }
+
+            if let Some(allocations) = payload.allocations {
+                plan.allocations = allocations;
+            }
+
+            if let Some(events) = payload.events {
+                plan.events = events;
+            }
+
+            user_service.save(&mut user).await?;
+
+            let timeseries =
+                TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
+
+            Ok(PlanResponse {
+                plan: plan,
+                timeseries: timeseries,
+            })
+        }
+    }
+
+    pub async fn update_plaid_allocation(
+        mut user: User,
+        days: i64,
+        user_service: Data<UserService>,
+        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    ) -> Result<PlanResponse, ApiError> {
+        let new_alloc = get_plaid_allocation(user.clone(), plaid_client.clone()).await;
+
+        if user.plans.len() < 1 {
+            user.plans.push(Plan {
+                id: None,
+                name: "My Plan".to_string(),
+                recurrings: vec![],
+                allocations: vec![new_alloc],
+                events: vec![],
+            });
+        } else {
+            user.plans[0].allocations.push(new_alloc);
+        }
+
+        let plan = user.plans[0].clone();
         user_service.save(&mut user).await?;
 
         let timeseries =
@@ -88,6 +160,52 @@ pub mod PlansService {
         user_service.save(&mut user).await?;
 
         Ok(removed)
+    }
+
+    pub async fn get_plaid_allocation(
+        user: User,
+        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    ) -> Allocation {
+        let mut accounts = Vec::new();
+        for item in user.accounts.iter() {
+            match crate::services::finchplaid::get_account_data(item, plaid_client.clone()).await {
+                Ok(mut res) => accounts.append(&mut res),
+                Err(_) => (),
+            };
+        }
+
+        let net_worth = if user.net_worth > dec!(0.0) {
+            user.net_worth.clone()
+        } else {
+            dec!(1.0)
+        };
+
+        let asset_percentages = accounts
+            .into_iter()
+            .map(|a| {
+                let account_class = match a.account_type.as_str() {
+                    "depository" => AssetClass::Cash,
+                    "credit" => AssetClass::Loan,
+                    "loan" => AssetClass::Loan,
+                    "investment" => AssetClass::Equity, // for now classify all investments as broad equities
+                    _ => AssetClass::Cash,
+                };
+                AllocationChange {
+                    asset: Asset {
+                        name: a.account_type,
+                        class: account_class,
+                        annualized_performance: dec!(1.0), //temp
+                    },
+                    change: a.balance.abs() / net_worth * dec!(100.0), // for now make everything positive
+                }
+            })
+            .collect();
+
+        Allocation {
+            description: "Current Holdings".to_string(),
+            date: (offset::Utc::now()).timestamp(),
+            schema: asset_percentages,
+        }
     }
 
     pub fn generate_sample_plan() -> Plan {

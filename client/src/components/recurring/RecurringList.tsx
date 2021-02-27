@@ -61,6 +61,7 @@ export function RecurringList(props: RecurringListProps) {
                 setRecurrings([...recurrings, result]);
             }
         }
+
         setDialogEditing(null);
         setDialogOpen(false);
     }

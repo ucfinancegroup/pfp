@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    AssetClass,
+    AssetClassFromJSON,
+    AssetClassFromJSONTyped,
+    AssetClassToJSON,
+} from './';
+
 /**
  * 
  * @export
@@ -27,10 +34,10 @@ export interface Asset {
     name: string;
     /**
      * 
-     * @type {string}
+     * @type {AssetClass}
      * @memberof Asset
      */
-    _class: string;
+    _class: AssetClass;
     /**
      * Annualised Percentage Performance
      * @type {number}
@@ -50,7 +57,7 @@ export function AssetFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ass
     return {
         
         'name': json['name'],
-        '_class': json['class'],
+        '_class': AssetClassFromJSON(json['class']),
         'annualized_performance': !exists(json, 'annualized_performance') ? undefined : json['annualized_performance'],
     };
 }
@@ -65,7 +72,7 @@ export function AssetToJSON(value?: Asset | null): any {
     return {
         
         'name': value.name,
-        'class': value._class,
+        'class': AssetClassToJSON(value._class),
         'annualized_performance': value.annualized_performance,
     };
 }

@@ -1,3 +1,4 @@
+export * from './AssetClassesApi';
 export * from './GoalApi';
 export * from './InsightsApi';
 export * from './LeaderboardApi';

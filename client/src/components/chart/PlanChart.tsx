@@ -3,11 +3,12 @@ import classNames from "classnames";
 import * as d3 from "d3";
 import {curveBasis} from "d3";
 import React, {useEffect, useRef, useState} from "react";
-import {Recurring, RecurringApi, RecurringNewPayload, TimeseriesApi} from "../../api";
+import {PlanApi, Recurring, RecurringApi, RecurringNewPayload, TimeseriesApi} from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
 import {formatPrice} from "../../Helpers";
 import {RecurringDialog} from "../recurring/RecurringDialog";
 import {RecurringType} from "../recurring/RecurringType";
+import {AllocationEditorDialog} from "../allocation/AllocationEditorDialog";
 
 const cx = classNames.bind(styles);
 
@@ -16,6 +17,7 @@ type PlanChartProps = {
 };
 
 const recurringApi = new RecurringApi();
+const planApi = new PlanApi();
 const tsApi = new TimeseriesApi();
 
 export function PlanChart(props: PlanChartProps) {
@@ -39,6 +41,7 @@ export function PlanChart(props: PlanChartProps) {
     const [recurringDialogOpen, setRecurringDialogOpen] = useState<boolean>(false);
     const [recurringDialogEditing, setRecurringDialogEditing] = useState<Recurring>(null);
     const [recurringDialogMode, setRecurringDialogMode] = useState<RecurringType>();
+    const [allocationDialogOpen, setAllocationDialogOpen] = useState<boolean>(false);
     const self = this;
 
     useEffect(() => {
@@ -75,6 +78,9 @@ export function PlanChart(props: PlanChartProps) {
         //    days: 60,
         //});
         const ts = await tsApi.getTimeseriesExample();
+        const plans = await planApi.getPlans();
+        const plan = plans[0];
+        console.log(plan);
 
         const predictionStart = new Date(ts.start * 1000);
         const series = ts.series;
@@ -458,7 +464,12 @@ export function PlanChart(props: PlanChartProps) {
         setRecurringDialogMode(RecurringType.Income);
     }
 
+    function menuModifyAllocations() {
+        setAllocationDialogOpen(true);
+    }
+
     return <div>
+        <AllocationEditorDialog show={allocationDialogOpen} onClose={() => setAllocationDialogOpen(false)}/>
         <RecurringDialog show={recurringDialogOpen} mode={recurringDialogMode} onClose={r => recurringDialogClosed(r)}
                          editing={recurringDialogEditing}/>
         {totalValue !== null &&
@@ -476,7 +487,7 @@ export function PlanChart(props: PlanChartProps) {
               <ul>
                 <li onClick={menuAddExpense}>Add Expense</li>
                 <li onClick={menuAddIncome}>Add Income</li>
-                <li>Modify Allocations</li>
+                <li onClick={menuModifyAllocations}>Modify Allocations</li>
                 <li>Simulate Event</li>
               </ul>
             </div>

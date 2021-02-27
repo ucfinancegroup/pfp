@@ -1,0 +1,21 @@
+.class {
+  margin-bottom: 0.5em;
+  display: flex;
+  align-items: center;
+}
+
+.class__name {
+  min-width: 120px;
+  font-weight: bold;
+}
+
+.allocation {
+  min-width: 120px;
+  opacity: 0.7;
+  font-size: 0.9em;
+}
+
+
+.slider {
+  width: 300px;
+}

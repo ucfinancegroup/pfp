@@ -7,7 +7,6 @@ import Button from "react-bootstrap/cjs/Button";
 import {RecurringType} from "./RecurringType";
 import * as Yup from "yup";
 import {ErrorMessage, Field, Form, Formik} from "formik";
-import Dropdown from "react-bootstrap/cjs/Dropdown";
 import {getRecurringType, msToDateString, recurringFrequencies} from "./RecurringHelpers";
 import {addDaysToToday, dateAsInputString} from "../../Helpers";
 

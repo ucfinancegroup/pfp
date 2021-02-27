@@ -8,7 +8,7 @@ import {RecurringType} from "./RecurringType";
 import * as Yup from "yup";
 import {ErrorMessage, Field, Form, Formik} from "formik";
 import {getRecurringType, msToDateString, recurringFrequencies} from "./RecurringHelpers";
-import {addDaysToToday, dateAsInputString} from "../../Helpers";
+import {addDays, dateAsInputString} from "../../Helpers";
 
 const cx = classNames.bind(styles);
 
@@ -16,6 +16,7 @@ type RecurringDialogProps = {
     show: boolean;
     editing: Recurring;
     mode: RecurringType;
+    startDate?: Date;
     onClose: (recurring: RecurringNewPayload) => void;
 };
 
@@ -34,20 +35,22 @@ const RecurringSchema = Yup.object().shape({
     }).required(),
 });
 
-const initialForm = {
-    name: "",
-    start: dateAsInputString(new Date()),
-    end: dateAsInputString(addDaysToToday(30)),
-    principal: 0,
-    interest: 0,
-    amount: 0,
-    frequency: {
-        typ: TimeIntervalTypEnum.Monthly,
-        content: 1,
-    }
-};
-
 export function RecurringDialog(props: RecurringDialogProps) {
+    const initialStartDate = props.startDate ?? new Date();
+    const initialEndDate = addDays(initialStartDate, 30);
+    const initialForm = {
+        name: "",
+        start: dateAsInputString(initialStartDate),
+        end: dateAsInputString(initialEndDate),
+        principal: 0,
+        interest: 0,
+        amount: 0,
+        frequency: {
+            typ: TimeIntervalTypEnum.Monthly,
+            content: 1,
+        }
+    };
+
     const [error, setError] = useState<string>();
     const [examples, setExamples] = useState<RecurringNewPayload[]>();
     const [initialValues, setInitialValues] = useState<RecurringNewPayload>(props.editing ?? initialForm as any);
@@ -56,6 +59,12 @@ export function RecurringDialog(props: RecurringDialogProps) {
     useEffect(() => {
         getExamples();
     }, []);
+
+    useEffect(() => {
+        if (props.show) {
+            setInitialValues(props.editing ?? initialForm as any)
+        }
+    }, [props.show])
 
     useEffect(() => {
         if (props.editing) {
@@ -79,8 +88,11 @@ export function RecurringDialog(props: RecurringDialogProps) {
     }
 
     function doExample(example: RecurringNewPayload) {
-        example.amount = Math.abs(example.amount);
-        setInitialValues(example);
+        const clone = Object.assign({}, example);
+        clone.amount = Math.abs(example.amount);
+        clone.start = dateAsInputString(initialStartDate) as any;
+        clone.end = dateAsInputString(initialEndDate) as any;
+        setInitialValues(clone);
     }
 
     async function submit(values: RecurringNewPayload) {
@@ -118,14 +130,14 @@ export function RecurringDialog(props: RecurringDialogProps) {
     const currentExamples = examples && examples.filter(e => getRecurringType(e) == props.mode);
 
     function renderForm() {
-        return <Formik key={initialValues.name}
+        return <Formik key={initialValues.name + initialValues.start}
             initialValues={initialValues}
             validationSchema={RecurringSchema}
             onSubmit={values => {
                 submit({...values});
             }}
         >
-            {({errors, touched, values}) => (
+            {({errors, touched, values, isValid}) => (
                 <Form>
 
                     <ul className="nav nav-tabs mb-2 mt-4">
@@ -226,7 +238,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
                         </div>
                     </div>
 
-                    <button className="btn btn-primary mt-4" type="submit" disabled={Object.keys(touched).length === 0 || Object.keys(errors).length !== 0}>
+                    <button className="btn btn-primary mt-4" type="submit" disabled={!isValid}>
                         {props.editing ? "Save" : "Add"}
                     </button>
                 </Form>

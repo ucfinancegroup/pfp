@@ -489,7 +489,7 @@ export function PlanChart(props: PlanChartProps) {
 
     return <div>
         <AllocationEditorDialog show={allocationDialogOpen} onClose={() => setAllocationDialogOpen(false)}/>
-        <RecurringDialog show={recurringDialogOpen} mode={recurringDialogMode} onClose={r => recurringDialogClosed(r)}
+        <RecurringDialog startDate={menuDate} show={recurringDialogOpen} mode={recurringDialogMode} onClose={r => recurringDialogClosed(r)}
                          editing={recurringDialogEditing}/>
         {totalValue !== null && <div className={styles.current}>
             <h2 className={styles.value}>{formatPrice(mouseValue ?? totalValue)} <span className={styles.difference}>{renderPercentDifference()}</span></h2>

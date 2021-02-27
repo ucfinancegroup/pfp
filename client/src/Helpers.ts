@@ -11,8 +11,8 @@ export function dateAsInputString(d: Date) {
     return [year, month, day].join('-');
 }
 
-export function addDaysToToday(days: number) {
-    const date = new Date(); // Now
+export function addDays(toDate: Date, days: number) {
+    const date = new Date(toDate);
     date.setDate(date.getDate() + days);
     return date;
 }

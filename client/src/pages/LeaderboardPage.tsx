@@ -11,6 +11,7 @@ export default function LeaderboardPage() {
         }
         <h1>Leaderboard</h1>
         <div className="box">
+            <p>Coming Soon</p>
         </div>
     </>;
 }

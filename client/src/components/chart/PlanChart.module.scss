@@ -20,7 +20,6 @@
     fill: url("#areaGradient");
     opacity: 0.5;
   }
-
 }
 
 
@@ -55,4 +54,23 @@
       background-color: rgba(0,0,0,0.1);
     }
   }
+}
+
+.current {
+  margin-bottom: 1em;
+
+  h2 {
+    line-height: 1em;
+  }
+}
+
+.value {
+  display: flex;
+  align-items: center;
+}
+
+.difference {
+  font-weight: normal;
+  font-size: 0.8em;
+  margin-left: 0.5em;
 }

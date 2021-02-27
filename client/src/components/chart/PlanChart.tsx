@@ -38,6 +38,7 @@ export function PlanChart(props: PlanChartProps) {
     const updateRef = useRef<any>();
     const [totalValue, setTotalValue] = useState<number>(null);
     const [mouseValue, setMouseValue] = useState<number>(null);
+    const [currentDate, setCurrentDate] = useState<Date>(null);
     const [recurringDialogOpen, setRecurringDialogOpen] = useState<boolean>(false);
     const [recurringDialogEditing, setRecurringDialogEditing] = useState<Recurring>(null);
     const [recurringDialogMode, setRecurringDialogMode] = useState<RecurringType>();
@@ -94,6 +95,7 @@ export function PlanChart(props: PlanChartProps) {
         setMouseValue(null);
 
         const area = (x, y) => d3.area()
+            .curve(curveBasis)
             .defined((d: any) => !isNaN(d.value))
             .x((d: any)  => x(d.date))
             .y0(y(0))
@@ -141,13 +143,12 @@ export function PlanChart(props: PlanChartProps) {
 
             svg.append("linearGradient")
                 .attr("id", "areaGradient")
-                .attr("gradientUnits", "userSpaceOnUse")
-                .attr("x1", 0).attr("y1", 0)
-                .attr("x2", 0).attr("y2", maxY)
+                .attr("x1", 0).attr("y1", "0%")
+                .attr("x2", 0).attr("y2", "100%")
                 .selectAll("stop")
                 .data([
-                    {offset: "0%", color: "#21c19c", opacity: 0},
-                    {offset: "100%", color: "#21c19c", opacity: 1},
+                    {offset: "10%", color: "#21c19c", opacity: 0},
+                    {offset: "100%", color: "#21c19c", opacity: 0.4},
                 ])
                 .enter().append("stop")
                 .attr("stop-opacity", function(d) { return d.opacity; })
@@ -409,6 +410,7 @@ export function PlanChart(props: PlanChartProps) {
         const point = dataRef.current[bisect(dataRef.current as any, date)];
         if (point) {
             setMouseValue(point.value);
+            setCurrentDate(point.date);
             svgRef.current.select("." + styles["mouse-line"])
                 .attr("opacity", 1)
                 .attr("x1", x)
@@ -420,6 +422,7 @@ export function PlanChart(props: PlanChartProps) {
 
     function mouseLeave() {
         setMouseX(null);
+        setCurrentDate(null);
         setMouseValue(null);
         svgRef.current.select("." + styles["mouse-line"]).attr("x1", -100).attr("x2", -100);
     }
@@ -468,12 +471,30 @@ export function PlanChart(props: PlanChartProps) {
         setAllocationDialogOpen(true);
     }
 
+    function getDateString() {
+        if (!currentDate) return 'Today';
+        var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return currentDate.toLocaleDateString("en-US", options);
+    }
+
+    function renderPercentDifference() {
+        if (!mouseValue) return null;
+        const percentDifference = (mouseValue - totalValue) / totalValue;
+        if (percentDifference >= 0) {
+            return <span className="text-success">+{percentDifference.toFixed(2)}%</span>
+        } else {
+            return <span className="text-danger">{percentDifference.toFixed(2)}%</span>
+        }
+    }
+
     return <div>
         <AllocationEditorDialog show={allocationDialogOpen} onClose={() => setAllocationDialogOpen(false)}/>
         <RecurringDialog show={recurringDialogOpen} mode={recurringDialogMode} onClose={r => recurringDialogClosed(r)}
                          editing={recurringDialogEditing}/>
-        {totalValue !== null &&
-            <h2>{formatPrice(mouseValue ?? totalValue)}</h2>
+        {totalValue !== null && <div className={styles.current}>
+            <h2 className={styles.value}>{formatPrice(mouseValue ?? totalValue)} <span className={styles.difference}>{renderPercentDifference()}</span></h2>
+            <h5 className="text-secondary">{getDateString()}</h5>
+            </div>
         }
 
         <div id="d3test">

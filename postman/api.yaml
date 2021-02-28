@@ -169,6 +169,28 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
 
+  /user:
+    get:
+      summary: "Gets user info"
+      operationId: getUser
+      tags:
+        - user
+      security:
+        - sidCookie: []
+      responses:
+        "200":
+          description: "resulting user if logged in"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        default:
+          description: Unexpected error or bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
   #recurring
   /recurring/examples:
     get:

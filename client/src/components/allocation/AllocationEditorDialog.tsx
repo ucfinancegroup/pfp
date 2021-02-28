@@ -107,7 +107,7 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
 
     return <Modal show={props.show} onHide={() => close()}  dialogClassName="modal-large">
         <Modal.Header closeButton>
-            <Modal.Title>Edit Assets</Modal.Title>
+            <Modal.Title>Edit Asset Allocation</Modal.Title>
         </Modal.Header>
         <Modal.Body>
             <div className="form-row">
@@ -127,11 +127,14 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                     </div>
                 </div>
             </div>
-            <h3>Assets:</h3>
-            <p><strong>Unallocated: </strong>{allocationRemaining.toFixed(2)}%</p>
-            <button className="btn btn-primary" onClick={() => addAsset()}>
-                Add Asset
-            </button>
+            <h4>Assets:</h4>
+            <div className="d-flex flex-row align-items-center mb-2">
+                <button className="btn btn-primary" onClick={() => addAsset()}>
+                    <i className="fa fa-plus"/>
+                    Add Asset
+                </button>
+                <span className="ml-2"><strong>Unallocated: </strong>{allocationRemaining.toFixed(2)}%</span>
+            </div>
             <table className="table">
                 <thead>
                 <tr>
@@ -142,7 +145,7 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                         Allocation
                     </th>
                     <th>
-                        Asset Class
+                        Asset Class (% return)
                     </th>
                     <th>
                         Actions
@@ -152,7 +155,7 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                 <tbody>
                 {
                     assets.map((a, i) =>
-                        <tr key={(a as any)._react}>
+                        <tr key={(a as any)._react} className={styles.class}>
                             <td className={styles.class__name}>
                                 <input className="form-control" type="text" value={a.asset.name} onChange={e => {
                                     a.asset.name = e.target.value;
@@ -160,15 +163,18 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                                 }}/>
                             </td>
                             <td>
-                                <input type="range" min="0" max={Math.min(100, a.change + allocationRemaining)} className={styles.slider}
-                                    value={a.change}  onChange={e => {
-                                    a.change = parseFloat(e.target.value);
-                                    setAssets([...assets]);
-                                }}/>
-                                <span>{a.change.toFixed(2)}%</span>
+                                <span className={styles.slider__container}>
+                                    <input type="range" min="0" max={Math.min(100, a.change + allocationRemaining)}
+                                           className={cx(styles.slider, "form-control")}
+                                        value={a.change}  onChange={e => {
+                                        a.change = parseFloat(e.target.value);
+                                        setAssets([...assets]);
+                                    }}/>
+                                    <span>{a.change.toFixed(2)}%</span>
+                                </span>
                             </td>
                             <td>
-                                <select value={a.asset._class.typ} className="form-control"  onChange={e => {
+                                <select value={a.asset._class.typ} className="form-control d-inline-block"  onChange={e => {
                                     a.asset._class.typ = e.target.value as any;
                                     a.asset.annualized_performance = getClass(e.target.value).apy;
                                     setAssets([...assets]);
@@ -177,16 +183,19 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                                 </select>
                                 {
                                     a.asset._class.typ === AssetClassTypEnum.Custom &&
-                                        <input type="number" min="0" max="100" className="form-control"
+                                      <span>
+                                        <input type="number" min="0" max="100" className={cx("form-control", styles.apy__input)}
                                                value={getReturn(a.asset.annualized_performance)} onChange={e => {
                                             a.asset.annualized_performance = 1 + (parseFloat(e.target.value) / 100);
                                             console.log(e.target.value,  a.asset.annualized_performance);
                                             setAssets([...assets]);
                                         }}/>
+                                        <span>%</span>
+                                      </span>
                                 }
                                 {
                                     a.asset._class.typ !== AssetClassTypEnum.Custom &&
-                                    <span>({getReturn(a.asset.annualized_performance).toFixed(1)}%)</span>
+                                    <span className={styles.apy}>({getReturn(a.asset.annualized_performance).toFixed(1)}%)</span>
                                 }
                             </td>
                             <td className={styles.actions}>
@@ -197,6 +206,7 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                 </tbody>
             </table>
             <button className="btn btn-primary" onClick={() => save()}>
+                <i className="fa fa-save"/>
                 Save Assets
             </button>
         </Modal.Body>

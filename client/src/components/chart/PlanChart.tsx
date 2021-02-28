@@ -42,7 +42,7 @@ export function PlanChart(props: PlanChartProps) {
     const [recurringDialogOpen, setRecurringDialogOpen] = useState<boolean>(false);
     const [recurringDialogEditing, setRecurringDialogEditing] = useState<Recurring>(null);
     const [recurringDialogMode, setRecurringDialogMode] = useState<RecurringType>();
-    const [allocationDialogOpen, setAllocationDialogOpen] = useState<boolean>(false);
+    const [allocationDialogOpen, setAllocationDialogOpen] = useState<boolean>(true);
     const [plan, setPlan] = useState<Plan>();
     const self = this;
 

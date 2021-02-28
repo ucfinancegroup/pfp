@@ -8,6 +8,7 @@ pub mod SnapshotService {
   use log::debug;
   use plaid::models::{RetrieveTransactionsRequest, RetrieveTransactionsResponse, Transaction};
   use rust_decimal::Decimal;
+  use std::collections::HashSet;
   use std::convert::TryFrom;
   use std::sync::{Arc, Mutex};
 
@@ -15,10 +16,12 @@ pub mod SnapshotService {
     user: &mut User,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
   ) -> Result<(), ApiError> {
+    let excluded_accounts = user.get_excluded_accounts();
+
     // handle each item connected to user
     let mut per_item_stats = Vec::new();
     for item in user.accounts.iter() {
-      per_item_stats.push(handle_item(item, plaid_client.clone()).await?);
+      per_item_stats.push(handle_item(item, plaid_client.clone(), &excluded_accounts).await?);
     }
 
     // accumulate each item to a total
@@ -61,12 +64,14 @@ pub mod SnapshotService {
   pub async fn handle_item(
     item: &PlaidItem,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    excluded_accounts: &HashSet<String>,
   ) -> Result<(Money, Money, Money), ApiError> {
     // accumulate money_in and money_out for items' transactions
-    let (money_in, money_out) = get_money_in_out(item, plaid_client.clone()).await?;
+    let (money_in, money_out) =
+      get_money_in_out(item, plaid_client.clone(), excluded_accounts).await?;
 
     // get net worth of items accounts
-    match crate::services::finchplaid::get_net_worth(item, plaid_client).await {
+    match crate::services::finchplaid::get_net_worth(item, plaid_client, excluded_accounts).await {
       Ok(num) => return Ok((money_in, money_out, num)),
       Err(e) => return Err(e),
     };
@@ -75,14 +80,16 @@ pub mod SnapshotService {
   async fn get_money_in_out(
     item: &PlaidItem,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    excluded_accounts: &HashSet<String>,
   ) -> Result<(Money, Money), ApiError> {
     let transactions = get_item_transactions_for_new_snapshot(item, plaid_client).await?;
 
-    Ok(calculate_money_in_out(&transactions))
+    Ok(calculate_money_in_out(&transactions, excluded_accounts))
   }
 
   pub fn calculate_money_in_out(
     transactions_response: &RetrieveTransactionsResponse,
+    excluded_accounts: &HashSet<String>,
   ) -> (Money, Money) {
     // map each account to a coefficient for each transaction.
     let account_id_to_coeff = crate::services::finchplaid::get_account_transaction_coefficients(
@@ -90,36 +97,40 @@ pub mod SnapshotService {
     );
 
     // accumulate money_in and money_out for transactions
-    transactions_response.transactions.iter().fold(
-      (Money::default(), Money::default()).into(),
-      |(money_in, money_out), transaction: &Transaction| {
-        let s: Decimal = Decimal::try_from(transaction.amount)
-          .and_then(|amount| {
-            Ok(
-              amount
-                * Decimal::new(
-                  *account_id_to_coeff
-                    .get(&transaction.account_id)
-                    .or(Some(&0))
-                    .unwrap(),
-                  0,
-                ),
-            )
-          })
-          .map_err(|e| {
-            log::error!(
-              "Could not convert {} to decimal: {}",
-              transaction.amount.clone(),
-              e
-            );
-          })
-          .ok()
-          .or(Some(Decimal::new(0, 0)))
-          .unwrap();
+    transactions_response
+      .transactions
+      .iter()
+      .filter(|&transaction: &&Transaction| !excluded_accounts.contains(&transaction.account_id))
+      .fold(
+        (Money::default(), Money::default()).into(),
+        |(money_in, money_out), transaction: &Transaction| {
+          let s: Decimal = Decimal::try_from(transaction.amount)
+            .and_then(|amount| {
+              Ok(
+                amount
+                  * Decimal::new(
+                    *account_id_to_coeff
+                      .get(&transaction.account_id)
+                      .or(Some(&0))
+                      .unwrap(),
+                    0,
+                  ),
+              )
+            })
+            .map_err(|e| {
+              log::error!(
+                "Could not convert {} to decimal: {}",
+                transaction.amount.clone(),
+                e
+              );
+            })
+            .ok()
+            .or(Some(Decimal::new(0, 0)))
+            .unwrap();
 
-        (money_in + s.max(0.into()), money_out + s.min(0.into()))
-      },
-    )
+          (money_in + s.max(0.into()), money_out + s.min(0.into()))
+        },
+      )
   }
 
   async fn get_item_transactions_for_new_snapshot(
@@ -174,10 +185,9 @@ pub mod SnapshotService {
 #[cfg(test)]
 mod test {
   use super::*;
-
   use crate::common::Money;
   use rust_decimal_macros::dec;
-
+  use std::collections::HashSet;
   use std::error::Error;
   use std::fs::File;
   use std::io::BufReader;
@@ -196,7 +206,7 @@ mod test {
     let transactions = load_test_data().unwrap();
     assert_eq!(
       (Money::new(dec!(0)), Money::new(dec!(-10965.23))),
-      SnapshotService::calculate_money_in_out(&transactions)
+      SnapshotService::calculate_money_in_out(&transactions, &HashSet::new())
     );
   }
 
@@ -205,7 +215,19 @@ mod test {
     let transactions = load_test_data().unwrap();
     assert_eq!(
       Money::new(dec!(68472.74)),
-      crate::services::finchplaid::calculate_net_worth(&transactions.accounts)
+      crate::services::finchplaid::calculate_net_worth(&transactions.accounts, &HashSet::new())
+    );
+
+    // exclude plaid money market account and expect that the net worth should be lower, accordingly
+    assert_eq!(
+      Money::new(dec!(68472.74) - dec!(43200)),
+      crate::services::finchplaid::calculate_net_worth(
+        &transactions.accounts,
+        &["jdgBn5mNDjSKwnLQng66C3n3mnRjMEi1mVMqx".to_string()]
+          .iter()
+          .cloned()
+          .collect()
+      )
     );
   }
 }

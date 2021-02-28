@@ -928,7 +928,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /plaid/accounts:
+  /plaid/accounts/{allOrUnhidden}:
     get:
       summary: "Get all of user's connected accounts"
       operationId: getAccounts
@@ -936,6 +936,14 @@ paths:
         - plaid
       security:
         - sidCookie: []
+      parameters:
+        - in: path
+          name: allOrUnhidden
+          schema:
+            type: string
+            enum: [all, unhidden]
+          required: true
+          description: Whether to return all accounts or only ones that are not hidden
       responses:
         "200":
           description: "Accounts response"
@@ -973,6 +981,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ItemIdResponse"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /plaid/accounts/hide:
+    put:
+      summary: "Hides or unhides an account"
+      operationId: setAccountAsHidden
+      tags:
+        - plaid
+      security:
+        - sidCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetAccountAsHiddenPayload"
+      responses:
+        "200":
+          description: "Accounts response (with only non-hidden accounts)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountsResponse"
         default:
           description: "Server error or validation error"
           content:
@@ -1148,6 +1183,20 @@ components:
         balance:
           type: number
           format: float64
+
+    SetAccountAsHiddenPayload:
+      type: object
+      required:
+        - item_id
+        - account_id
+        - hide_or_not
+      properties:
+        item_id:
+          type: string
+        account_id:
+          type: string
+        hide_or_not:
+          type: boolean
 
     UpdateUserRequest:
       type: object

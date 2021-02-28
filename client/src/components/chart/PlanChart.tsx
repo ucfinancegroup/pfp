@@ -3,7 +3,7 @@ import classNames from "classnames";
 import * as d3 from "d3";
 import {curveBasis} from "d3";
 import React, {useEffect, useRef, useState} from "react";
-import {PlanApi, Recurring, RecurringApi, RecurringNewPayload, TimeseriesApi} from "../../api";
+import {PlanApi, Recurring, RecurringApi, RecurringNewPayload, TimeseriesApi, Plan, Allocation} from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
 import {formatPrice} from "../../Helpers";
 import {RecurringDialog} from "../recurring/RecurringDialog";
@@ -43,6 +43,7 @@ export function PlanChart(props: PlanChartProps) {
     const [recurringDialogEditing, setRecurringDialogEditing] = useState<Recurring>(null);
     const [recurringDialogMode, setRecurringDialogMode] = useState<RecurringType>();
     const [allocationDialogOpen, setAllocationDialogOpen] = useState<boolean>(false);
+    const [plan, setPlan] = useState<Plan>();
     const self = this;
 
     useEffect(() => {
@@ -81,6 +82,7 @@ export function PlanChart(props: PlanChartProps) {
         const ts = await tsApi.getTimeseriesExample();
         const plans = await planApi.getPlans();
         const plan = plans[0];
+        setPlan(plan);
         console.log(plan);
 
         const predictionStart = new Date(ts.start * 1000);
@@ -487,10 +489,29 @@ export function PlanChart(props: PlanChartProps) {
         }
     }
 
+    async function allocationEditorClosed(allocations: Allocation[]) {
+       setAllocationDialogOpen(false);
+       if (!allocations) return;
+
+       await planApi.newPlan({
+           planNewPayload: {
+               ...plan,
+               allocations,
+           }
+       });
+    }
+
     return <div>
-        <AllocationEditorDialog show={allocationDialogOpen} onClose={() => setAllocationDialogOpen(false)}/>
-        <RecurringDialog startDate={menuDate} show={recurringDialogOpen} mode={recurringDialogMode} onClose={r => recurringDialogClosed(r)}
-                         editing={recurringDialogEditing}/>
+        {
+            plan &&
+              <>
+            <AllocationEditorDialog allocations={plan.allocations}
+                                    editing={null} creating={new Date()} show={allocationDialogOpen}
+                                    onClose={allocations => allocationEditorClosed(allocations)}/>
+            <RecurringDialog startDate={menuDate} show={recurringDialogOpen} mode={recurringDialogMode} onClose={r => recurringDialogClosed(r)}
+            editing={recurringDialogEditing}/>
+              </>
+        }
         {totalValue !== null && <div className={styles.current}>
             <h2 className={styles.value}>{formatPrice(mouseValue ?? totalValue)} <span className={styles.difference}>{renderPercentDifference()}</span></h2>
             <h5 className="text-secondary">{getDateString()}</h5>

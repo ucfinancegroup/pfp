@@ -1499,9 +1499,9 @@ components:
         schema:
           type: array
           items:
-            $ref: "#/components/schemas/AllocationChange"
+            $ref: "#/components/schemas/AllocationProportion"
 
-    AllocationChange:
+    AllocationProportion:
       type: object
       required:
         - asset
@@ -1509,7 +1509,7 @@ components:
       properties:
         asset:
           $ref: "#/components/schemas/Asset"
-        change:
+        proportion:
           type: number
           format: float64
           minimum: 0.0

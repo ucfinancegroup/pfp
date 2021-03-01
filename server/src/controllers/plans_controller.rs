@@ -84,13 +84,9 @@ pub async fn get_plan_with_days(
     )
 }
 
-#[delete("/plan/{id}")]
-pub async fn delete_plan(
-    Path(plan_id): Path<String>,
-    user: User,
-    user_service: Data<UserService>,
-) -> HttpResponse {
-    crate::common::into_response_res(PlansService::delete_plan(plan_id, user, user_service).await)
+#[delete("/plan")]
+pub async fn delete_plan(user: User, user_service: Data<UserService>) -> HttpResponse {
+    crate::common::into_response_res(PlansService::delete_plan(user, user_service).await)
 }
 
 #[post("/plan/new")]

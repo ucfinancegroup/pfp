@@ -128,11 +128,11 @@ pub mod PlansService {
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<PlanResponse, ApiError> {
-        if user.plans.len() < 1 {
-            let plan = generate_sample_plan();
+        let plan: Plan = if user.plans.len() < 1 {
+            generate_sample_plan()
         } else {
-            let plan = user.plans[0].clone();
-        }
+            user.plans[0].clone()
+        };
 
         let timeseries =
             TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
@@ -143,26 +143,18 @@ pub mod PlansService {
     }
 
     pub async fn delete_plan(
-        plan_id: String,
         mut user: User,
         user_service: Data<UserService>,
     ) -> Result<Plan, ApiError> {
-        let plan_id_opt = Some(
-            ObjectId::with_string(plan_id.as_str())
-                .or(Err(ApiError::new(400, "Malformed Object Id".to_string())))?,
-        );
-        let removed = user
-            .plans
-            .iter()
-            .position(|rec| rec.id == plan_id_opt)
-            .ok_or(ApiError::new(
-                500,
-                format!("No plan with id {} found in current user", plan_id),
-            ))
-            .and_then(|pos| Ok(user.plans.swap_remove(pos)))?;
-        user_service.save(&mut user).await?;
+        if user.plans.len() < 1 {
+            Err(ApiError::new(500, format!("No plan found in current user")))
+        } else {
+            let removed = user.plans[0].clone();
 
-        Ok(removed)
+            user_service.save(&mut user).await?;
+
+            Ok(removed)
+        }
     }
 
     pub async fn get_plaid_allocation(

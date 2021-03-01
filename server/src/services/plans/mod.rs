@@ -129,16 +129,17 @@ pub mod PlansService {
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<PlanResponse, ApiError> {
         if user.plans.len() < 1 {
-            Err(ApiError::new(500, format!("No plan found in current user")))
+            let plan = generate_sample_plan();
         } else {
             let plan = user.plans[0].clone();
-            let timeseries =
-                TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
-            Ok(PlanResponse {
-                plan: plan,
-                timeseries: timeseries,
-            })
         }
+
+        let timeseries =
+            TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
+        Ok(PlanResponse {
+            plan: plan,
+            timeseries: timeseries,
+        })
     }
 
     pub async fn delete_plan(

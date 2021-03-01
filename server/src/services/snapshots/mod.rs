@@ -32,7 +32,7 @@ pub mod SnapshotService {
       );
 
     // for rolling sums
-    let prev = get_last_snapshot(&user.snapshots);
+    let last_snapshot = get_last_snapshot(&user.snapshots);
 
     // if user has no accounts,
     // calculated net worth will be zero
@@ -44,19 +44,36 @@ pub mod SnapshotService {
     };
 
     // create the new snapshot
-    let mut curr = Snapshot::new(
+    let mut new_snapshot = Snapshot::new(
       total_net + net_worth_adjustment,
       total_money_in - total_money_out,
       total_money_out,
       total_money_in,
     );
 
-    // make it a cumulative sum
-    curr.running_savings.amount += prev.running_savings.amount;
-    curr.running_spending.amount += prev.running_spending.amount;
-    curr.running_income.amount += prev.running_income.amount;
+    // patch so that we ignore recent stuff if the last snapshot was generated too recently.
+    // https://github.com/ucfinancegroup/pfp/issues/212
+    if chrono::DateTime::<Utc>::from_utc(
+      chrono::NaiveDateTime::from_timestamp(last_snapshot.snapshot_time, 0),
+      Utc,
+    ) + chrono::Duration::days(1)
+      > Utc::now()
+    {
+      log::debug!("Last snapshot too recent. Omitting last day of transactions");
+      new_snapshot = Snapshot::new(
+        total_net + net_worth_adjustment,
+        0.into(),
+        0.into(),
+        0.into(),
+      );
+    }
 
-    user.snapshots.push(curr);
+    // make it a cumulative sum
+    new_snapshot.running_savings.amount += last_snapshot.running_savings.amount;
+    new_snapshot.running_spending.amount += last_snapshot.running_spending.amount;
+    new_snapshot.running_income.amount += last_snapshot.running_income.amount;
+
+    user.snapshots.push(new_snapshot);
 
     Ok(())
   }

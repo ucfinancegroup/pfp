@@ -113,6 +113,12 @@ pub mod PlansService {
             plan.events = events;
         }
 
+        if user.plans.len() < 1 {
+            user.plans.push(plan.clone());
+        } else {
+            user.plans[0] = plan.clone();
+        }
+
         user_service.save(&mut user).await?;
 
         let timeseries =

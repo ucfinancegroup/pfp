@@ -45,6 +45,17 @@ pub async fn get_example(_: User) -> HttpResponse {
     crate::common::into_response(PlansService::generate_sample_plan())
 }
 
+#[get("/plan/plaid")]
+pub async fn get_allocations_from_plaid(
+    user: User,
+    user_service: Data<UserService>,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+) -> HttpResponse {
+    crate::common::into_response_res(
+        PlansService::update_plaid_allocation(user, 365, user_service, plaid_client).await,
+    )
+}
+
 #[get("/plans")]
 pub async fn get_plans(user: User) -> HttpResponse {
     crate::common::into_response(user.plans)
@@ -114,17 +125,6 @@ pub async fn create_new_plan_with_days(
     )
 }
 
-#[get("/plan/plaid_allocation")]
-pub async fn get_allocations_from_plaid(
-    user: User,
-    user_service: Data<UserService>,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
-) -> HttpResponse {
-    crate::common::into_response_res(
-        PlansService::update_plaid_allocation(user, 365, user_service, plaid_client).await,
-    )
-}
-
 #[put("/plan/update")]
 pub async fn update_plan(
     user: User,
@@ -160,10 +160,10 @@ pub async fn update_plan_with_days(
 
 pub fn init_routes(config: &mut ServiceConfig) {
     config.service(get_example);
+    config.service(get_allocations_from_plaid);
     config.service(get_plans);
     config.service(get_plan);
     config.service(get_plan_with_days);
-    config.service(get_allocations_from_plaid);
     config.service(delete_plan);
     config.service(create_new_plan);
     config.service(create_new_plan_with_days);

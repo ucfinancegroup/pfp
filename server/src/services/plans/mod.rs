@@ -1,6 +1,7 @@
 #[allow(non_snake_case)]
 pub mod PlansService {
     use crate::common::errors::ApiError;
+    use crate::controllers::plaid_controller::AccountSuccess;
     use crate::controllers::plans_controller::{PlanNewPayload, PlanUpdatePayload};
     use crate::controllers::timeseries_controller::TimeseriesResponse;
     use crate::models::plan_model::*;
@@ -10,6 +11,7 @@ pub mod PlansService {
     use crate::services::{timeseries::TimeseriesService, users::UserService};
     use actix_web::web::Data;
     use chrono::offset;
+    use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
     use serde::{Deserialize, Serialize};
     use std::sync::{Arc, Mutex};
@@ -174,12 +176,28 @@ pub mod PlansService {
             };
         }
 
-        let net_worth = if user.net_worth > dec!(0.0) {
-            user.net_worth.clone()
+        if user.net_worth > dec!(0.0) {
+            generate_plaid_allocation(accounts, user.net_worth.clone())
         } else {
-            dec!(1.0)
-        };
+            Allocation {
+                description: "Current Holdings".to_string(),
+                date: (offset::Utc::now()).timestamp(),
+                schema: vec![AllocationChange {
+                    asset: Asset {
+                        name: "depository".to_string(),
+                        class: AssetClass::Cash,
+                        annualized_performance: dec!(1.0),
+                    },
+                    change: dec!(100.0), // for now make everything positive
+                }],
+            }
+        }
+    }
 
+    pub fn generate_plaid_allocation(
+        accounts: Vec<AccountSuccess>,
+        net_worth: Decimal,
+    ) -> Allocation {
         let asset_percentages = accounts
             .into_iter()
             .map(|a| {

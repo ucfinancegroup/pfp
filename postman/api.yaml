@@ -355,7 +355,7 @@ paths:
                 $ref: "#/components/schemas/ApiError"
 
   # plans
-  /plan/new:
+  /plan:
     post:
       summary: "Creates a new plan for the user and generate timeseries for 365 days"
       operationId: newPlan
@@ -383,7 +383,71 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /plan/new/{days}:
+    get:
+      summary: "Get plan and generate timeseries for 365 days"
+      operationId: getPlan
+      tags:
+        - plan
+      security:
+        - sidCookie: []
+
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanResponse"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      summary: "Update plan and generate timeseries for 365 days"
+      operationId: getPlan
+      tags:
+        - plan
+      security:
+        - sidCookie: []
+
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanResponse"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      summary: "Delete user's plan"
+      operationId: deletePlan
+      tags:
+        - plan
+      security:
+        - sidCookie: []
+
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /plan/{days}:
     post:
       summary: "Creates a new plan for the user and generate timeseries for specified number of days"
       operationId: newPlanWithDays
@@ -419,57 +483,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-  /plans:
     get:
-      summary: "Get all of a user's plans"
-      operationId: getPlans
-      tags:
-        - plan
-      security:
-        - sidCookie: []
-
-      responses:
-        "200":
-          description: "Array of plans"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Plan"
-        default:
-          description: "Server error or validation error"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-
-  /plan:
-    get:
-      summary: "Get one specific plan and generate timeseries for 365 days"
-      operationId: getPlan
-      tags:
-        - plan
-      security:
-        - sidCookie: []
-
-      responses:
-        "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PlanResponse"
-        default:
-          description: "Server error or validation error"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-
-  /plan/{days}:
-    get:
-      summary: "Get one specific plan and generate timeseries for specified number of days"
+      summary: "Get plan and generate timeseries for specified number of days"
       operationId: getPlanWithDays
       tags:
         - plan
@@ -497,11 +512,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-
-  /plan/{id}:
-    delete:
-      summary: "Delete one specific plan by id"
-      operationId: deletePlan
+    put:
+      summary: "Update plan and generate timeseries for specified number of days"
+      operationId: updatePlanWithDays
       tags:
         - plan
       security:
@@ -509,18 +522,73 @@ paths:
 
       parameters:
         - in: path
-          name: id
+          name: days
           schema:
-            type: string
+            type: integer
+            format: i64
           required: true
-          description: Numeric ID of the Plan to delete
+          description: Number of days to generate timeseries for
       responses:
         "200":
           description: ""
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Plan"
+                $ref: "#/components/schemas/PlanResponse"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /plan/plaid/{days}:
+    get:
+      summary: "Get plaid plan and generate timeseries for specified number of days"
+      operationId: getPlaidPlanWithDays
+      tags:
+        - plan
+      security:
+        - sidCookie: []
+
+      parameters:
+        - in: path
+          name: days
+          schema:
+            type: integer
+            format: i64
+          required: true
+          description: Number of days to generate timeseries for
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanResponse"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /plan/plaid:
+    get:
+      summary: "Get plaid plan and generate timeseries for 365 days"
+      operationId: getPlaidPlan
+      tags:
+        - plan
+      security:
+        - sidCookie: []
+
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanResponse"
         default:
           description: "Server error or validation error"
           content:

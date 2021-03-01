@@ -128,7 +128,7 @@ pub async fn create_new_plan_with_days(
     )
 }
 
-#[put("/plan/update")]
+#[put("/plan/")]
 pub async fn update_plan(
     user: User,
     payload: Json<PlanUpdatePayload>,
@@ -141,7 +141,7 @@ pub async fn update_plan(
     )
 }
 
-#[put("/plan/update/{days}")]
+#[put("/plan/{days}")]
 pub async fn update_plan_with_days(
     Path(plan_days): Path<i64>,
     user: User,

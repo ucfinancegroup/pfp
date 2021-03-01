@@ -198,6 +198,7 @@ pub mod PlansService {
         accounts: Vec<AccountSuccess>,
         net_worth: Decimal,
     ) -> Allocation {
+        let default_percentages = get_asset_classes_and_default_apys();
         let asset_percentages = accounts
             .into_iter()
             .map(|a| {
@@ -208,13 +209,23 @@ pub mod PlansService {
                     "investment" => AssetClass::Equity, // for now classify all investments as broad equities
                     _ => AssetClass::Cash,
                 };
+
+                let performance = match default_percentages
+                    .clone()
+                    .into_iter()
+                    .find(|a| a.class == account_class)
+                {
+                    Some(act) => act.apy,
+                    None => dec!(1.0),
+                };
+
                 AllocationChange {
                     asset: Asset {
                         name: a.account_type,
                         class: account_class,
-                        annualized_performance: dec!(1.0), //temp
+                        annualized_performance: performance,
                     },
-                    change: a.balance.abs() / net_worth * dec!(100.0), // for now make everything positive
+                    change: a.balance / net_worth * dec!(100.0),
                 }
             })
             .collect();

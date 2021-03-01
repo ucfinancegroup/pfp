@@ -13,7 +13,10 @@ use crate::services::{
 use actix_web::web::Data;
 use std::sync::{Arc, Mutex};
 use wither::{
-  mongodb::{bson::doc, Database},
+  mongodb::{
+    bson::{doc, oid::ObjectId},
+    Database,
+  },
   prelude::Migrating,
   Model,
 };
@@ -199,7 +202,7 @@ impl UserService {
   ) -> Result<(), ApiError> {
     if user.plans.len() < 1 {
       user.plans.push(Plan {
-        id: None,
+        id: Some(ObjectId::new()),
         name: "My Plan".to_string(),
         recurrings: vec![],
         allocations: vec![allocation],

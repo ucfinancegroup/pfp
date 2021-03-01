@@ -18,7 +18,7 @@ pub struct Plan {
 pub struct Allocation {
     pub description: String,
     pub date: i64,
-    pub schema: Vec<AllocationChange>,
+    pub schema: Vec<AllocationProportion>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -68,8 +68,8 @@ pub struct AssetChange {
 }
 
 #[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
-pub struct AllocationChange {
+pub struct AllocationProportion {
     pub asset: Asset,
     #[validate(custom = "crate::common::decimal_between_zero_or_hundred")]
-    pub change: Decimal,
+    pub proportion: Decimal,
 }

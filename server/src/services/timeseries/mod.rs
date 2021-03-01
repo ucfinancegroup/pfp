@@ -69,7 +69,7 @@ pub mod TimeseriesService {
         allocation
             .schema
             .iter()
-            .map(|a| a.change * a.asset.annualized_performance / dec!(100.0))
+            .map(|a| a.proportion * a.asset.annualized_performance / dec!(100.0))
             .sum()
     }
 
@@ -230,9 +230,9 @@ mod test {
             annualized_performance: dec!(1.2),
         };
 
-        let test_change1 = AllocationChange {
+        let test_change1 = AllocationProportion {
             asset: test_asset1,
-            change: dec!(80.0),
+            proportion: dec!(80.0),
         };
 
         let test_asset2 = Asset {
@@ -241,9 +241,9 @@ mod test {
             annualized_performance: dec!(0.7),
         };
 
-        let test_change2 = AllocationChange {
+        let test_change2 = AllocationProportion {
             asset: test_asset2,
-            change: dec!(20.0),
+            proportion: dec!(20.0),
         };
 
         Allocation {
@@ -278,9 +278,9 @@ mod test {
             annualized_performance: dec!(1.1),
         };
 
-        let test_change = AllocationChange {
+        let test_change = AllocationProportion {
             asset: test_asset,
-            change: dec!(100.0),
+            proportion: dec!(100.0),
         };
 
         let test_allocation = Allocation {

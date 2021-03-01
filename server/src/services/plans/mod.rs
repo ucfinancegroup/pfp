@@ -163,13 +163,13 @@ pub mod PlansService {
             Allocation {
                 description: "Current Holdings".to_string(),
                 date: (offset::Utc::now()).timestamp(),
-                schema: vec![AllocationChange {
+                schema: vec![AllocationProportion {
                     asset: Asset {
                         name: "depository".to_string(),
                         class: AssetClass::Cash,
                         annualized_performance: dec!(1.0),
                     },
-                    change: dec!(100.0), // for now make everything positive
+                    proportion: dec!(100.0), // for now make everything positive
                 }],
             }
         }
@@ -200,13 +200,13 @@ pub mod PlansService {
                     None => dec!(1.0),
                 };
 
-                AllocationChange {
+                AllocationProportion {
                     asset: Asset {
                         name: a.account_type,
                         class: account_class,
                         annualized_performance: performance,
                     },
-                    change: a.balance / net_worth * dec!(100.0),
+                    proportion: a.balance / net_worth * dec!(100.0),
                 }
             })
             .collect();
@@ -239,9 +239,9 @@ pub mod PlansService {
             annualized_performance: dec!(1.05),
         };
 
-        let test_change = AllocationChange {
+        let test_change = AllocationProportion {
             asset: test_asset,
-            change: dec!(100.0),
+            proportion: dec!(100.0),
         };
 
         let test_allocation = Allocation {
@@ -342,21 +342,21 @@ mod test {
         let accounts = generate_test_accounts();
 
         let target = vec![
-            AllocationChange {
+            AllocationProportion {
                 asset: Asset {
                     name: "depository".to_string(),
                     class: AssetClass::Cash,
                     annualized_performance: dec!(1.0),
                 },
-                change: dec!(50.0),
+                proportion: dec!(50.0),
             },
-            AllocationChange {
+            AllocationProportion {
                 asset: Asset {
                     name: "investment".to_string(),
                     class: AssetClass::Equity,
                     annualized_performance: dec!(1.05),
                 },
-                change: dec!(50.0),
+                proportion: dec!(50.0),
             },
         ];
         let res = PlansService::generate_plaid_allocation(accounts, net_worth);

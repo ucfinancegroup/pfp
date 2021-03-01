@@ -140,15 +140,11 @@ pub mod PlansService {
         mut user: User,
         user_service: Data<UserService>,
     ) -> Result<Plan, ApiError> {
-        if user.plans.len() < 1 {
-            Err(ApiError::new(500, format!("No plan found in current user")))
-        } else {
-            let removed = user.plans[0].clone();
+        let removed = retrieve_user_plan(user.clone());
+        user.plans = vec![];
+        user_service.save(&mut user).await?;
 
-            user_service.save(&mut user).await?;
-
-            Ok(removed)
-        }
+        Ok(removed)
     }
 
     pub async fn get_plaid_allocation(

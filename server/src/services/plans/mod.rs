@@ -317,3 +317,58 @@ pub mod PlansService {
         ]
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::controllers::plaid_controller::AccountSuccess;
+    use crate::models::plan_model::*;
+    use crate::services::plans::PlansService;
+    use rust_decimal_macros::dec;
+
+    fn generate_test_accounts() -> Vec<AccountSuccess> {
+        vec![
+            AccountSuccess {
+                item_id: "blah".to_string(),
+                name: "blah".to_string(),
+                balance: dec!(500),
+                account_type: "depository".to_string(),
+            },
+            AccountSuccess {
+                item_id: "blah2".to_string(),
+                name: "blah2".to_string(),
+                balance: dec!(500),
+                account_type: "investment".to_string(),
+            },
+        ]
+    }
+
+    #[test]
+    fn test_plaid_allocation_generation() {
+        let net_worth = dec!(1000.0);
+        let accounts = generate_test_accounts();
+
+        let target = vec![
+            AllocationChange {
+                asset: Asset {
+                    name: "depository".to_string(),
+                    class: AssetClass::Cash,
+                    annualized_performance: dec!(1.0),
+                },
+                change: dec!(50.0),
+            },
+            AllocationChange {
+                asset: Asset {
+                    name: "investment".to_string(),
+                    class: AssetClass::Equity,
+                    annualized_performance: dec!(1.0),
+                },
+                change: dec!(50.0),
+            },
+        ];
+        let res = PlansService::generate_plaid_allocation(accounts, net_worth);
+
+        for i in 0..2 {
+            assert_eq!(target[i], res.schema[i]);
+        }
+    }
+}

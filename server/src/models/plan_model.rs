@@ -34,14 +34,14 @@ pub struct Transform {
     pub changes: Vec<AssetChange>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
 pub struct Asset {
     pub name: String,
     pub class: AssetClass,
     pub annualized_performance: Decimal,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
 #[serde(tag = "typ", content = "content")]
 pub enum AssetClass {
     Cash,
@@ -67,7 +67,7 @@ pub struct AssetChange {
     pub change: Decimal,
 }
 
-#[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
 pub struct AllocationChange {
     pub asset: Asset,
     #[validate(custom = "crate::common::decimal_between_zero_or_hundred")]

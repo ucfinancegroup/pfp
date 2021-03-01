@@ -371,7 +371,7 @@ mod test {
                 asset: Asset {
                     name: "investment".to_string(),
                     class: AssetClass::Equity,
-                    annualized_performance: dec!(1.0),
+                    annualized_performance: dec!(1.05),
                 },
                 change: dec!(50.0),
             },

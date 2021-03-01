@@ -195,11 +195,10 @@ pub mod PlansService {
                 };
 
                 let performance = match default_percentages
-                    .clone()
-                    .into_iter()
+                    .iter()
                     .find(|a| a.class == account_class)
                 {
-                    Some(act) => act.apy,
+                    Some(act) => act.apy.clone(),
                     None => dec!(1.0),
                 };
 

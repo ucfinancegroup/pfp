@@ -91,12 +91,17 @@ pub mod PlansService {
     }
 
     pub async fn update_plaid_allocation(
-        user: User,
+        mut user: User,
         days: i64,
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<PlanResponse, ApiError> {
-        let new_alloc = get_plaid_allocation(user.clone(), plaid_client.clone()).await;
+        let snapshots = user_service
+            .get_snapshots(&mut user, plaid_client.clone())
+            .await?;
+        let net_worth = snapshots[snapshots.len() - 1].net_worth.amount;
+
+        let new_alloc = get_plaid_allocation(user.clone(), plaid_client.clone(), net_worth).await;
         let plan = user.plans[0].clone();
 
         user_service.add_plaid_plan(user.clone(), new_alloc).await?;
@@ -149,6 +154,7 @@ pub mod PlansService {
     pub async fn get_plaid_allocation(
         user: User,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
+        net_worth: Decimal,
     ) -> Allocation {
         let mut accounts = Vec::new();
         for item in user.accounts.iter() {
@@ -158,8 +164,8 @@ pub mod PlansService {
             };
         }
 
-        if user.net_worth > dec!(0.0) {
-            generate_plaid_allocation(accounts, user.net_worth.clone())
+        if net_worth > dec!(0.0) {
+            generate_plaid_allocation(accounts, net_worth)
         } else {
             Allocation {
                 description: "Current Holdings".to_string(),

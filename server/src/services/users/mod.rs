@@ -187,7 +187,12 @@ impl UserService {
       self
         .add_plaid_plan(
           user.clone(),
-          crate::services::plans::PlansService::get_plaid_allocation(user, plaid_client).await,
+          crate::services::plans::PlansService::get_plaid_allocation(
+            user.clone(),
+            plaid_client,
+            user.snapshots[user.snapshots.len() - 1].net_worth.amount,
+          )
+          .await,
         )
         .await?;
     }

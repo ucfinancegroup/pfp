@@ -23,6 +23,14 @@ pub mod PlansService {
         pub timeseries: TimeseriesResponse,
     }
 
+    pub fn retrieve_user_plan(user: User) -> Plan {
+        if user.plans.len() < 1 {
+            generate_sample_plan()
+        } else {
+            user.plans[0].clone()
+        }
+    }
+
     pub async fn new_plan(
         payload: PlanNewPayload,
         mut user: User,
@@ -48,6 +56,34 @@ pub mod PlansService {
             plan: plan,
             timeseries: timeseries,
         })
+    }
+
+    pub async fn get_plan(
+        user: User,
+        days: i64,
+        user_service: Data<UserService>,
+        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    ) -> Result<PlanResponse, ApiError> {
+        let plan = retrieve_user_plan(user.clone());
+
+        let timeseries =
+            TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
+
+        Ok(PlanResponse {
+            plan: plan,
+            timeseries: timeseries,
+        })
+    }
+
+    pub async fn delete_plan(
+        mut user: User,
+        user_service: Data<UserService>,
+    ) -> Result<Plan, ApiError> {
+        let removed = retrieve_user_plan(user.clone());
+        user.plans = vec![];
+        user_service.save(&mut user).await?;
+
+        Ok(removed)
     }
 
     pub async fn update_plan(
@@ -109,42 +145,6 @@ pub mod PlansService {
             plan: plan,
             timeseries: timeseries,
         })
-    }
-
-    pub async fn get_plan(
-        user: User,
-        days: i64,
-        user_service: Data<UserService>,
-        plaid_client: Data<Arc<Mutex<ApiClient>>>,
-    ) -> Result<PlanResponse, ApiError> {
-        let plan = retrieve_user_plan(user.clone());
-
-        let timeseries =
-            TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
-
-        Ok(PlanResponse {
-            plan: plan,
-            timeseries: timeseries,
-        })
-    }
-
-    pub fn retrieve_user_plan(user: User) -> Plan {
-        if user.plans.len() < 1 {
-            generate_sample_plan()
-        } else {
-            user.plans[0].clone()
-        }
-    }
-
-    pub async fn delete_plan(
-        mut user: User,
-        user_service: Data<UserService>,
-    ) -> Result<Plan, ApiError> {
-        let removed = retrieve_user_plan(user.clone());
-        user.plans = vec![];
-        user_service.save(&mut user).await?;
-
-        Ok(removed)
     }
 
     pub async fn get_plaid_allocation(

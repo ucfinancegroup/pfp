@@ -56,7 +56,7 @@ pub async fn get_allocations_from_plaid(
     )
 }
 
-#[get("/plan/plaid")]
+#[get("/plan/plaid/{days}")]
 pub async fn get_allocations_from_plaid_with_days(
     Path(plan_days): Path<i64>,
     user: User,

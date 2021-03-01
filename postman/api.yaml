@@ -406,7 +406,7 @@ paths:
                 $ref: "#/components/schemas/ApiError"
     put:
       summary: "Update plan and generate timeseries for 365 days"
-      operationId: getPlan
+      operationId: updatePlan
       tags:
         - plan
       security:

@@ -23,7 +23,7 @@ pub mod PlansService {
         pub timeseries: TimeseriesResponse,
     }
 
-    pub fn retrieve_user_plan(user: User) -> Plan {
+    pub fn get_user_plan(user: &User) -> Plan {
         if user.plans.len() < 1 {
             generate_sample_plan()
         } else {
@@ -64,7 +64,7 @@ pub mod PlansService {
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<PlanResponse, ApiError> {
-        let plan = retrieve_user_plan(user.clone());
+        let plan = get_user_plan(&user);
 
         let timeseries =
             TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
@@ -79,7 +79,7 @@ pub mod PlansService {
         mut user: User,
         user_service: Data<UserService>,
     ) -> Result<Plan, ApiError> {
-        let removed = retrieve_user_plan(user.clone());
+        let removed = get_user_plan(&user);
         user.plans = vec![];
         user_service.save(&mut user).await?;
 
@@ -93,7 +93,7 @@ pub mod PlansService {
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<PlanResponse, ApiError> {
-        let mut plan = retrieve_user_plan(user.clone());
+        let mut plan = get_user_plan(&user);
 
         if let Some(name) = payload.name {
             plan.name = name;
@@ -134,7 +134,7 @@ pub mod PlansService {
         let net_worth = snapshots[snapshots.len() - 1].net_worth.amount;
 
         let new_alloc = get_plaid_allocation(user.clone(), plaid_client.clone(), net_worth).await;
-        let plan = retrieve_user_plan(user.clone());
+        let plan = get_user_plan(&user);
 
         user_service.add_plaid_plan(user.clone(), new_alloc).await?;
 

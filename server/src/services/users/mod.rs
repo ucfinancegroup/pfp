@@ -8,9 +8,11 @@ use crate::models::{
   user_model::{AccountRecord, PlaidItem, Snapshot, User},
 };
 use crate::services::{
-  db, financial_products::FinProductService, finchplaid::ApiClient, snapshots::SnapshotService,
+  db, financial_products::FinProductService, finchplaid::ApiClient, plans::PlansService,
+  snapshots::SnapshotService,
 };
 use actix_web::web::Data;
+use rust_decimal::Decimal;
 use std::sync::{Arc, Mutex};
 use wither::{
   mongodb::{
@@ -187,12 +189,10 @@ impl UserService {
       self
         .add_plaid_plan(
           user.clone(),
-          crate::services::plans::PlansService::get_plaid_allocation(
-            user.clone(),
-            plaid_client,
-            user.snapshots[user.snapshots.len() - 1].net_worth.amount,
-          )
-          .await,
+          plaid_client.clone(),
+          SnapshotService::get_last_snapshot(&(self.get_snapshots(&mut user, plaid_client).await?))
+            .net_worth
+            .amount,
         )
         .await?;
     }
@@ -203,8 +203,12 @@ impl UserService {
   pub async fn add_plaid_plan(
     &self,
     mut user: User,
-    allocation: Allocation,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    net_worth: Decimal,
   ) -> Result<(), ApiError> {
+    let allocation =
+      PlansService::get_plaid_allocation(user.clone(), plaid_client.clone(), net_worth).await;
+
     if user.plans.len() < 1 {
       user.plans.push(Plan {
         id: Some(ObjectId::new()),

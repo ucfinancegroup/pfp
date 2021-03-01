@@ -1223,6 +1223,8 @@ components:
     UpdateUserRequest:
       type: object
       properties:
+        email:
+          type: string
         password:
           type: string
         first_name:
@@ -1231,7 +1233,15 @@ components:
           type: string
         income:
           type: number
-          format: int64
+          format: float64
+        net_worth:
+          type: number
+          format: float64
+        location:
+          $ref: "#/components/schemas/Location"
+        birthday:
+          type: string
+          format: date # yyyy-mm-dd
 
     # with serde we wanna #[serde(tag = "t", content = "content")]
     # enum Block {

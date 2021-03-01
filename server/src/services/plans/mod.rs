@@ -97,6 +97,18 @@ pub mod PlansService {
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<PlanResponse, ApiError> {
         let new_alloc = get_plaid_allocation(user.clone(), plaid_client.clone()).await;
+        let total = new_alloc
+            .clone()
+            .schema
+            .into_iter()
+            .fold(dec!(0.0), |total, x| total + x.proportion);
+
+        if total < dec!(98.0) || total > dec!(102.0) {
+            return Err(ApiError::new(
+                400,
+                format!("Unable to properly calculate allocations"),
+            ));
+        }
         let plan = user.plans[0].clone();
 
         user_service.add_plaid_plan(user.clone(), new_alloc).await?;
@@ -124,6 +136,7 @@ pub mod PlansService {
 
         let timeseries =
             TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;
+
         Ok(PlanResponse {
             plan: plan,
             timeseries: timeseries,
@@ -361,8 +374,6 @@ mod test {
         ];
         let res = PlansService::generate_plaid_allocation(accounts, net_worth);
 
-        for i in 0..2 {
-            assert_eq!(target[i], res.schema[i]);
-        }
+        assert_eq!(target, res.schema);
     }
 }

@@ -205,7 +205,7 @@ impl UserService {
     mut user: User,
     plaid_client: Data<Arc<Mutex<ApiClient>>>,
     net_worth: Decimal,
-  ) -> Result<(), ApiError> {
+  ) -> Result<Plan, ApiError> {
     let allocation =
       PlansService::get_plaid_allocation(user.clone(), plaid_client.clone(), net_worth).await;
 
@@ -223,7 +223,7 @@ impl UserService {
 
     self.save(&mut user).await?;
 
-    Ok(())
+    Ok(user.plans[0].clone())
   }
 
   pub async fn get_accounts(

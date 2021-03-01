@@ -143,10 +143,9 @@ pub mod PlansService {
         );
         let net_worth = last_snapshot.net_worth.amount;
 
-        user_service
+        let plan = user_service
             .add_plaid_plan(user.clone(), plaid_client.clone(), net_worth)
             .await?;
-        let plan = get_user_plan(&user);
 
         let timeseries =
             TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;

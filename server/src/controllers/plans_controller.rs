@@ -128,7 +128,7 @@ pub async fn create_new_plan_with_days(
     )
 }
 
-#[put("/plan/")]
+#[put("/plan")]
 pub async fn update_plan(
     user: User,
     payload: Json<PlanUpdatePayload>,

@@ -91,27 +91,15 @@ pub mod PlansService {
     }
 
     pub async fn update_plaid_allocation(
-        mut user: User,
+        user: User,
         days: i64,
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<PlanResponse, ApiError> {
         let new_alloc = get_plaid_allocation(user.clone(), plaid_client.clone()).await;
-
-        if user.plans.len() < 1 {
-            user.plans.push(Plan {
-                id: None,
-                name: "My Plan".to_string(),
-                recurrings: vec![],
-                allocations: vec![new_alloc],
-                events: vec![],
-            });
-        } else {
-            user.plans[0].allocations.push(new_alloc);
-        }
-
         let plan = user.plans[0].clone();
-        user_service.save(&mut user).await?;
+
+        user_service.add_plaid_plan(user.clone(), new_alloc).await?;
 
         let timeseries =
             TimeseriesService::get_timeseries(user, days, user_service, plaid_client).await?;

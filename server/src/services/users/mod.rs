@@ -1,6 +1,7 @@
 use crate::common::errors::ApiError;
 use crate::controllers::plaid_controller::{AccountError, AccountResponse};
 use crate::controllers::user_controller::{LoginPayload, SignupPayload, UpdatePayload};
+use crate::models::plan_model::*;
 use crate::models::{
   insight_model::Insight,
   session_model,
@@ -172,11 +173,45 @@ impl UserService {
     }
 
     // update snapshots after account added
-    self.add_new_snapshot(&mut user, plaid_client).await?;
+    self
+      .add_new_snapshot(&mut user, plaid_client.clone())
+      .await?;
 
     self.save(&mut user).await?;
 
+    // add plan if its user's first account
+    if user.accounts.len() == 1 {
+      self
+        .add_plaid_plan(
+          user.clone(),
+          crate::services::plans::PlansService::get_plaid_allocation(user, plaid_client).await,
+        )
+        .await?;
+    }
+
     state
+  }
+
+  pub async fn add_plaid_plan(
+    &self,
+    mut user: User,
+    allocation: Allocation,
+  ) -> Result<(), ApiError> {
+    if user.plans.len() < 1 {
+      user.plans.push(Plan {
+        id: None,
+        name: "My Plan".to_string(),
+        recurrings: vec![],
+        allocations: vec![allocation],
+        events: vec![],
+      });
+    } else {
+      user.plans[0].allocations.push(allocation);
+    }
+
+    self.save(&mut user).await?;
+
+    Ok(())
   }
 
   pub async fn get_accounts(

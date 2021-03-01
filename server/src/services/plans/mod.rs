@@ -8,7 +8,9 @@ pub mod PlansService {
     use crate::models::recurring_model::*;
     use crate::models::user_model::User;
     use crate::services::finchplaid::ApiClient;
-    use crate::services::{timeseries::TimeseriesService, users::UserService};
+    use crate::services::{
+        snapshots::SnapshotService, timeseries::TimeseriesService, users::UserService,
+    };
     use actix_web::web::Data;
     use chrono::offset;
     use rust_decimal::Decimal;
@@ -128,10 +130,12 @@ pub mod PlansService {
         user_service: Data<UserService>,
         plaid_client: Data<Arc<Mutex<ApiClient>>>,
     ) -> Result<PlanResponse, ApiError> {
-        let snapshots = user_service
-            .get_snapshots(&mut user, plaid_client.clone())
-            .await?;
-        let net_worth = snapshots[snapshots.len() - 1].net_worth.amount;
+        let last_snapshot = SnapshotService::get_last_snapshot(
+            &(user_service
+                .get_snapshots(&mut user, plaid_client.clone())
+                .await?),
+        );
+        let net_worth = last_snapshot.net_worth.amount;
 
         let new_alloc = get_plaid_allocation(user.clone(), plaid_client.clone(), net_worth).await;
         let plan = get_user_plan(&user);

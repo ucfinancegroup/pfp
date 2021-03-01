@@ -6,17 +6,14 @@ import {
     GoalApi,
     GoalMetric,
     GoalNewPayload,
-    RecurringApi,
-    RecurringNewPayload,
-    TimeIntervalTypEnum
 } from "../../api";
 import * as Yup from "yup";
 import Modal from "react-bootstrap/cjs/Modal";
 import Button from "react-bootstrap/cjs/Button";
 import {ErrorMessage, Field, Form, Formik} from "formik";
-import {msToDateString, recurringFrequencies} from "../recurring/RecurringHelpers";
+import {msToDateString} from "../recurring/RecurringHelpers";
 import {goalMetrics} from "./GoalHelpers";
-import {addDaysToToday, dateAsInputString} from "../../Helpers";
+import {addDays, dateAsInputString} from "../../Helpers";
 
 const cx = classNames.bind(styles);
 
@@ -39,7 +36,7 @@ const GoalSchema = Yup.object().shape({
 const initialForm = {
     name: "",
     start: dateAsInputString(new Date()),
-    end: dateAsInputString(addDaysToToday(30)),
+    end: dateAsInputString(addDays(new Date(), 30)),
     threshold: 1000,
     metric: GoalMetric.Income,
 };
@@ -72,7 +69,9 @@ export function GoalsDialog(props: GoalsDialogProps) {
     }
 
     function doExample(example: GoalNewPayload) {
-        setInitialValues(example);
+        const clone = Object.assign({}, example);
+        clone.threshold = Math.abs(example.threshold);
+        setInitialValues(clone);
     }
 
     async function submit(values: GoalNewPayload) {
@@ -104,7 +103,7 @@ export function GoalsDialog(props: GoalsDialogProps) {
                            submit({...values});
                        }}
         >
-            {({errors, touched, values}) => (
+            {({errors, touched, values, isValid}) => (
                 <Form>
                     <div className="form-row">
                         <div className="col">
@@ -161,7 +160,7 @@ export function GoalsDialog(props: GoalsDialogProps) {
                         </div>
                     </div>
 
-                    <button className="btn btn-primary mt-4" type="submit" disabled={Object.keys(touched).length === 0 || Object.keys(errors).length !== 0}>
+                    <button className="btn btn-primary mt-4" type="submit" disabled={!isValid}>
                         {props.editing ? "Save" : "Add"}
                     </button>
                 </Form>

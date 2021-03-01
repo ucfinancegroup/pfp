@@ -1,13 +1,14 @@
 import styles from "./PlanChart.module.scss"
 import classNames from "classnames";
 import * as d3 from "d3";
-import {useEffect, useRef, useState} from "react";
-import React from "react";
-import { curveBasis, bisect } from "d3";
-import {Recurring, RecurringApi, TimeseriesApi} from "../../api";
+import {curveBasis} from "d3";
+import React, {useEffect, useRef, useState} from "react";
+import {PlanApi, Recurring, RecurringApi, RecurringNewPayload, TimeseriesApi, Plan, Allocation} from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
-import {Simulate} from "react-dom/test-utils";
 import {formatPrice} from "../../Helpers";
+import {RecurringDialog} from "../recurring/RecurringDialog";
+import {RecurringType} from "../recurring/RecurringType";
+import {AllocationEditorDialog} from "../allocation/AllocationEditorDialog";
 
 const cx = classNames.bind(styles);
 
@@ -16,6 +17,7 @@ type PlanChartProps = {
 };
 
 const recurringApi = new RecurringApi();
+const planApi = new PlanApi();
 const tsApi = new TimeseriesApi();
 
 export function PlanChart(props: PlanChartProps) {
@@ -23,7 +25,7 @@ export function PlanChart(props: PlanChartProps) {
     const height = 440;
     const width = 1000;
     const margin = ({top: 0, right: 20, bottom: 30, left: 40});
-    const [recurrings, setRecurrings] = useState<Recurring[]>();
+    const [recurrings, setRecurrings] = useState<Recurring[]>([]);
     const [error, setError] = useState<string>();
     const scaleRefX = useRef<any>();
     const scaleRefY = useRef<any>();
@@ -31,13 +33,28 @@ export function PlanChart(props: PlanChartProps) {
     const [menuOpen, setMenuOpen] = useState<{x: number, y: number} | null>(null);
     const [menuDate, setMenuDate] = useState<Date>();
     const [mouseX, setMouseX] = useState<number>(null);
+    const createRectsRef = useRef<any>();
+    const svgRef = useRef<any>();
     const updateRef = useRef<any>();
     const [totalValue, setTotalValue] = useState<number>(null);
     const [mouseValue, setMouseValue] = useState<number>(null);
+    const [currentDate, setCurrentDate] = useState<Date>(null);
+    const [recurringDialogOpen, setRecurringDialogOpen] = useState<boolean>(false);
+    const [recurringDialogEditing, setRecurringDialogEditing] = useState<Recurring>(null);
+    const [recurringDialogMode, setRecurringDialogMode] = useState<RecurringType>();
+    const [allocationDialogOpen, setAllocationDialogOpen] = useState<boolean>(true);
+    const [plan, setPlan] = useState<Plan>();
+    const self = this;
 
     useEffect(() => {
+        getData();
         getRecurrings();
     }, []);
+
+    useEffect(() => {
+        if (updateRef.current)
+            updateRef.current();
+    }, [recurrings])
 
     async function getRecurrings() {
         try {
@@ -47,18 +64,14 @@ export function PlanChart(props: PlanChartProps) {
             setError(await handleFetchError(e));
         }
     }
-    useEffect(() => {
-        if (recurrings)
-            getData();
-    }, [recurrings]);
 
     useEffect(() => {
         const handler = () => {
             setMenuOpen(null);
         };
-        document.addEventListener("mousedown", handler);
+        document.addEventListener("click", handler);
         return () => {
-            document.removeEventListener("mouseover", mouseOver);
+            document.removeEventListener("click", handler);
         }
     }, []);
 
@@ -67,6 +80,10 @@ export function PlanChart(props: PlanChartProps) {
         //    days: 60,
         //});
         const ts = await tsApi.getTimeseriesExample();
+        const plans = await planApi.getPlans();
+        const plan = plans[0];
+        setPlan(plan);
+        console.log(plan);
 
         const predictionStart = new Date(ts.start * 1000);
         const series = ts.series;
@@ -80,6 +97,7 @@ export function PlanChart(props: PlanChartProps) {
         setMouseValue(null);
 
         const area = (x, y) => d3.area()
+            .curve(curveBasis)
             .defined((d: any) => !isNaN(d.value))
             .x((d: any)  => x(d.date))
             .y0(y(0))
@@ -127,13 +145,12 @@ export function PlanChart(props: PlanChartProps) {
 
             svg.append("linearGradient")
                 .attr("id", "areaGradient")
-                .attr("gradientUnits", "userSpaceOnUse")
-                .attr("x1", 0).attr("y1", 0)
-                .attr("x2", 0).attr("y2", maxY)
+                .attr("x1", 0).attr("y1", "0%")
+                .attr("x2", 0).attr("y2", "100%")
                 .selectAll("stop")
                 .data([
-                    {offset: "0%", color: "#21c19c", opacity: 0},
-                    {offset: "100%", color: "#21c19c", opacity: 1},
+                    {offset: "10%", color: "#21c19c", opacity: 0},
+                    {offset: "100%", color: "#21c19c", opacity: 0.4},
                 ])
                 .enter().append("stop")
                 .attr("stop-opacity", function(d) { return d.opacity; })
@@ -194,10 +211,10 @@ export function PlanChart(props: PlanChartProps) {
                 knownPath.attr("d", line(focusX, focusY) as any);
                 predictedPath.attr("d", line(focusX, focusY) as any);
 
-                createRects(svg, focusX, false, height - margin.bottom);
+                createRectsRef.current(svg, focusX, false, height - margin.bottom);
             };
 
-            updateRef.current = svg;
+            svgRef.current = svg;
             const mouseArea = svg.append("rect")
                 .attr("x", margin.left)
                 .attr("y", margin.top)
@@ -211,7 +228,6 @@ export function PlanChart(props: PlanChartProps) {
         }
 
         const chart = createChart();
-
 
         function createFocus() {
             const svg = d3.create("svg")
@@ -243,15 +259,16 @@ export function PlanChart(props: PlanChartProps) {
                 .call(brush)
                 .call(brush.move, defaultSelection);
 
-            createRects(svg, x, true, focusHeight - 30);
 
             function brushed({selection}) {
                 if (selection) {
                     svg.property("value", selection.map(x.invert, x).map(d3.utcDay.round));
                     svg.dispatch("input");
-                    requestAnimationFrame(() => {
-                        update();
-                    });
+                    if (updateRef.current) {
+                        requestAnimationFrame(() => {
+                            update();
+                        });
+                    }
                 }
             }
 
@@ -261,113 +278,114 @@ export function PlanChart(props: PlanChartProps) {
                 }
             }
 
-            return svg.node();
+            return [svg.node(), svg];
         }
 
-        const focus = createFocus();
+        const [focus, focusSvg] = createFocus();
 
         function update() {
             const [minX, maxX] = (focus as any).value as any;
             const maxY = d3.max(data, (d: any) => minX <= d.date && d.date <= maxX ? d.value as any : NaN);
             (chart as any).update(x.copy().domain((focus as any).value as any), y.copy().domain([0, maxY] as any));
-
+            createRectsRef.current(focusSvg, x, true, focusHeight - 30);
             document.getElementById("d3test").innerHTML = "";
             document.getElementById("d3test").appendChild(chart);
-            document.getElementById("d3test").appendChild(focus);
+            document.getElementById("d3test").appendChild(focus as any);
         }
 
+        updateRef.current = update;
+        update();
+    }
 
-        function createRects(svg: d3.Selection<SVGSVGElement, undefined, null, undefined>, x: Function, mini: boolean, height: number) {
-            svg.selectAll('.rects').remove();
+    createRectsRef.current = function(svg: d3.Selection<SVGSVGElement, undefined, null,
+        undefined>, x: Function, mini: boolean, height: number) {
+        svg.selectAll('.rects').remove();
 
-            const betweenPadding = 2;
-            const bottom = height - betweenPadding; // Padding
+        const betweenPadding = 2;
+        const bottom = height - betweenPadding; // Padding
 
-            const colors = [
-                '#da9090',
-                '#E7A8E3',
-                '#90DAD9',
-                '#F2DDC0',
-                '#F3BEBC',
-                '#A09CF3',
-                '#ADEAC3',
-                '#c4da90',
-            ]
+        const colors = [
+            '#da9090',
+            '#E7A8E3',
+            '#90DAD9',
+            '#F2DDC0',
+            '#F3BEBC',
+            '#A09CF3',
+            '#ADEAC3',
+            '#c4da90',
+        ];
 
-            const graphRecurrings: GraphRecurring[] = recurrings.map((x, i) => {
-                return {
-                    start: new Date(x.start),
-                    end: new Date(x.end),
-                    level: -1,
-                    name: x.name,
-                    color: null,
-                }
-            });
+        const graphRecurrings: GraphRecurring[] = recurrings.map((x, i) => {
+            return {
+                start: new Date(x.start),
+                end: new Date(x.end),
+                level: -1,
+                name: x.name,
+                color: null,
+            }
+        });
 
-            const sortedRecurrings = graphRecurrings.sort((a, b) =>
-                a.start.getTime() - b.start.getTime());
+        const sortedRecurrings = graphRecurrings.sort((a, b) =>
+            a.start.getTime() - b.start.getTime());
 
-            // Slow overlap algo
-            let ai = 0;
-            for (let a of sortedRecurrings) {
-                let level = 0;
-                a.color = colors[ai % (colors.length)];
+        // Slow overlap algo
+        let ai = 0;
+        for (let a of sortedRecurrings) {
+            let level = 0;
+            a.color = colors[ai % (colors.length)];
 
-                for (let b of sortedRecurrings) {
-                    const overlap = a.end > b.start && a.start < b.end;
+            for (let b of sortedRecurrings) {
+                const overlap = a.end > b.start && a.start < b.end;
 
-                    if (overlap && level === b.level)
-                        level++;
-                }
-
-                a.level = level;
-                ai++;
-
+                if (overlap && level === b.level)
+                    level++;
             }
 
-            const rects = svg.append('g')
-                .attr('class', 'rects');
+            a.level = level;
+            ai++;
+
+        }
+
+        const rects = svg.append('g')
+            .attr('class', 'rects');
+
+        if (!mini) {
+            rects.attr("clip-path", "url(#rectClip)");
+        }
+
+        for (let recurring of sortedRecurrings) {
+            const rectLeft = x(recurring.start);
+            const rectRight = x(recurring.end);
+            const rectHeight = !mini ? 20 : 5;
+            const cornerRadius = !mini ? 5 : 2;
+
+            const rectWidth = rectRight - rectLeft;
+            let y = bottom - rectHeight;
+            y -= recurring.level * (rectHeight + betweenPadding);
+
+            const g = rects.append('g')
+                .attr('class', 'rect')
+                .attr('transform', `translate(${rectLeft},${y})`)
+
+
+
+
+            g.append('rect')
+                .attr('rx', cornerRadius)
+                .attr('rx', cornerRadius)
+                .attr('width', rectWidth)
+                .attr('height', rectHeight)
+                .attr('fill', recurring.color);
 
             if (!mini) {
-                rects.attr("clip-path", "url(#rectClip)");
-            }
-
-            for (let recurring of sortedRecurrings) {
-                const rectLeft = x(recurring.start);
-                const rectRight = x(recurring.end);
-                const rectHeight = !mini ? 20 : 5;
-                const cornerRadius = !mini ? 5 : 2;
-
-                const rectWidth = rectRight - rectLeft;
-                let y = bottom - rectHeight;
-                y -= recurring.level * (rectHeight + betweenPadding);
-
-                const g = rects.append('g')
-                    .attr('class', 'rect')
-                    .attr('transform', `translate(${rectLeft},${y})`)
-
-
-
-
-                g.append('rect')
-                    .attr('rx', cornerRadius)
-                    .attr('rx', cornerRadius)
-                    .attr('width', rectWidth)
-                    .attr('height', rectHeight)
-                    .attr('fill', recurring.color);
-
-                if (!mini) {
-                    g.append('text')
-                        .attr('x', 6)
-                        .attr('y', 15)
-                        .attr('fill', 'black')
-                        .attr('font-size', "14px")
-                        .text(recurring.name);
-                }
+                g.append('text')
+                    .attr('x', 6)
+                    .attr('y', 15)
+                    .attr('fill', 'black')
+                    .attr('font-size', "14px")
+                    .text(recurring.name);
             }
         }
-
-        update();
     }
 
     function onContextMenu(e: MouseEvent) {
@@ -394,19 +412,21 @@ export function PlanChart(props: PlanChartProps) {
         const point = dataRef.current[bisect(dataRef.current as any, date)];
         if (point) {
             setMouseValue(point.value);
+            setCurrentDate(point.date);
+            svgRef.current.select("." + styles["mouse-line"])
+                .attr("opacity", 1)
+                .attr("x1", x)
+                .attr("x2", x);
         } else {
-            setMouseValue(null);
+            mouseLeave();
         }
-        updateRef.current.select("." + styles["mouse-line"])
-            .attr("opacity", 1)
-            .attr("x1", x)
-            .attr("x2", x);
     }
 
     function mouseLeave() {
         setMouseX(null);
+        setCurrentDate(null);
         setMouseValue(null);
-        updateRef.current.select("." + styles["mouse-line"]).attr("x1", -1).attr("x2", -1);
+        svgRef.current.select("." + styles["mouse-line"]).attr("x1", -100).attr("x2", -100);
     }
 
     if (error) {
@@ -419,10 +439,83 @@ export function PlanChart(props: PlanChartProps) {
         return <p>Loading...</p>
     }
 
+    async function recurringDialogClosed(recurring: RecurringNewPayload) {
+        if (recurring) {
+            if (recurringDialogEditing) {
+                await recurringApi.updateRecurring({
+                    recurringNewPayload: recurring,
+                    id:recurringDialogEditing._id.$oid,
+                });
+                Object.assign(recurringDialogEditing, recurring);
+                setRecurrings([...recurrings]);
+            } else {
+                const result = await recurringApi.newRecurring({
+                    recurringNewPayload: recurring
+                });
+                setRecurrings([...recurrings, result]);
+            }
+        }
+        setRecurringDialogEditing(null);
+        setRecurringDialogOpen(false);
+    }
+
+    function menuAddExpense() {
+        setRecurringDialogOpen(true);
+        setRecurringDialogMode(RecurringType.Expense);
+    }
+
+    function menuAddIncome() {
+        setRecurringDialogOpen(true);
+        setRecurringDialogMode(RecurringType.Income);
+    }
+
+    function menuModifyAllocations() {
+        setAllocationDialogOpen(true);
+    }
+
+    function getDateString() {
+        if (!currentDate) return 'Today';
+        var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return currentDate.toLocaleDateString("en-US", options);
+    }
+
+    function renderPercentDifference() {
+        if (!mouseValue) return null;
+        const percentDifference = (mouseValue - totalValue) / totalValue;
+        if (percentDifference >= 0) {
+            return <span className="text-success">+{percentDifference.toFixed(2)}%</span>
+        } else {
+            return <span className="text-danger">{percentDifference.toFixed(2)}%</span>
+        }
+    }
+
+    async function allocationEditorClosed(allocations: Allocation[]) {
+       setAllocationDialogOpen(false);
+       if (!allocations) return;
+
+       await planApi.newPlan({
+           planNewPayload: {
+               ...plan,
+               allocations,
+           }
+       });
+    }
 
     return <div>
-        {totalValue !== null &&
-            <h2>{formatPrice(mouseValue ?? totalValue)}</h2>
+        {
+            plan &&
+              <>
+            <AllocationEditorDialog allocations={plan.allocations}
+                                    editing={null} creating={new Date()} show={allocationDialogOpen}
+                                    onClose={allocations => allocationEditorClosed(allocations)}/>
+            <RecurringDialog startDate={menuDate} show={recurringDialogOpen} mode={recurringDialogMode} onClose={r => recurringDialogClosed(r)}
+            editing={recurringDialogEditing}/>
+              </>
+        }
+        {totalValue !== null && <div className={styles.current}>
+            <h2 className={styles.value}>{formatPrice(mouseValue ?? totalValue)} <span className={styles.difference}>{renderPercentDifference()}</span></h2>
+            <h5 className="text-secondary">{getDateString()}</h5>
+            </div>
         }
 
         <div id="d3test">
@@ -434,9 +527,9 @@ export function PlanChart(props: PlanChartProps) {
                 <strong>{menuDate.toDateString()}</strong>
               </div>
               <ul>
-                <li>Add Expense</li>
-                <li>Add Income</li>
-                <li>Modify Allocations</li>
+                <li onClick={menuAddExpense}>Add Expense</li>
+                <li onClick={menuAddIncome}>Add Income</li>
+                <li onClick={menuModifyAllocations}>Modify Allocations</li>
                 <li>Simulate Event</li>
               </ul>
             </div>

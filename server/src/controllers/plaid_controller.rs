@@ -4,10 +4,11 @@ use crate::services::financial_products::FinProductService;
 use crate::services::finchplaid;
 use crate::services::users::UserService;
 use actix_web::{
-  delete, get, post,
+  delete, get, post, put,
   web::{Data, Path},
   HttpResponse,
 };
+use actix_web_validator::{Json, Validate};
 use finchplaid::ApiClient;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -36,6 +37,7 @@ pub struct AccountSuccess {
   pub name: String,
   pub balance: Decimal,
   pub account_type: String,
+  pub account_id: String,
 }
 
 #[derive(Serialize)]
@@ -43,6 +45,13 @@ pub struct AccountError {
   pub item_id: String,
   pub code: u16,
   pub message: String,
+}
+
+#[derive(Deserialize, Validate)]
+pub struct SetAccountAsHiddenPayload {
+  pub item_id: String,
+  pub account_id: String,
+  pub hide_or_not: bool,
 }
 
 #[post("/plaid/link_token")]
@@ -88,16 +97,36 @@ async fn access_token(
   crate::common::into_response_res(res)
 }
 
-#[get("/plaid/accounts")]
+#[get("/plaid/accounts/{allOrUnhidden}")]
 pub async fn get_accounts(
+  Path(all_or_unhidden): Path<String>,
   user: User,
   user_service: Data<UserService>,
   plaid_client: Data<Arc<Mutex<ApiClient>>>,
 ) -> HttpResponse {
-  crate::common::into_response_res(user_service.get_accounts(&user, plaid_client).await)
+  let show_all_accounts = match all_or_unhidden.as_str() {
+    "all" => true,
+    "unhidden" => false,
+    _ => {
+      return ApiError::new(
+        400,
+        format!(
+          "Should request 'all' or 'unhidden', requested '{}'",
+          all_or_unhidden
+        ),
+      )
+      .into()
+    }
+  };
+
+  crate::common::into_response_res(
+    user_service
+      .get_accounts(&user, plaid_client, show_all_accounts)
+      .await,
+  )
 }
 
-#[delete("plaid/accounts/{id}")]
+#[delete("/plaid/accounts/{id}")]
 pub async fn delete_account(
   Path(accounts_id): Path<String>,
   user: User,
@@ -106,10 +135,30 @@ pub async fn delete_account(
 ) -> HttpResponse {
   crate::common::into_response_res(
     user_service
-      .delete_account_and_save(accounts_id.clone(), user, plaid_client)
+      .delete_item_and_save(accounts_id.clone(), user, plaid_client)
       .await
       .map(|item_id| ItemIdResponse { item_id }),
   )
+}
+
+#[put("/plaid/accounts/hide")]
+pub async fn put_hide_unhide_account(
+  mut user: User,
+  user_service: Data<UserService>,
+  payload: Json<SetAccountAsHiddenPayload>,
+  plaid_client: Data<Arc<Mutex<ApiClient>>>,
+) -> HttpResponse {
+  let SetAccountAsHiddenPayload {
+    item_id,
+    account_id,
+    hide_or_not,
+  } = payload.into_inner();
+
+  let hiding_res = user_service
+    .hide_unhide_account(&mut user, item_id, account_id, hide_or_not, plaid_client)
+    .await;
+
+  crate::common::into_response_res(hiding_res)
 }
 
 pub fn init_routes(config: &mut actix_web::web::ServiceConfig) {
@@ -117,4 +166,5 @@ pub fn init_routes(config: &mut actix_web::web::ServiceConfig) {
   config.service(access_token);
   config.service(get_accounts);
   config.service(delete_account);
+  config.service(put_hide_unhide_account);
 }

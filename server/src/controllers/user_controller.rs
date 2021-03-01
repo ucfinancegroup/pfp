@@ -1,7 +1,7 @@
 use crate::models::user_model::{Location, User};
 use crate::services::{sessions::SessionService, users::UserService};
 use actix_session::Session;
-use actix_web::{post, put, web::Data, HttpResponse};
+use actix_web::{get, post, put, web::Data, HttpResponse};
 use actix_web_validator::{Json, Validate};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -209,6 +209,13 @@ pub async fn validate_user(
   good_response.into()
 }
 
+type GetUserResponse = SignupResponse;
+
+#[get("/user")]
+pub async fn get_user(user: User) -> HttpResponse {
+  crate::common::into_response(GetUserResponse::new(user))
+}
+
 // you add the services here.
 use actix_web::web::ServiceConfig;
 pub fn init_routes(config: &mut ServiceConfig) {
@@ -217,6 +224,7 @@ pub fn init_routes(config: &mut ServiceConfig) {
   config.service(update_user);
   config.service(logout);
   config.service(validate_user);
+  config.service(get_user);
 }
 
 #[cfg(test)]

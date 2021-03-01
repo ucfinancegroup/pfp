@@ -23,46 +23,39 @@ import {
 /**
  * 
  * @export
- * @interface Asset
+ * @interface AssetClassAndApy
  */
-export interface Asset {
-    /**
-     * 
-     * @type {string}
-     * @memberof Asset
-     */
-    name: string;
+export interface AssetClassAndApy {
     /**
      * 
      * @type {AssetClass}
-     * @memberof Asset
+     * @memberof AssetClassAndApy
      */
     _class: AssetClass;
     /**
-     * Annualised Percentage Performance
+     * 
      * @type {number}
-     * @memberof Asset
+     * @memberof AssetClassAndApy
      */
-    annualized_performance?: number;
+    apy: number;
 }
 
-export function AssetFromJSON(json: any): Asset {
-    return AssetFromJSONTyped(json, false);
+export function AssetClassAndApyFromJSON(json: any): AssetClassAndApy {
+    return AssetClassAndApyFromJSONTyped(json, false);
 }
 
-export function AssetFromJSONTyped(json: any, ignoreDiscriminator: boolean): Asset {
+export function AssetClassAndApyFromJSONTyped(json: any, ignoreDiscriminator: boolean): AssetClassAndApy {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'name': json['name'],
         '_class': AssetClassFromJSON(json['class']),
-        'annualized_performance': !exists(json, 'annualized_performance') ? undefined : json['annualized_performance'],
+        'apy': json['apy'],
     };
 }
 
-export function AssetToJSON(value?: Asset | null): any {
+export function AssetClassAndApyToJSON(value?: AssetClassAndApy | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -71,9 +64,8 @@ export function AssetToJSON(value?: Asset | null): any {
     }
     return {
         
-        'name': value.name,
         'class': AssetClassToJSON(value._class),
-        'annualized_performance': value.annualized_performance,
+        'apy': value.apy,
     };
 }
 

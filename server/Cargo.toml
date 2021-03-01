@@ -10,7 +10,7 @@ edition = "2018"
 actix-rt = "*"
 actix-web = "3"
 actix-session="0.4.0"
-actix-web-validator="2.0.3"
+actix-web-validator={git="https://github.com/c650/actix-web-validator"}
 serde = "1.0.117"
 rust-argon2="0.8.2"
 rand = "0.8.3"

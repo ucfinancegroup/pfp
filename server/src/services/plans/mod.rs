@@ -343,12 +343,14 @@ mod test {
                 name: "blah".to_string(),
                 balance: dec!(500),
                 account_type: "depository".to_string(),
+                account_id: "blah".to_string(),
             },
             AccountSuccess {
                 item_id: "blah2".to_string(),
                 name: "blah2".to_string(),
                 balance: dec!(500),
                 account_type: "investment".to_string(),
+                account_id: "blah".to_string(),
             },
         ]
     }

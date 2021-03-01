@@ -14,10 +14,11 @@ pub struct Plan {
     pub events: Vec<Event>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Allocation {
     pub description: String,
     pub date: i64,
+    #[validate(custom = "crate::common::allocation_schema_sum_around_100")]
     pub schema: Vec<AllocationProportion>,
 }
 

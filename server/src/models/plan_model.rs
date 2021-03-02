@@ -49,7 +49,6 @@ pub enum AssetClass {
     Equity,
     Etf,
     Fixed,
-    Loan,
     MutualFund,
     Other,
     Custom(String),

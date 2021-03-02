@@ -1,6 +1,7 @@
 pub mod errors;
 pub mod finchlog;
 mod money;
+use crate::models::plan_model::AllocationProportion;
 use actix_web::HttpResponse;
 use chrono::{Datelike, TimeZone, Utc};
 pub use money::*;
@@ -48,6 +49,21 @@ pub fn decimal_between_zero_or_hundred(d: &Decimal) -> Result<(), ValidationErro
   match *d >= dec!(0) && *d <= dec!(100) {
     true => Ok(()),
     false => Err(ValidationError::new("Field must be between 0 and 100")),
+  }
+}
+
+pub fn allocation_schema_sum_around_100(
+  schema: &Vec<AllocationProportion>,
+) -> Result<(), ValidationError> {
+  let total = schema
+    .into_iter()
+    .fold(dec!(0.0), |total, x| total + x.proportion);
+
+  match total < dec!(98.0) || total > dec!(102.0) {
+    true => Ok(()),
+    false => Err(ValidationError::new(
+      "Unable to properly calculate allocations",
+    )),
   }
 }
 

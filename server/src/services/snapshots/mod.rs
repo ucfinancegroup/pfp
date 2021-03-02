@@ -191,7 +191,7 @@ pub mod SnapshotService {
     Duration::seconds(now - last_time) > Duration::days(1)
   }
 
-  fn get_last_snapshot(snapshots: &Vec<Snapshot>) -> Snapshot {
+  pub fn get_last_snapshot(snapshots: &Vec<Snapshot>) -> Snapshot {
     if snapshots.len() <= 0 {
       return Snapshot::default();
     }

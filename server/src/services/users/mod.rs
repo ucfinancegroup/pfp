@@ -1,18 +1,24 @@
 use crate::common::errors::ApiError;
 use crate::controllers::plaid_controller::{AccountError, AccountResponse};
 use crate::controllers::user_controller::{LoginPayload, SignupPayload, UpdatePayload};
+use crate::models::plan_model::*;
 use crate::models::{
   insight_model::Insight,
   session_model,
   user_model::{AccountRecord, PlaidItem, Snapshot, User},
 };
 use crate::services::{
-  db, financial_products::FinProductService, finchplaid::ApiClient, snapshots::SnapshotService,
+  db, financial_products::FinProductService, finchplaid::ApiClient, plans::PlansService,
+  snapshots::SnapshotService,
 };
 use actix_web::web::Data;
+use rust_decimal::Decimal;
 use std::sync::{Arc, Mutex};
 use wither::{
-  mongodb::{bson::doc, Database},
+  mongodb::{
+    bson::{doc, oid::ObjectId},
+    Database,
+  },
   prelude::Migrating,
   Model,
 };
@@ -172,11 +178,52 @@ impl UserService {
     }
 
     // update snapshots after account added
-    self.add_new_snapshot(&mut user, plaid_client).await?;
+    self
+      .add_new_snapshot(&mut user, plaid_client.clone())
+      .await?;
 
     self.save(&mut user).await?;
 
+    // add plan if its user's first account
+    if user.accounts.len() == 1 {
+      self
+        .add_plaid_plan(
+          user.clone(),
+          plaid_client.clone(),
+          SnapshotService::get_last_snapshot(&(self.get_snapshots(&mut user, plaid_client).await?))
+            .net_worth
+            .amount,
+        )
+        .await?;
+    }
+
     state
+  }
+
+  pub async fn add_plaid_plan(
+    &self,
+    mut user: User,
+    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    net_worth: Decimal,
+  ) -> Result<Plan, ApiError> {
+    let allocation =
+      PlansService::get_plaid_allocation(user.clone(), plaid_client.clone(), net_worth).await;
+
+    if user.plans.len() < 1 {
+      user.plans.push(Plan {
+        id: Some(ObjectId::new()),
+        name: "My Plan".to_string(),
+        recurrings: vec![],
+        allocations: vec![allocation],
+        events: vec![],
+      });
+    } else {
+      user.plans[0].allocations.push(allocation);
+    }
+
+    self.save(&mut user).await?;
+
+    Ok(user.plans[0].clone())
   }
 
   pub async fn get_accounts(

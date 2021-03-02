@@ -14,11 +14,12 @@ pub struct Plan {
     pub events: Vec<Event>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Allocation {
     pub description: String,
     pub date: i64,
-    pub schema: Vec<AllocationChange>,
+    #[validate(custom = "crate::common::allocation_schema_sum_around_100")]
+    pub schema: Vec<AllocationProportion>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -34,14 +35,14 @@ pub struct Transform {
     pub changes: Vec<AssetChange>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
 pub struct Asset {
     pub name: String,
     pub class: AssetClass,
     pub annualized_performance: Decimal,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
 #[serde(tag = "typ", content = "content")]
 pub enum AssetClass {
     Cash,
@@ -67,9 +68,9 @@ pub struct AssetChange {
     pub change: Decimal,
 }
 
-#[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct AllocationChange {
+#[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
+pub struct AllocationProportion {
     pub asset: Asset,
     #[validate(custom = "crate::common::decimal_between_zero_or_hundred")]
-    pub change: Decimal,
+    pub proportion: Decimal,
 }

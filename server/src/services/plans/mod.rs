@@ -16,6 +16,7 @@ pub mod PlansService {
     use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
     use serde::{Deserialize, Serialize};
+    use std::collections::HashMap;
     use std::sync::{Arc, Mutex};
     use wither::{mongodb::bson::oid::ObjectId, Model};
 
@@ -191,33 +192,38 @@ pub mod PlansService {
         accounts: Vec<AccountSuccess>,
         net_worth: Decimal,
     ) -> Allocation {
-        let default_percentages = get_asset_classes_and_default_apys();
+        let default_percentages = get_asset_classes_and_default_apys()
+            .into_iter()
+            .map(|class_and_apy| (class_and_apy.class, class_and_apy.apy))
+            .collect::<HashMap<_, _>>();
+
         let asset_percentages = accounts
             .into_iter()
-            .map(|a| {
-                let account_class = match a.account_type.as_str() {
-                    "depository" => AssetClass::Cash,
-                    "credit" => AssetClass::Loan,
-                    "loan" => AssetClass::Loan,
-                    "investment" => AssetClass::Equity, // for now classify all investments as broad equities
-                    _ => AssetClass::Cash,
+            .filter_map(|account| {
+                let t = account.account_type.as_str();
+
+                let asset_class = match t {
+                    "depository" => Some(AssetClass::Cash),
+                    "investment" => Some(AssetClass::Equity), // for now classify all investments as broad equities
+                    _ => None,
                 };
 
-                let performance = match default_percentages
-                    .iter()
-                    .find(|a| a.class == account_class)
-                {
-                    Some(act) => act.apy.clone(),
-                    None => dec!(1.0),
-                };
+                asset_class.map(|c| (c, account.balance, account.account_type))
+            })
+            .map(|(asset_class, balance, account_type)| {
+                let performance = default_percentages
+                    .get(&asset_class)
+                    .cloned()
+                    .or(Some(dec!(1.0)))
+                    .unwrap();
 
                 AllocationProportion {
                     asset: Asset {
-                        name: a.account_type,
-                        class: account_class,
+                        name: account_type,
+                        class: asset_class,
                         annualized_performance: performance,
                     },
-                    proportion: a.balance / net_worth * dec!(100.0),
+                    proportion: balance / net_worth * dec!(100.0),
                 }
             })
             .collect();
@@ -308,10 +314,6 @@ pub mod PlansService {
             AssetClassAndApy {
                 class: Fixed,
                 apy: dec!(1.02),
-            },
-            AssetClassAndApy {
-                class: Loan,
-                apy: dec!(0.97),
             },
             AssetClassAndApy {
                 class: MutualFund,

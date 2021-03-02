@@ -46,7 +46,6 @@ pub struct Asset {
 #[serde(tag = "typ", content = "content")]
 pub enum AssetClass {
     Cash,
-    Derivative,
     Equity,
     Etf,
     Fixed,

@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pfp-pfp-service-insights
+spec:
+  selector:
+    matchLabels:
+      app: pfp-pfp-service-insights
+      tier: backend
+  replicas: 1
+  progressDeadlineSeconds: 2400
+  template:
+    metadata:
+      labels:
+        app: pfp-pfp-service-insights
+        tier: backend
+    spec:
+      containers:
+        - name: pfp-pfp-service-insights
+          image: finchcontainerregistry.azurecr.io/pfp_pfp_service_insights:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: secret-volume
+              mountPath: /etc/k8s_secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: backend-secret

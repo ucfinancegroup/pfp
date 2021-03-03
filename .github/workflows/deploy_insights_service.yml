@@ -1,11 +1,13 @@
+# only ENV and manifests should change in this file. otherwise keep it the same as deploy_api.yml
+
 on: [workflow_dispatch]
 
 name: Deploy API to Azure
 
 env:
   NAMESPACE: ingress-basic
-  APP_NAME: pfp_pfp_server
-  BIN_NAME: api
+  APP_NAME: pfp_pfp_service_insights
+  BIN_NAME: service_insights
 
 jobs:
   build-and-deploy:
@@ -45,8 +47,7 @@ jobs:
       - uses: azure/k8s-deploy@v1
         with:
           manifests: |
-            k8s/server.deployment.yaml
-            k8s/server.service.yaml
+            k8s/insights_service.deployment.yaml
           images: |
             ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ env.APP_NAME }}:${{ github.sha }}
           namespace: ${{ env.NAMESPACE }}

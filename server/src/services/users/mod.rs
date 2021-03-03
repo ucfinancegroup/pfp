@@ -80,7 +80,10 @@ impl UserService {
     // search db for user
     let search_db_res = User::find_one(&self.db, Some(doc! {"email": data.email.clone()}), None)
       .await
-      .map_err(|_| ApiError::new(500, "DB Error".to_string()));
+      .map_err(|err| {
+        log::error!("Got error on login {}", err);
+        ApiError::new(500, "DB Error".to_string())
+      });
 
     // check if user found and parse to User
     let got_user_res: Result<User, ApiError> = search_db_res

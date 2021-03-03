@@ -13,6 +13,10 @@ jobs:
       - name: "Checkout repo"
         uses: actions/checkout@main
 
+      - name: Docker Layer Caching
+        uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+
       - name: "Login via Azure CLI"
         uses: azure/login@v1
         with:

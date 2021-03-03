@@ -40,6 +40,7 @@ export function AccountsList(props: AccountsListProps) {
         const accounts = await plaidApi.getAccounts({
             allOrUnhidden: GetAccountsAllOrUnhiddenEnum.All,
         });
+
         setAccounts(accounts.accounts);
     }
 

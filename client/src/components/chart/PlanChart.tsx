@@ -79,10 +79,9 @@ export function PlanChart(props: PlanChartProps) {
         //const ts = await tsApi.getTimeseries({
         //    days: 60,
         //});
-        const ts = await tsApi.getTimeseriesExample();
-        const plans = await planApi.getPlans();
-        const plan = plans[0];
-        setPlan(plan);
+        const planData = await planApi.getPlan();
+        setPlan(planData.plan);
+        const ts = planData.timeseries;
         console.log(plan);
 
         const predictionStart = new Date(ts.start * 1000);

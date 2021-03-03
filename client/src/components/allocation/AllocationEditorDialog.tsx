@@ -1,7 +1,7 @@
 import styles from "./AllocationEditorDialog.module.scss"
 import classNames from "classnames";
 import React, {useEffect, useState} from "react";
-import {Allocation, AllocationChange, AssetClassAndApy, AssetClassesApi, AssetClassTypEnum} from "../../api";
+import {Allocation, AllocationProportion, AssetClassAndApy, AssetClassesApi, AssetClassTypEnum} from "../../api";
 import Modal from "react-bootstrap/cjs/Modal";
 import {dateAsInputString} from "../../Helpers";
 
@@ -22,7 +22,7 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
     const [classes, setClasses] = useState<AssetClassAndApy[]>();
     const [name, setName] = useState<string>("");
     const [date, setDate] = useState<string>(dateAsInputString(new Date()));
-    const [assets, setAssets] = useState<AllocationChange[]>([]);
+    const [assets, setAssets] = useState<AllocationProportion[]>([]);
     useEffect(() => {
         if (props.show)
             load();
@@ -65,19 +65,19 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
 
     function addAsset() {
         const assetClass = classes[0];
-        const newAsset: AllocationChange = {
+        const newAsset: AllocationProportion = {
             asset: {
                 name: "",
                 _class: assetClass._class,
                 annualized_performance: assetClass.apy,
             },
-            change: 0,
+            proportion: 0,
         };
         (newAsset as any)._react = Math.random();
         setAssets([...assets, newAsset]);
     }
 
-    function removeAsset(asset: AllocationChange) {
+    function removeAsset(asset: AllocationProportion) {
         const index = assets.indexOf(asset);
         assets.splice(index, 1);
         setAssets([...assets]);
@@ -102,7 +102,7 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
         }
     }
 
-    const allocationTotal = assets.length === 0 ? 0 : assets.map(a => a.change).reduce((a, b) => a + b);
+    const allocationTotal = assets.length === 0 ? 0 : assets.map(a => a.proportion).reduce((a, b) => a + b);
     const allocationRemaining = 100 - allocationTotal;
 
     return <Modal show={props.show} onHide={() => close()}  dialogClassName="modal-large">
@@ -164,13 +164,13 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                             </td>
                             <td>
                                 <span className={styles.slider__container}>
-                                    <input type="range" min="0" max={Math.min(100, a.change + allocationRemaining)}
+                                    <input type="range" min="0" max={Math.min(100, a.proportion + allocationRemaining)}
                                            className={cx(styles.slider, "form-control")}
-                                        value={a.change}  onChange={e => {
-                                        a.change = parseFloat(e.target.value);
+                                        value={a.proportion}  onChange={e => {
+                                        a.proportion = parseFloat(e.target.value);
                                         setAssets([...assets]);
                                     }}/>
-                                    <span>{a.change.toFixed(2)}%</span>
+                                    <span>{a.proportion.toFixed(2)}%</span>
                                 </span>
                             </td>
                             <td>

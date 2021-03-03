@@ -2,7 +2,7 @@
 
 on: [workflow_dispatch]
 
-name: Deploy API to Azure
+name: Deploy Insights Service to Azure
 
 env:
   NAMESPACE: ingress-basic

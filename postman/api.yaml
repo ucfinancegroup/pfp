@@ -1515,7 +1515,7 @@ components:
       type: object
       required:
         - asset
-        - change
+        - proportion
       properties:
         asset:
           $ref: "#/components/schemas/Asset"

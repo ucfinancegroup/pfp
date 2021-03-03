@@ -5,6 +5,10 @@ on:
     branches: [master]
     paths:
       - "client/**"
+  push:
+    branches: [master]
+    paths:
+      - "client/**"
 
 env:
   working-directory: ./client

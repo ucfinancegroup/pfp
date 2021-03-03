@@ -1454,18 +1454,7 @@ components:
         typ:
           description: "what type of asset it is"
           type: string
-          enum:
-            [
-              Cash,
-              Derivative,
-              Equity,
-              Etf,
-              Fixed,
-              Loan,
-              MutualFund,
-              Other,
-              Custom,
-            ]
+          enum: [Cash, Equity, Etf, Fixed, MutualFund, Other, Custom]
         content:
           description: "extra info, such as symbol name, used in Custom"
           type: string

@@ -42,15 +42,13 @@ pub struct Asset {
     pub annualized_performance: Decimal,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 #[serde(tag = "typ", content = "content")]
 pub enum AssetClass {
     Cash,
-    Derivative,
     Equity,
     Etf,
     Fixed,
-    Loan,
     MutualFund,
     Other,
     Custom(String),

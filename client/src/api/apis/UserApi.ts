@@ -43,6 +43,32 @@ export interface SignupUserRequest {
 export class UserApi extends runtime.BaseAPI {
 
     /**
+     * Gets user info
+     */
+    async getUserRaw(): Promise<runtime.ApiResponse<User>> {
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/user`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserFromJSON(jsonValue));
+    }
+
+    /**
+     * Gets user info
+     */
+    async getUser(): Promise<User> {
+        const response = await this.getUserRaw();
+        return await response.value();
+    }
+
+    /**
      * Log in a user
      */
     async loginUserRaw(requestParameters: LoginUserRequest): Promise<runtime.ApiResponse<User>> {

@@ -6,7 +6,7 @@
 import PlaidLink from "../../components/accounts/PlaidLink";
 import {PlaidService} from "../../services/PlaidService";
 import React, {useEffect, useState} from "react";
-import {PlaidApi, Account} from "../../api";
+import {PlaidApi, Account, GetAccountsAllOrUnhiddenEnum} from "../../api";
 import {getRecurringFrequencyName} from "../recurring/RecurringHelpers";
 import styles from "../recurring/RecurringList.module.scss";
 import {formatPrice} from "../../Helpers";
@@ -37,7 +37,9 @@ export function AccountsList(props: AccountsListProps) {
     }
 
     async function loadAccounts() {
-        const accounts = await plaidApi.getAccounts();
+        const accounts = await plaidApi.getAccounts({
+            allOrUnhidden: GetAccountsAllOrUnhiddenEnum.All,
+        });
         setAccounts(accounts.accounts);
     }
 

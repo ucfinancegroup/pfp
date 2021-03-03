@@ -13,12 +13,25 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    Location,
+    LocationFromJSON,
+    LocationFromJSONTyped,
+    LocationToJSON,
+} from './';
+
 /**
  * 
  * @export
  * @interface UpdateUserRequest
  */
 export interface UpdateUserRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateUserRequest
+     */
+    email?: string;
     /**
      * 
      * @type {string}
@@ -43,6 +56,24 @@ export interface UpdateUserRequest {
      * @memberof UpdateUserRequest
      */
     income?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdateUserRequest
+     */
+    net_worth?: number;
+    /**
+     * 
+     * @type {Location}
+     * @memberof UpdateUserRequest
+     */
+    location?: Location;
+    /**
+     * 
+     * @type {Date}
+     * @memberof UpdateUserRequest
+     */
+    birthday?: Date;
 }
 
 export function UpdateUserRequestFromJSON(json: any): UpdateUserRequest {
@@ -55,10 +86,14 @@ export function UpdateUserRequestFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
+        'email': !exists(json, 'email') ? undefined : json['email'],
         'password': !exists(json, 'password') ? undefined : json['password'],
         'first_name': !exists(json, 'first_name') ? undefined : json['first_name'],
         'last_name': !exists(json, 'last_name') ? undefined : json['last_name'],
         'income': !exists(json, 'income') ? undefined : json['income'],
+        'net_worth': !exists(json, 'net_worth') ? undefined : json['net_worth'],
+        'location': !exists(json, 'location') ? undefined : LocationFromJSON(json['location']),
+        'birthday': !exists(json, 'birthday') ? undefined : (new Date(json['birthday'])),
     };
 }
 
@@ -71,10 +106,14 @@ export function UpdateUserRequestToJSON(value?: UpdateUserRequest | null): any {
     }
     return {
         
+        'email': value.email,
         'password': value.password,
         'first_name': value.first_name,
         'last_name': value.last_name,
         'income': value.income,
+        'net_worth': value.net_worth,
+        'location': LocationToJSON(value.location),
+        'birthday': value.birthday === undefined ? undefined : (value.birthday.toISOString().substr(0,10)),
     };
 }
 

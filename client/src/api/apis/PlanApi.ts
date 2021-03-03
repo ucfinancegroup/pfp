@@ -29,8 +29,8 @@ import {
     PlanResponseToJSON,
 } from '../models';
 
-export interface DeletePlanRequest {
-    id: string;
+export interface GetPlaidPlanWithDaysRequest {
+    days: number;
 }
 
 export interface GetPlanWithDaysRequest {
@@ -46,25 +46,25 @@ export interface NewPlanWithDaysRequest {
     planNewPayload: PlanNewPayload;
 }
 
+export interface UpdatePlanWithDaysRequest {
+    days: number;
+}
+
 /**
  * 
  */
 export class PlanApi extends runtime.BaseAPI {
 
     /**
-     * Delete one specific plan by id
+     * Delete user\'s plan
      */
-    async deletePlanRaw(requestParameters: DeletePlanRequest): Promise<runtime.ApiResponse<Plan>> {
-        if (requestParameters.id === null || requestParameters.id === undefined) {
-            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling deletePlan.');
-        }
-
+    async deletePlanRaw(): Promise<runtime.ApiResponse<Plan>> {
         const queryParameters: runtime.HTTPQuery = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/plan/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            path: `/plan`,
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -74,15 +74,71 @@ export class PlanApi extends runtime.BaseAPI {
     }
 
     /**
-     * Delete one specific plan by id
+     * Delete user\'s plan
      */
-    async deletePlan(requestParameters: DeletePlanRequest): Promise<Plan> {
-        const response = await this.deletePlanRaw(requestParameters);
+    async deletePlan(): Promise<Plan> {
+        const response = await this.deletePlanRaw();
         return await response.value();
     }
 
     /**
-     * Get one specific plan and generate timeseries for 365 days
+     * Get plaid plan and generate timeseries for 365 days
+     */
+    async getPlaidPlanRaw(): Promise<runtime.ApiResponse<PlanResponse>> {
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/plan/plaid`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => PlanResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Get plaid plan and generate timeseries for 365 days
+     */
+    async getPlaidPlan(): Promise<PlanResponse> {
+        const response = await this.getPlaidPlanRaw();
+        return await response.value();
+    }
+
+    /**
+     * Get plaid plan and generate timeseries for specified number of days
+     */
+    async getPlaidPlanWithDaysRaw(requestParameters: GetPlaidPlanWithDaysRequest): Promise<runtime.ApiResponse<PlanResponse>> {
+        if (requestParameters.days === null || requestParameters.days === undefined) {
+            throw new runtime.RequiredError('days','Required parameter requestParameters.days was null or undefined when calling getPlaidPlanWithDays.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/plan/plaid/{days}`.replace(`{${"days"}}`, encodeURIComponent(String(requestParameters.days))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => PlanResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Get plaid plan and generate timeseries for specified number of days
+     */
+    async getPlaidPlanWithDays(requestParameters: GetPlaidPlanWithDaysRequest): Promise<PlanResponse> {
+        const response = await this.getPlaidPlanWithDaysRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Get plan and generate timeseries for 365 days
      */
     async getPlanRaw(): Promise<runtime.ApiResponse<PlanResponse>> {
         const queryParameters: runtime.HTTPQuery = {};
@@ -100,7 +156,7 @@ export class PlanApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get one specific plan and generate timeseries for 365 days
+     * Get plan and generate timeseries for 365 days
      */
     async getPlan(): Promise<PlanResponse> {
         const response = await this.getPlanRaw();
@@ -108,7 +164,7 @@ export class PlanApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get one specific plan and generate timeseries for specified number of days
+     * Get plan and generate timeseries for specified number of days
      */
     async getPlanWithDaysRaw(requestParameters: GetPlanWithDaysRequest): Promise<runtime.ApiResponse<PlanResponse>> {
         if (requestParameters.days === null || requestParameters.days === undefined) {
@@ -130,36 +186,10 @@ export class PlanApi extends runtime.BaseAPI {
     }
 
     /**
-     * Get one specific plan and generate timeseries for specified number of days
+     * Get plan and generate timeseries for specified number of days
      */
     async getPlanWithDays(requestParameters: GetPlanWithDaysRequest): Promise<PlanResponse> {
         const response = await this.getPlanWithDaysRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * Get all of a user\'s plans
-     */
-    async getPlansRaw(): Promise<runtime.ApiResponse<Array<Plan>>> {
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        const response = await this.request({
-            path: `/plans`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PlanFromJSON));
-    }
-
-    /**
-     * Get all of a user\'s plans
-     */
-    async getPlans(): Promise<Array<Plan>> {
-        const response = await this.getPlansRaw();
         return await response.value();
     }
 
@@ -178,7 +208,7 @@ export class PlanApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/plan/new`,
+            path: `/plan`,
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -215,7 +245,7 @@ export class PlanApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/plan/new/{days}`.replace(`{${"days"}}`, encodeURIComponent(String(requestParameters.days))),
+            path: `/plan/{days}`.replace(`{${"days"}}`, encodeURIComponent(String(requestParameters.days))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -230,6 +260,62 @@ export class PlanApi extends runtime.BaseAPI {
      */
     async newPlanWithDays(requestParameters: NewPlanWithDaysRequest): Promise<PlanResponse> {
         const response = await this.newPlanWithDaysRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Update plan and generate timeseries for 365 days
+     */
+    async updatePlanRaw(): Promise<runtime.ApiResponse<PlanResponse>> {
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/plan`,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => PlanResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Update plan and generate timeseries for 365 days
+     */
+    async updatePlan(): Promise<PlanResponse> {
+        const response = await this.updatePlanRaw();
+        return await response.value();
+    }
+
+    /**
+     * Update plan and generate timeseries for specified number of days
+     */
+    async updatePlanWithDaysRaw(requestParameters: UpdatePlanWithDaysRequest): Promise<runtime.ApiResponse<PlanResponse>> {
+        if (requestParameters.days === null || requestParameters.days === undefined) {
+            throw new runtime.RequiredError('days','Required parameter requestParameters.days was null or undefined when calling updatePlanWithDays.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/plan/{days}`.replace(`{${"days"}}`, encodeURIComponent(String(requestParameters.days))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => PlanResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Update plan and generate timeseries for specified number of days
+     */
+    async updatePlanWithDays(requestParameters: UpdatePlanWithDaysRequest): Promise<PlanResponse> {
+        const response = await this.updatePlanWithDaysRaw(requestParameters);
         return await response.value();
     }
 

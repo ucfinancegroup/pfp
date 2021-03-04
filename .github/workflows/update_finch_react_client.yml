@@ -1,0 +1,33 @@
+on:
+  push:
+    branches: [master]
+    paths:
+      - "postman/api.yaml"
+  workflow_dispatch:
+
+name: "Update Finch React Client"
+
+jobs:
+  update-finch-react-client:
+    runs-on: macos-latest
+    steps:
+      - name: "Checkout repo"
+        uses: actions/checkout@main
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Install openapi generator
+        id: install-openapi-generator
+        run: brew install openapi-generator
+
+      - name: Run codegen
+        id: run-codegen
+        run: openapi-generator generate -g typescript-fetch -i ./postman/api.yaml -o ./client/src/api -c ./client/apiconfig.json
+
+      - name: add-and-commit
+        uses: EndBug/add-and-commit@v7
+        with:
+          branch: master
+          message: "Update Finch React Client"

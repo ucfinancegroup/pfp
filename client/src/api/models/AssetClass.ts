@@ -33,6 +33,20 @@ export interface AssetClass {
     content: string;
 }
 
+/**
+* @export
+* @enum {string}
+*/
+export enum AssetClassTypEnum {
+    Cash = 'Cash',
+    Equity = 'Equity',
+    Etf = 'Etf',
+    Fixed = 'Fixed',
+    MutualFund = 'MutualFund',
+    Other = 'Other',
+    Custom = 'Custom'
+}
+
 export function AssetClassFromJSON(json: any): AssetClass {
     return AssetClassFromJSONTyped(json, false);
 }
@@ -60,22 +74,6 @@ export function AssetClassToJSON(value?: AssetClass | null): any {
         'typ': value.typ,
         'content': value.content,
     };
-}
-
-/**
-* @export
-* @enum {string}
-*/
-export enum AssetClassTypEnum {
-    Cash = 'Cash',
-    Derivative = 'Derivative',
-    Equity = 'Equity',
-    Etf = 'Etf',
-    Fixed = 'Fixed',
-    Loan = 'Loan',
-    MutualFund = 'MutualFund',
-    Other = 'Other',
-    Custom = 'Custom'
 }
 
 

@@ -26,6 +26,7 @@ export * from './PlaidJWT';
 export * from './Plan';
 export * from './PlanNewPayload';
 export * from './PlanResponse';
+export * from './PlanUpdatePayload';
 export * from './PublicTokenExchangeRequest';
 export * from './Recurring';
 export * from './RecurringNewPayload';

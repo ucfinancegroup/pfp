@@ -70,6 +70,19 @@ export interface Insight {
     imageURL?: string | null;
 }
 
+/**
+* @export
+* @enum {string}
+*/
+export enum InsightInsightTypeEnum {
+    ProductRecommendation = 'ProductRecommendation',
+    Savings = 'Savings',
+    Spending = 'Spending',
+    Income = 'Income',
+    Goal = 'Goal',
+    Incomplete = 'Incomplete'
+}
+
 export function InsightFromJSON(json: any): Insight {
     return InsightFromJSONTyped(json, false);
 }
@@ -107,19 +120,6 @@ export function InsightToJSON(value?: Insight | null): any {
         'generation_time': value.generation_time,
         'imageURL': value.imageURL,
     };
-}
-
-/**
-* @export
-* @enum {string}
-*/
-export enum InsightInsightTypeEnum {
-    ProductRecommendation = 'ProductRecommendation',
-    Savings = 'Savings',
-    Spending = 'Spending',
-    Income = 'Income',
-    Goal = 'Goal',
-    Incomplete = 'Incomplete'
 }
 
 

@@ -40,7 +40,7 @@ export class InsightsApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling dismissInsight.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -66,7 +66,7 @@ export class InsightsApi extends runtime.BaseAPI {
      * Get example insights
      */
     async getInsightExamplesRaw(): Promise<runtime.ApiResponse<Array<Insight>>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -92,7 +92,7 @@ export class InsightsApi extends runtime.BaseAPI {
      * Get all a user\'s (non-dismissed) insights
      */
     async getInsightsRaw(): Promise<runtime.ApiResponse<Array<Insight>>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 

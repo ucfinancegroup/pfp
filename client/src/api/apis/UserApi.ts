@@ -46,7 +46,7 @@ export class UserApi extends runtime.BaseAPI {
      * Gets user info
      */
     async getUserRaw(): Promise<runtime.ApiResponse<User>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -76,7 +76,7 @@ export class UserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('loginPayload','Required parameter requestParameters.loginPayload was null or undefined when calling loginUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -105,7 +105,7 @@ export class UserApi extends runtime.BaseAPI {
      * Log out a user
      */
     async logoutUserRaw(): Promise<runtime.ApiResponse<void>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -134,7 +134,7 @@ export class UserApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('signupPayload','Required parameter requestParameters.signupPayload was null or undefined when calling signupUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 

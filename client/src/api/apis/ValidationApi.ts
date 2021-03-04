@@ -40,7 +40,7 @@ export class ValidationApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('validateUserPayload','Required parameter requestParameters.validateUserPayload was null or undefined when calling validateUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 

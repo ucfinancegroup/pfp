@@ -40,7 +40,7 @@ export class LeaderboardApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('type','Required parameter requestParameters.type was null or undefined when calling getLeaderboard.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 

@@ -37,7 +37,7 @@ export interface AllocationProportion {
      * @type {number}
      * @memberof AllocationProportion
      */
-    proportion?: number;
+    proportion: number;
 }
 
 export function AllocationProportionFromJSON(json: any): AllocationProportion {
@@ -51,7 +51,7 @@ export function AllocationProportionFromJSONTyped(json: any, ignoreDiscriminator
     return {
         
         'asset': AssetFromJSON(json['asset']),
-        'proportion': !exists(json, 'proportion') ? undefined : json['proportion'],
+        'proportion': json['proportion'],
     };
 }
 

@@ -40,7 +40,7 @@ export class TimeseriesApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('days','Required parameter requestParameters.days was null or undefined when calling getTimeseries.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -66,7 +66,7 @@ export class TimeseriesApi extends runtime.BaseAPI {
      * Get an example timeseries
      */
     async getTimeseriesExampleRaw(): Promise<runtime.ApiResponse<TimeSeriesResponse>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -92,7 +92,7 @@ export class TimeseriesApi extends runtime.BaseAPI {
      * Get timeseries with 365 future days generated
      */
     async getTimeseriesYearRaw(): Promise<runtime.ApiResponse<TimeSeriesResponse>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 

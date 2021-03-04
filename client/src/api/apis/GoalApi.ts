@@ -56,7 +56,7 @@ export class GoalApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling deleteGoal.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -86,7 +86,7 @@ export class GoalApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getGoal.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -112,7 +112,7 @@ export class GoalApi extends runtime.BaseAPI {
      * Get example Goals
      */
     async getGoalExamplesRaw(): Promise<runtime.ApiResponse<Array<GoalNewPayload>>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -138,7 +138,7 @@ export class GoalApi extends runtime.BaseAPI {
      * Get all of a user\'s goals
      */
     async getGoalsRaw(): Promise<runtime.ApiResponse<Array<GoalAndStatus>>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -168,7 +168,7 @@ export class GoalApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('goalNewPayload','Required parameter requestParameters.goalNewPayload was null or undefined when calling newGoal.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -205,7 +205,7 @@ export class GoalApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('goalNewPayload','Required parameter requestParameters.goalNewPayload was null or undefined when calling updateGoal.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 

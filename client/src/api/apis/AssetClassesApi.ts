@@ -32,7 +32,7 @@ export class AssetClassesApi extends runtime.BaseAPI {
      * Gets list of asset classes
      */
     async getAssetClassesRaw(): Promise<runtime.ApiResponse<Array<AssetClassAndApy>>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 

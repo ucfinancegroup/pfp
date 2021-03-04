@@ -33,6 +33,17 @@ export interface TimeInterval {
     content: number;
 }
 
+/**
+* @export
+* @enum {string}
+*/
+export enum TimeIntervalTypEnum {
+    Monthly = 'monthly',
+    Annually = 'annually',
+    Daily = 'daily',
+    Weekly = 'weekly'
+}
+
 export function TimeIntervalFromJSON(json: any): TimeInterval {
     return TimeIntervalFromJSONTyped(json, false);
 }
@@ -60,17 +71,6 @@ export function TimeIntervalToJSON(value?: TimeInterval | null): any {
         'typ': value.typ,
         'content': value.content,
     };
-}
-
-/**
-* @export
-* @enum {string}
-*/
-export enum TimeIntervalTypEnum {
-    Monthly = 'monthly',
-    Annually = 'annually',
-    Daily = 'daily',
-    Weekly = 'weekly'
 }
 
 

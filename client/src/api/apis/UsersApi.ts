@@ -39,7 +39,7 @@ export class UsersApi extends runtime.BaseAPI {
      * This route will be called once a user logs in on an iOS device and route body will contain the URL of the iOS device, this will be stored in the User model.
      */
     async registerIOSDeviceRaw(): Promise<runtime.ApiResponse<ApiError>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -69,7 +69,7 @@ export class UsersApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('updateUserRequest','Required parameter requestParameters.updateUserRequest was null or undefined when calling updateUser.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 

@@ -32,7 +32,7 @@ export class SnapshotsApi extends runtime.BaseAPI {
      * Get all a user\'s snapshots
      */
     async getSnapshotsRaw(): Promise<runtime.ApiResponse<Snapshot>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 

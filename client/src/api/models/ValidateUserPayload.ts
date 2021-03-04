@@ -33,6 +33,16 @@ export interface ValidateUserPayload {
     content: string;
 }
 
+/**
+* @export
+* @enum {string}
+*/
+export enum ValidateUserPayloadFieldEnum {
+    Email = 'Email',
+    Password = 'Password',
+    Birthday = 'Birthday'
+}
+
 export function ValidateUserPayloadFromJSON(json: any): ValidateUserPayload {
     return ValidateUserPayloadFromJSONTyped(json, false);
 }
@@ -60,16 +70,6 @@ export function ValidateUserPayloadToJSON(value?: ValidateUserPayload | null): a
         'field': value.field,
         'content': value.content,
     };
-}
-
-/**
-* @export
-* @enum {string}
-*/
-export enum ValidateUserPayloadFieldEnum {
-    Email = 'Email',
-    Password = 'Password',
-    Birthday = 'Birthday'
 }
 
 

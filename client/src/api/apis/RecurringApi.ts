@@ -56,7 +56,7 @@ export class RecurringApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling deleteRecurring.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -86,7 +86,7 @@ export class RecurringApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getRecurring.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -112,7 +112,7 @@ export class RecurringApi extends runtime.BaseAPI {
      * Get example Recurrings
      */
     async getRecurringExamplesRaw(): Promise<runtime.ApiResponse<Array<RecurringNewPayload>>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -138,7 +138,7 @@ export class RecurringApi extends runtime.BaseAPI {
      * Get all of a user\'s recurrings
      */
     async getRecurringsRaw(): Promise<runtime.ApiResponse<Array<Recurring>>> {
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -168,7 +168,7 @@ export class RecurringApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('recurringNewPayload','Required parameter requestParameters.recurringNewPayload was null or undefined when calling newRecurring.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -205,7 +205,7 @@ export class RecurringApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('recurringNewPayload','Required parameter requestParameters.recurringNewPayload was null or undefined when calling updateRecurring.');
         }
 
-        const queryParameters: runtime.HTTPQuery = {};
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 

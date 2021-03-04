@@ -3,7 +3,6 @@ use pfp_server::*;
 
 use actix_session::CookieSession;
 use actix_web::{get, middleware, App, HttpResponse, HttpServer, Responder};
-use std::sync::{Arc, Mutex};
 
 #[get("/")]
 async fn root_route() -> impl Responder {
@@ -44,12 +43,11 @@ async fn main() -> std::io::Result<()> {
   )
   .await;
 
-  let plaid_client = Arc::new(Mutex::new(services::finchplaid::ApiClient {
+  let plaid_client = services::finchplaid::ApiClient {
     client_id: env.plaid_client_id,
     secret: env.plaid_sandbox_secret,
     client_name: "finch".to_string(),
-    configuration: plaid::apis::configuration::Configuration::default(),
-  }));
+  };
 
   let user_service = services::users::UserService::new(&db_service).await;
   let session_service = services::sessions::SessionService::new(&db_service).await;

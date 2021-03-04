@@ -5,7 +5,6 @@ use crate::services::{timeseries::TimeseriesService, users::UserService};
 use actix_web::web::{Data, Path};
 use actix_web::{get, HttpResponse};
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct TimeseriesEntry {
@@ -29,7 +28,7 @@ pub async fn get_timeseries(
     Path(timeseries_days): Path<i64>,
     user: User,
     user_service: Data<UserService>,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
     crate::common::into_response_res(
         TimeseriesService::get_timeseries(user, timeseries_days, user_service, plaid_client).await,
@@ -40,7 +39,7 @@ pub async fn get_timeseries(
 pub async fn get_timeseries_year(
     user: User,
     user_service: Data<UserService>,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
     crate::common::into_response_res(
         TimeseriesService::get_timeseries(user, 365, user_service, plaid_client).await,

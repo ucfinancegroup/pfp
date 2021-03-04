@@ -17,7 +17,6 @@ pub mod PlansService {
     use rust_decimal_macros::dec;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
-    use std::sync::{Arc, Mutex};
     use wither::{mongodb::bson::oid::ObjectId, Model};
 
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -39,7 +38,7 @@ pub mod PlansService {
         mut user: User,
         days: i64,
         user_service: Data<UserService>,
-        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+        plaid_client: Data<ApiClient>,
     ) -> Result<PlanResponse, ApiError> {
         let mut plan: Plan = payload.into();
         plan.set_id(ObjectId::new());
@@ -65,7 +64,7 @@ pub mod PlansService {
         user: User,
         days: i64,
         user_service: Data<UserService>,
-        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+        plaid_client: Data<ApiClient>,
     ) -> Result<PlanResponse, ApiError> {
         let plan = get_user_plan(&user);
 
@@ -94,7 +93,7 @@ pub mod PlansService {
         mut user: User,
         days: i64,
         user_service: Data<UserService>,
-        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+        plaid_client: Data<ApiClient>,
     ) -> Result<PlanResponse, ApiError> {
         let mut plan = get_user_plan(&user);
 
@@ -135,7 +134,7 @@ pub mod PlansService {
         mut user: User,
         days: i64,
         user_service: Data<UserService>,
-        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+        plaid_client: Data<ApiClient>,
     ) -> Result<PlanResponse, ApiError> {
         let last_snapshot = SnapshotService::get_last_snapshot(
             &(user_service
@@ -159,7 +158,7 @@ pub mod PlansService {
 
     pub async fn get_plaid_allocation(
         user: User,
-        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+        plaid_client: Data<ApiClient>,
         net_worth: Decimal,
     ) -> Allocation {
         let mut accounts = Vec::new();

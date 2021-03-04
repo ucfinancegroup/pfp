@@ -10,7 +10,6 @@ use actix_web::{
 };
 use actix_web_validator::{Json, Validate};
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
 
 #[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PlanNewPayload {
@@ -49,7 +48,7 @@ pub async fn get_example(_: User) -> HttpResponse {
 pub async fn get_allocations_from_plaid(
     user: User,
     user_service: Data<UserService>,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
     crate::common::into_response_res(
         PlansService::update_plaid_allocation(user, 365, user_service, plaid_client).await,
@@ -61,7 +60,7 @@ pub async fn get_allocations_from_plaid_with_days(
     Path(plan_days): Path<i64>,
     user: User,
     user_service: Data<UserService>,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
     crate::common::into_response_res(
         PlansService::update_plaid_allocation(user, plan_days, user_service, plaid_client).await,
@@ -72,7 +71,7 @@ pub async fn get_allocations_from_plaid_with_days(
 pub async fn get_plan(
     user: User,
     user_service: Data<UserService>,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
     crate::common::into_response_res(
         PlansService::get_plan(user, 365, user_service, plaid_client).await,
@@ -84,7 +83,7 @@ pub async fn get_plan_with_days(
     user: User,
     Path(plan_days): Path<i64>,
     user_service: Data<UserService>,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
     crate::common::into_response_res(
         PlansService::get_plan(user, plan_days, user_service, plaid_client).await,
@@ -101,7 +100,7 @@ pub async fn create_new_plan(
     user: User,
     payload: Json<PlanNewPayload>,
     user_service: Data<UserService>,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
     crate::common::into_response_res(
         PlansService::new_plan(payload.into_inner(), user, 365, user_service, plaid_client).await,
@@ -114,7 +113,7 @@ pub async fn create_new_plan_with_days(
     user: User,
     payload: Json<PlanNewPayload>,
     user_service: Data<UserService>,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
     crate::common::into_response_res(
         PlansService::new_plan(
@@ -133,7 +132,7 @@ pub async fn update_plan(
     user: User,
     payload: Json<PlanUpdatePayload>,
     user_service: Data<UserService>,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
     crate::common::into_response_res(
         PlansService::update_plan(payload.into_inner(), user, 365, user_service, plaid_client)
@@ -147,7 +146,7 @@ pub async fn update_plan_with_days(
     user: User,
     payload: Json<PlanUpdatePayload>,
     user_service: Data<UserService>,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
     crate::common::into_response_res(
         PlansService::update_plan(

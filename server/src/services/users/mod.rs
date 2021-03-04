@@ -13,7 +13,6 @@ use crate::services::{
 };
 use actix_web::web::Data;
 use rust_decimal::Decimal;
-use std::sync::{Arc, Mutex};
 use wither::{
   mongodb::{
     bson::{doc, oid::ObjectId},
@@ -150,20 +149,19 @@ impl UserService {
     mut user: User,
     access_token: String,
     item_id: String,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
     fin_product_service: Data<FinProductService>,
   ) -> Result<(), ApiError> {
     user.accounts.push(PlaidItem {
       item_id: item_id.clone(),
       access_token,
     });
+
     self.save(&mut user).await?;
 
-    let accounts_info = crate::services::finchplaid::get_item_accounts(
-      &user.accounts.last().unwrap(),
-      plaid_client.clone(),
-    )
-    .await;
+    let accounts_info = plaid_client
+      .retrieve_an_items_accounts(user.accounts.last().unwrap().access_token.clone())
+      .await;
     let accounts = accounts_info?.accounts;
 
     let mut state = Ok(());
@@ -206,7 +204,7 @@ impl UserService {
   pub async fn add_plaid_plan(
     &self,
     mut user: User,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
     net_worth: Decimal,
   ) -> Result<Plan, ApiError> {
     let allocation =
@@ -232,7 +230,7 @@ impl UserService {
   pub async fn get_accounts(
     &self,
     user: &User,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
     show_all_accounts: bool,
   ) -> Result<AccountResponse, ApiError> {
     let mut account_successes = Vec::new();
@@ -269,7 +267,7 @@ impl UserService {
     &self,
     account_id: String,
     mut user: User,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
   ) -> Result<String, ApiError> {
     let item = Self::delete_item(account_id, &mut user)?;
 
@@ -305,7 +303,7 @@ impl UserService {
   pub async fn get_snapshots(
     &self,
     user: &mut User,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
   ) -> Result<Vec<Snapshot>, ApiError> {
     if SnapshotService::need_new_snapshot(&user.snapshots) {
       self.add_new_snapshot(user, plaid_client).await?
@@ -316,7 +314,7 @@ impl UserService {
   pub async fn add_new_snapshot(
     &self,
     user: &mut User,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
   ) -> Result<(), ApiError> {
     SnapshotService::add_new_snapshot(user, plaid_client).await?;
     user.save(&self.db, None).await.map_err(|_| {
@@ -361,7 +359,7 @@ impl UserService {
     item_id: String,
     account_id: String,
     hide_or_not: bool,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
   ) -> Result<AccountResponse, ApiError> {
     for account in user
       .account_records

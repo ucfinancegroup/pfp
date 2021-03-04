@@ -21,7 +21,6 @@ async fn main() -> std::io::Result<()> {
     client_id: env.plaid_client_id,
     secret: env.plaid_sandbox_secret,
     client_name: "finch".to_string(),
-    configuration: plaid::apis::configuration::Configuration::default(),
   };
 
   loop {

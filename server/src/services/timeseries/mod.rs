@@ -12,7 +12,6 @@ pub mod TimeseriesService {
     use rust_decimal::prelude::ToPrimitive;
     use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
-    use std::sync::{Arc, Mutex};
 
     pub fn get_example() -> TimeseriesResponse {
         let mut res = Vec::new();
@@ -136,7 +135,7 @@ pub mod TimeseriesService {
         mut user: User,
         days: i64,
         user_service: Data<UserService>,
-        plaid_client: Data<Arc<Mutex<ApiClient>>>,
+        plaid_client: Data<ApiClient>,
     ) -> Result<TimeseriesResponse, ApiError> {
         let mut plan = if user.plans.len() > 0 {
             user.plans[0].clone()

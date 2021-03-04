@@ -6,15 +6,14 @@ pub mod SnapshotService {
   use actix_web::web::Data;
   use chrono::{Duration, Utc};
   use log::debug;
-  use plaid::models::{RetrieveTransactionsRequest, RetrieveTransactionsResponse, Transaction};
+  use plaid::models::{RetrieveTransactionsResponse, Transaction};
   use rust_decimal::Decimal;
   use std::collections::HashSet;
   use std::convert::TryFrom;
-  use std::sync::{Arc, Mutex};
 
   pub async fn add_new_snapshot(
     user: &mut User,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
   ) -> Result<(), ApiError> {
     let excluded_accounts = user.get_excluded_accounts();
 
@@ -80,7 +79,7 @@ pub mod SnapshotService {
 
   pub async fn handle_item(
     item: &PlaidItem,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
     excluded_accounts: &HashSet<String>,
   ) -> Result<(Money, Money, Money), ApiError> {
     // accumulate money_in and money_out for items' transactions
@@ -96,7 +95,7 @@ pub mod SnapshotService {
 
   async fn get_money_in_out(
     item: &PlaidItem,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
     excluded_accounts: &HashSet<String>,
   ) -> Result<(Money, Money), ApiError> {
     let transactions = get_item_transactions_for_new_snapshot(item, plaid_client).await?;
@@ -152,7 +151,7 @@ pub mod SnapshotService {
 
   async fn get_item_transactions_for_new_snapshot(
     item: &PlaidItem,
-    plaid_client: Data<Arc<Mutex<ApiClient>>>,
+    plaid_client: Data<ApiClient>,
   ) -> Result<RetrieveTransactionsResponse, ApiError> {
     // offset by 2 days to ensure we get a full day and avoid any timezone problems
     let date = (Utc::now() - chrono::Duration::days(2))
@@ -164,21 +163,9 @@ pub mod SnapshotService {
     // to cover one day of transactions for a normal person on one day.
     // ... but uhh maybe not thanks Robinhood.
 
-    let pc = plaid_client.lock().unwrap();
-    let config = &(pc.configuration);
-
-    plaid::apis::transactions_api::retrieve_transactions(
-      &config,
-      RetrieveTransactionsRequest::new(
-        pc.client_id.clone(),
-        pc.secret.clone(),
-        item.access_token.clone(),
-        date.clone(),
-        date.clone(),
-      ),
-    )
-    .await
-    .map_err(|_| ApiError::new(500, "Error while getting transactions".to_string()))
+    plaid_client
+      .retrieve_transactions(item.access_token.clone(), date)
+      .await
   }
 
   pub fn need_new_snapshot(snapshots: &Vec<Snapshot>) -> bool {

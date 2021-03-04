@@ -12,7 +12,6 @@ use actix_web_validator::{Json, Validate};
 use finchplaid::ApiClient;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
 
 #[derive(Deserialize)]
 pub struct PublicTokenExchangeRequest {
@@ -55,31 +54,17 @@ pub struct SetAccountAsHiddenPayload {
 }
 
 #[post("/plaid/link_token")]
-async fn link_token(plaid_client: Data<Arc<Mutex<ApiClient>>>, user: User) -> HttpResponse {
-  let pc = plaid_client.lock().unwrap();
-  let config = &(pc.configuration);
-
+async fn link_token(plaid_client: Data<ApiClient>, user: User) -> HttpResponse {
   crate::common::into_response_res(
-    plaid::apis::link_tokens_api::create_link_token(
-      config,
-      plaid::models::CreateLinkTokenRequest::new(
-        pc.client_id.clone(),
-        pc.secret.clone(),
-        pc.client_name.clone(),
-        vec!["US".to_string()],
-        "en".to_string(),
-        plaid::models::User::new(user.id.unwrap().to_hex()),
-        vec!["auth".to_string(), "transactions".to_string()],
-      ),
-    )
-    .await
-    .or(Err(ApiError::new(500, "".to_string()))),
+    plaid_client
+      .create_link_token(user.id.unwrap().to_hex())
+      .await,
   )
 }
 
 #[post("/plaid/public_token_exchange")]
 async fn access_token(
-  plaid_client: Data<Arc<Mutex<ApiClient>>>,
+  plaid_client: Data<ApiClient>,
   payload: actix_web::web::Json<PublicTokenExchangeRequest>,
   user: User,
   user_service: Data<UserService>,
@@ -102,7 +87,7 @@ pub async fn get_accounts(
   Path(all_or_unhidden): Path<String>,
   user: User,
   user_service: Data<UserService>,
-  plaid_client: Data<Arc<Mutex<ApiClient>>>,
+  plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
   let show_all_accounts = match all_or_unhidden.as_str() {
     "all" => true,
@@ -131,7 +116,7 @@ pub async fn delete_account(
   Path(accounts_id): Path<String>,
   user: User,
   user_service: Data<UserService>,
-  plaid_client: Data<Arc<Mutex<ApiClient>>>,
+  plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
   crate::common::into_response_res(
     user_service
@@ -146,7 +131,7 @@ pub async fn put_hide_unhide_account(
   mut user: User,
   user_service: Data<UserService>,
   payload: Json<SetAccountAsHiddenPayload>,
-  plaid_client: Data<Arc<Mutex<ApiClient>>>,
+  plaid_client: Data<ApiClient>,
 ) -> HttpResponse {
   let SetAccountAsHiddenPayload {
     item_id,

@@ -45,8 +45,10 @@ services:
     ports:
       - 8888:8888
     depends_on:
-     # - pfp_server
+      # - pfp_server
       - pfp_client
+    logging:
+      driver: none
 secrets:
   config.json:
     file: ./server/config.json

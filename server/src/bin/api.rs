@@ -65,6 +65,7 @@ async fn main() -> std::io::Result<()> {
       .data(fin_product_service.clone())
       .configure(controllers::configure)
       .service(root_route)
+      .wrap(middleware::Logger::default())
   })
   .bind("0.0.0.0:8080")?
   .run()

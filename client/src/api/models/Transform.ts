@@ -41,7 +41,7 @@ export interface Transform {
      * @type {Array<AssetChange>}
      * @memberof Transform
      */
-    changes?: Array<AssetChange>;
+    changes: Array<AssetChange>;
 }
 
 export function TransformFromJSON(json: any): Transform {
@@ -55,7 +55,7 @@ export function TransformFromJSONTyped(json: any, ignoreDiscriminator: boolean):
     return {
         
         'trigger': TimeIntervalFromJSON(json['trigger']),
-        'changes': !exists(json, 'changes') ? undefined : ((json['changes'] as Array<any>).map(AssetChangeFromJSON)),
+        'changes': ((json['changes'] as Array<any>).map(AssetChangeFromJSON)),
     };
 }
 
@@ -69,7 +69,7 @@ export function TransformToJSON(value?: Transform | null): any {
     return {
         
         'trigger': TimeIntervalToJSON(value.trigger),
-        'changes': value.changes === undefined ? undefined : ((value.changes as Array<any>).map(AssetChangeToJSON)),
+        'changes': ((value.changes as Array<any>).map(AssetChangeToJSON)),
     };
 }
 

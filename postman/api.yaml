@@ -1547,7 +1547,7 @@ components:
       type: object
       required:
         - trigger
-        - change
+        - changes
       properties:
         trigger:
           $ref: "#/components/schemas/TimeInterval"

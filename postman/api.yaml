@@ -1446,7 +1446,7 @@ components:
       required:
         - name
         - class
-        - performance
+        - annualized_performance
       properties:
         name:
           type: string

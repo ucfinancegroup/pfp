@@ -3,15 +3,17 @@ pub mod TimeseriesService {
     use crate::common::{errors::ApiError, Money};
     use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
     use crate::models::plan_model::{Allocation, Plan};
-    use crate::models::recurring_model::Recurring;
+    use crate::models::recurring_model::{Recurring, Typ};
     use crate::models::user_model::{Snapshot, User};
     use crate::services::finchplaid::ApiClient;
     use crate::services::{plans::PlansService, users::UserService};
     use actix_web::web::Data;
-    use chrono::{offset, Duration, TimeZone, Utc};
+    use chrono::{offset, DateTime, Datelike, Duration, NaiveDateTime, TimeZone, Utc};
     use rust_decimal::prelude::ToPrimitive;
     use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
+    use std::collections::HashMap;
+    use wither::{mongodb::bson::oid::ObjectId, Model};
 
     pub fn get_example() -> TimeseriesResponse {
         let mut res = Vec::new();
@@ -100,6 +102,18 @@ pub mod TimeseriesService {
         let mut apy = dec!(0.0);
         let mut net_worth = start_net_worth;
 
+        let recurrings: Vec<Recurring> = plan
+            .recurrings
+            .iter()
+            .cloned()
+            .map(|mut rec| {
+                rec.set_id(ObjectId::new());
+                rec
+            })
+            .collect();
+
+        let mut recurring_skips: HashMap<ObjectId, i32> = HashMap::new();
+
         (1..days + 1)
             .map(|d| start_date_dt + Duration::days(d))
             .map(|date| {
@@ -114,14 +128,34 @@ pub mod TimeseriesService {
                     None => apy,
                 };
 
-                let recurrings = plan
-                    .recurrings
-                    .clone()
-                    .into_iter()
+                let recurrings_to_use = recurrings
+                    .iter()
                     .filter(|rec| rec.start <= date.timestamp() && rec.end > date.timestamp())
+                    .filter(|rec: &&Recurring| {
+                        let naive = NaiveDateTime::from_timestamp(rec.start, 0);
+                        let datetime: DateTime<Utc> = DateTime::from_utc(naive, Utc);
+
+                        use Typ::*;
+                        let maybe_today = match rec.frequency.typ {
+                            Daily => true, // always do dailies
+                            Weekly => datetime.weekday() == date.weekday(),
+                            Monthly => datetime.day() == date.day(),
+                            Annually => datetime.ordinal() == date.ordinal(),
+                        };
+
+                        if maybe_today {
+                            let skips = recurring_skips.entry(rec.id().unwrap()).or_insert(-1);
+                            *skips += 1;
+                            *skips % rec.frequency.content == 0
+                        } else {
+                            false
+                        }
+                    })
+                    .cloned()
                     .collect();
 
-                net_worth = calculate_account_value(net_worth, apy, &recurrings);
+                net_worth = calculate_account_value(net_worth, apy, &recurrings_to_use);
+                println!("{:?}", recurrings_to_use);
 
                 TimeseriesEntry {
                     date: date.timestamp(),
@@ -210,7 +244,7 @@ mod test {
         Recurring {
             id: None,
             name: String::from("Test Recurring"),
-            start: (offset::Utc::now() - Duration::days(2)).timestamp(),
+            start: (offset::Utc::now() + Duration::days(1)).timestamp(),
             end: (offset::Utc::now() + Duration::days(2)).timestamp(),
             principal: dec!(0.0),
             amount: dec!(100.0),

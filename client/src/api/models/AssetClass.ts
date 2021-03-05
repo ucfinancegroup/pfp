@@ -30,7 +30,7 @@ export interface AssetClass {
      * @type {string}
      * @memberof AssetClass
      */
-    content: string;
+    content?: string;
 }
 
 /**
@@ -58,7 +58,7 @@ export function AssetClassFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     return {
         
         'typ': json['typ'],
-        'content': json['content'],
+        'content': !exists(json, 'content') ? undefined : json['content'],
     };
 }
 

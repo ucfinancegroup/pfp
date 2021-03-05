@@ -367,7 +367,7 @@ mod test {
         let target = vec![
             AllocationProportion {
                 asset: Asset {
-                    name: "depository".to_string(),
+                    name: "blah".to_string(),
                     class: AssetClass::Cash,
                     annualized_performance: dec!(1.0),
                 },
@@ -375,7 +375,7 @@ mod test {
             },
             AllocationProportion {
                 asset: Asset {
-                    name: "investment".to_string(),
+                    name: "blah2".to_string(),
                     class: AssetClass::Equity,
                     annualized_performance: dec!(1.05),
                 },

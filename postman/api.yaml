@@ -1453,7 +1453,6 @@ components:
         class:
           $ref: "#/components/schemas/AssetClass"
         annualized_performance:
-          description: "Annualised Percentage Performance"
           type: number
           format: float64
 

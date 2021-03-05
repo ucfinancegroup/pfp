@@ -35,8 +35,6 @@ pub mod InsightsService {
     loop {
       let mut user = get_user_needing_insight(&db_service).await?;
 
-      debug!("Found user needing insight: {:?}", user);
-
       let generated_insight = generate_insight(&user, &db_service).await?;
 
       let last = user

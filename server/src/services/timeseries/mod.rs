@@ -155,7 +155,6 @@ pub mod TimeseriesService {
                     .collect();
 
                 net_worth = calculate_account_value(net_worth, apy, &recurrings_to_use);
-                println!("{:?}", recurrings_to_use);
 
                 TimeseriesEntry {
                     date: date.timestamp(),

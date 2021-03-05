@@ -55,19 +55,19 @@ export interface Plan {
      * @type {Array<Recurring>}
      * @memberof Plan
      */
-    recurrings?: Array<Recurring>;
+    recurrings: Array<Recurring>;
     /**
      * 
      * @type {Array<Allocation>}
      * @memberof Plan
      */
-    allocations?: Array<Allocation>;
+    allocations: Array<Allocation>;
     /**
      * 
      * @type {Array<Event>}
      * @memberof Plan
      */
-    events?: Array<Event>;
+    events: Array<Event>;
 }
 
 export function PlanFromJSON(json: any): Plan {
@@ -82,9 +82,9 @@ export function PlanFromJSONTyped(json: any, ignoreDiscriminator: boolean): Plan
         
         '_id': MongoObjectIDFromJSON(json['_id']),
         'name': json['name'],
-        'recurrings': !exists(json, 'recurrings') ? undefined : ((json['recurrings'] as Array<any>).map(RecurringFromJSON)),
-        'allocations': !exists(json, 'allocations') ? undefined : ((json['allocations'] as Array<any>).map(AllocationFromJSON)),
-        'events': !exists(json, 'events') ? undefined : ((json['events'] as Array<any>).map(EventFromJSON)),
+        'recurrings': ((json['recurrings'] as Array<any>).map(RecurringFromJSON)),
+        'allocations': ((json['allocations'] as Array<any>).map(AllocationFromJSON)),
+        'events': ((json['events'] as Array<any>).map(EventFromJSON)),
     };
 }
 
@@ -99,9 +99,9 @@ export function PlanToJSON(value?: Plan | null): any {
         
         '_id': MongoObjectIDToJSON(value._id),
         'name': value.name,
-        'recurrings': value.recurrings === undefined ? undefined : ((value.recurrings as Array<any>).map(RecurringToJSON)),
-        'allocations': value.allocations === undefined ? undefined : ((value.allocations as Array<any>).map(AllocationToJSON)),
-        'events': value.events === undefined ? undefined : ((value.events as Array<any>).map(EventToJSON)),
+        'recurrings': ((value.recurrings as Array<any>).map(RecurringToJSON)),
+        'allocations': ((value.allocations as Array<any>).map(AllocationToJSON)),
+        'events': ((value.events as Array<any>).map(EventToJSON)),
     };
 }
 

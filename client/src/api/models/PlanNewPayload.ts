@@ -45,19 +45,19 @@ export interface PlanNewPayload {
      * @type {Array<Recurring>}
      * @memberof PlanNewPayload
      */
-    recurrings?: Array<Recurring>;
+    recurrings: Array<Recurring>;
     /**
      * 
      * @type {Array<Allocation>}
      * @memberof PlanNewPayload
      */
-    allocations?: Array<Allocation>;
+    allocations: Array<Allocation>;
     /**
      * 
      * @type {Array<Event>}
      * @memberof PlanNewPayload
      */
-    events?: Array<Event>;
+    events: Array<Event>;
 }
 
 export function PlanNewPayloadFromJSON(json: any): PlanNewPayload {
@@ -71,9 +71,9 @@ export function PlanNewPayloadFromJSONTyped(json: any, ignoreDiscriminator: bool
     return {
         
         'name': json['name'],
-        'recurrings': !exists(json, 'recurrings') ? undefined : ((json['recurrings'] as Array<any>).map(RecurringFromJSON)),
-        'allocations': !exists(json, 'allocations') ? undefined : ((json['allocations'] as Array<any>).map(AllocationFromJSON)),
-        'events': !exists(json, 'events') ? undefined : ((json['events'] as Array<any>).map(EventFromJSON)),
+        'recurrings': ((json['recurrings'] as Array<any>).map(RecurringFromJSON)),
+        'allocations': ((json['allocations'] as Array<any>).map(AllocationFromJSON)),
+        'events': ((json['events'] as Array<any>).map(EventFromJSON)),
     };
 }
 
@@ -87,9 +87,9 @@ export function PlanNewPayloadToJSON(value?: PlanNewPayload | null): any {
     return {
         
         'name': value.name,
-        'recurrings': value.recurrings === undefined ? undefined : ((value.recurrings as Array<any>).map(RecurringToJSON)),
-        'allocations': value.allocations === undefined ? undefined : ((value.allocations as Array<any>).map(AllocationToJSON)),
-        'events': value.events === undefined ? undefined : ((value.events as Array<any>).map(EventToJSON)),
+        'recurrings': ((value.recurrings as Array<any>).map(RecurringToJSON)),
+        'allocations': ((value.allocations as Array<any>).map(AllocationToJSON)),
+        'events': ((value.events as Array<any>).map(EventToJSON)),
     };
 }
 

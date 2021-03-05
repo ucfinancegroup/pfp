@@ -1578,6 +1578,9 @@ components:
       type: object
       required:
         - name
+        - recurrings
+        - allocations
+        - events
       properties:
         name:
           type: string
@@ -1615,6 +1618,9 @@ components:
       required:
         - _id
         - name
+        - recurrings
+        - allocations
+        - events
       properties:
         _id:
           $ref: "#/components/schemas/MongoObjectID"

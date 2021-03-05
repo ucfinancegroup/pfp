@@ -18,6 +18,10 @@ import {
     AllocationProportionFromJSON,
     AllocationProportionFromJSONTyped,
     AllocationProportionToJSON,
+    MongoObjectID,
+    MongoObjectIDFromJSON,
+    MongoObjectIDFromJSONTyped,
+    MongoObjectIDToJSON,
 } from './';
 
 /**
@@ -26,6 +30,12 @@ import {
  * @interface Allocation
  */
 export interface Allocation {
+    /**
+     * 
+     * @type {MongoObjectID}
+     * @memberof Allocation
+     */
+    _id: MongoObjectID;
     /**
      * 
      * @type {string}
@@ -56,6 +66,7 @@ export function AllocationFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         
+        '_id': MongoObjectIDFromJSON(json['_id']),
         'description': json['description'],
         'date': json['date'],
         'schema': ((json['schema'] as Array<any>).map(AllocationProportionFromJSON)),
@@ -71,6 +82,7 @@ export function AllocationToJSON(value?: Allocation | null): any {
     }
     return {
         
+        '_id': MongoObjectIDToJSON(value._id),
         'description': value.description,
         'date': value.date,
         'schema': ((value.schema as Array<any>).map(AllocationProportionToJSON)),

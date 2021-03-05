@@ -14,6 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    MongoObjectID,
+    MongoObjectIDFromJSON,
+    MongoObjectIDFromJSONTyped,
+    MongoObjectIDToJSON,
     Transform,
     TransformFromJSON,
     TransformFromJSONTyped,
@@ -26,6 +30,12 @@ import {
  * @interface Event
  */
 export interface Event {
+    /**
+     * 
+     * @type {MongoObjectID}
+     * @memberof Event
+     */
+    _id: MongoObjectID;
     /**
      * 
      * @type {string}
@@ -56,6 +66,7 @@ export function EventFromJSONTyped(json: any, ignoreDiscriminator: boolean): Eve
     }
     return {
         
+        '_id': MongoObjectIDFromJSON(json['_id']),
         'name': json['name'],
         'start': json['start'],
         'transforms': ((json['transforms'] as Array<any>).map(TransformFromJSON)),
@@ -71,6 +82,7 @@ export function EventToJSON(value?: Event | null): any {
     }
     return {
         
+        '_id': MongoObjectIDToJSON(value._id),
         'name': value.name,
         'start': value.start,
         'transforms': ((value.transforms as Array<any>).map(TransformToJSON)),

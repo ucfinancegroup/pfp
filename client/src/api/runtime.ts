@@ -13,7 +13,7 @@
  */
 
 
-export const BASE_PATH = "https://finchapp.eastus.cloudapp.azure.com/api".replace(/\/+$/, "");
+export const BASE_PATH = "http://localhost/api".replace(/\/+$/, "");
 
 const isBlob = (value: any) => typeof Blob !== 'undefined' && value instanceof Blob;
 

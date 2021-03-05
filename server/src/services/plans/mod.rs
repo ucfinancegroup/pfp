@@ -145,7 +145,12 @@ pub mod PlansService {
         let net_worth = last_snapshot.net_worth.amount;
 
         let plan = user_service
-            .add_plaid_plan(user.clone(), plaid_client.clone(), net_worth)
+            .add_plaid_plan(
+                user.clone(),
+                user_service.clone(),
+                plaid_client.clone(),
+                net_worth,
+            )
             .await?;
 
         let timeseries =
@@ -158,19 +163,17 @@ pub mod PlansService {
     }
 
     pub async fn get_plaid_allocation(
-        user: User,
+        user: &User,
+        user_service: Data<UserService>,
         plaid_client: Data<ApiClient>,
         net_worth: Decimal,
-    ) -> Allocation {
-        let mut accounts = Vec::new();
-        for item in user.accounts.iter() {
-            match crate::services::finchplaid::get_account_data(item, plaid_client.clone()).await {
-                Ok(mut res) => accounts.append(&mut res),
-                Err(_) => (),
-            };
-        }
+    ) -> Result<Allocation, ApiError> {
+        let accounts = user_service
+            .get_accounts(user, plaid_client, false)
+            .await?
+            .accounts;
 
-        if net_worth > dec!(0.0) {
+        let res = if net_worth > dec!(0.0) {
             generate_plaid_allocation(accounts, net_worth)
         } else {
             Allocation {
@@ -186,7 +189,9 @@ pub mod PlansService {
                     proportion: dec!(100.0), // for now make everything positive
                 }],
             }
-        }
+        };
+
+        Ok(res)
     }
 
     pub fn generate_plaid_allocation(

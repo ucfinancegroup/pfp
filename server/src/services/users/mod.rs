@@ -149,6 +149,7 @@ impl UserService {
     mut user: User,
     access_token: String,
     item_id: String,
+    user_service: Data<UserService>,
     plaid_client: Data<ApiClient>,
     fin_product_service: Data<FinProductService>,
   ) -> Result<(), ApiError> {
@@ -190,6 +191,7 @@ impl UserService {
       self
         .add_plaid_plan(
           user.clone(),
+          user_service,
           plaid_client.clone(),
           SnapshotService::get_last_snapshot(&(self.get_snapshots(&mut user, plaid_client).await?))
             .net_worth
@@ -204,11 +206,12 @@ impl UserService {
   pub async fn add_plaid_plan(
     &self,
     mut user: User,
+    user_service: Data<UserService>,
     plaid_client: Data<ApiClient>,
     net_worth: Decimal,
   ) -> Result<Plan, ApiError> {
     let allocation =
-      PlansService::get_plaid_allocation(user.clone(), plaid_client.clone(), net_worth).await;
+      PlansService::get_plaid_allocation(&user, user_service, plaid_client, net_worth).await?;
 
     if user.plans.len() < 1 {
       user.plans.push(Plan {

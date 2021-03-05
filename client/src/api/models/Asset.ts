@@ -39,7 +39,7 @@ export interface Asset {
      */
     _class: AssetClass;
     /**
-     * Annualised Percentage Performance
+     * 
      * @type {number}
      * @memberof Asset
      */

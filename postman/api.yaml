@@ -1461,7 +1461,6 @@ components:
       type: object
       required:
         - typ
-        - content
       properties:
         typ:
           description: "what type of asset it is"

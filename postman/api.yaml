@@ -3,6 +3,7 @@ info:
   version: 0.0.1
   title: FinchAPI
 servers:
+  - url: "/api" # our react client needs this endpoint, below just for postman
   - url: "https://finchapp.eastus.cloudapp.azure.com/api"
   - url: "https://localhost:8888/api"
   - url: "https://localhost:8080/"
@@ -1498,10 +1499,13 @@ components:
     Allocation:
       type: object
       required:
+        - _id
         - description
         - date
         - schema
       properties:
+        _id:
+          $ref: "#/components/schemas/MongoObjectID"
         description:
           type: string
         date:
@@ -1560,10 +1564,13 @@ components:
     Event:
       type: object
       required:
+        - _id
         - name
         - start
         - transforms
       properties:
+        _id:
+          $ref: "#/components/schemas/MongoObjectID"
         name:
           type: string
         start:

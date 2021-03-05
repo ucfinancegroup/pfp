@@ -17,7 +17,6 @@ pub mod PlansService {
     use rust_decimal_macros::dec;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
-    use wither::{mongodb::bson::oid::ObjectId, Model};
 
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
     pub struct PlanResponse {
@@ -31,6 +30,7 @@ pub mod PlansService {
         } else {
             user.plans[0].clone()
         }
+        .ensure_ids()
     }
 
     pub async fn new_plan(
@@ -40,8 +40,7 @@ pub mod PlansService {
         user_service: Data<UserService>,
         plaid_client: Data<ApiClient>,
     ) -> Result<PlanResponse, ApiError> {
-        let mut plan: Plan = payload.into();
-        plan.set_id(ObjectId::new());
+        let plan: Plan = payload.into();
 
         if user.plans.len() < 1 {
             user.plans.push(plan.clone());
@@ -113,6 +112,8 @@ pub mod PlansService {
             plan.events = events;
         }
 
+        plan = plan.ensure_ids();
+
         if user.plans.len() < 1 {
             user.plans.push(plan.clone());
         } else {
@@ -173,6 +174,7 @@ pub mod PlansService {
             generate_plaid_allocation(accounts, net_worth)
         } else {
             Allocation {
+                id: None,
                 description: "Current Holdings".to_string(),
                 date: (offset::Utc::now()).timestamp(),
                 schema: vec![AllocationProportion {
@@ -228,6 +230,7 @@ pub mod PlansService {
             .collect();
 
         Allocation {
+            id: None,
             description: "Current Holdings".to_string(),
             date: (offset::Utc::now()).timestamp(),
             schema: asset_percentages,
@@ -261,6 +264,7 @@ pub mod PlansService {
         };
 
         let test_allocation = Allocation {
+            id: None,
             description: String::from("A Test Allocation"),
             date: offset::Utc::now().timestamp(),
             schema: vec![test_change],
@@ -268,6 +272,7 @@ pub mod PlansService {
         let allocations = vec![test_allocation];
 
         let events = vec![Event {
+            id: None,
             name: String::from("Test Event"),
             start: offset::Utc::now().timestamp(),
             transforms: vec![Transform {
@@ -293,6 +298,7 @@ pub mod PlansService {
             allocations: allocations,
             events: events,
         }
+        .ensure_ids()
     }
 
     pub fn get_asset_classes_and_default_apys() -> Vec<AssetClassAndApy> {

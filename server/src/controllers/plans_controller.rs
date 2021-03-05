@@ -29,19 +29,21 @@ pub struct PlanUpdatePayload {
 
 impl Into<Plan> for PlanNewPayload {
     fn into(self) -> Plan {
-        Plan {
+        let p = Plan {
             id: None,
             name: self.name,
             recurrings: self.recurrings,
             allocations: self.allocations,
             events: self.events,
-        }
+        };
+
+        p.ensure_ids()
     }
 }
 
 #[get("/plan/example")]
 pub async fn get_example(_: User) -> HttpResponse {
-    crate::common::into_response(PlansService::generate_sample_plan())
+    crate::common::into_response(PlansService::generate_sample_plan().ensure_ids())
 }
 
 #[get("/plan/plaid")]

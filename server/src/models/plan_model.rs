@@ -1,3 +1,4 @@
+use crate::common::ensure_id;
 use crate::models::recurring_model::{Recurring, TimeInterval};
 use actix_web_validator::Validate;
 use rust_decimal::Decimal;
@@ -14,16 +15,30 @@ pub struct Plan {
     pub events: Vec<Event>,
 }
 
-#[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
+impl Plan {
+    pub fn ensure_ids(mut self) -> Self {
+        ensure_id(&mut self);
+        self.recurrings.iter_mut().for_each(ensure_id);
+        self.allocations.iter_mut().for_each(ensure_id);
+        self.events.iter_mut().for_each(ensure_id);
+        self
+    }
+}
+
+#[derive(Model, Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Allocation {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
     pub description: String,
     pub date: i64,
     #[validate(custom = "crate::common::allocation_schema_sum_around_100")]
     pub schema: Vec<AllocationProportion>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Model, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Event {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
     pub name: String,
     pub start: i64,
     pub transforms: Vec<Transform>,

@@ -222,6 +222,8 @@ impl UserService {
       user.plans[0].allocations.push(allocation);
     }
 
+    user.plans = user.plans.into_iter().map(|p| p.ensure_ids()).collect();
+
     self.save(&mut user).await?;
 
     Ok(user.plans[0].clone())

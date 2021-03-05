@@ -9,6 +9,7 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::Serialize;
 use validator::ValidationError;
+use wither::{mongodb::bson::oid::ObjectId, Model};
 
 pub fn into_response<T>(m: T) -> HttpResponse
 where
@@ -36,6 +37,15 @@ where
     .as_document()
     .unwrap()
     .clone()
+}
+
+pub fn ensure_id<T>(obj: &mut T)
+where
+  T: Model,
+{
+  if obj.id().is_none() {
+    obj.set_id(ObjectId::new())
+  }
 }
 
 pub fn decimal_at_least_zero(d: &Decimal) -> Result<(), ValidationError> {

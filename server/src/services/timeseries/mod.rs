@@ -155,7 +155,6 @@ pub mod TimeseriesService {
                     .collect();
 
                 net_worth = calculate_account_value(net_worth, apy, &recurrings_to_use);
-                println!("{:?}", recurrings_to_use);
 
                 TimeseriesEntry {
                     date: date.timestamp(),
@@ -280,6 +279,7 @@ mod test {
         };
 
         Allocation {
+            id: None,
             description: String::from("A Test Allocation"),
             date: offset::Utc::now().timestamp(),
             schema: vec![test_change1, test_change2],
@@ -317,6 +317,7 @@ mod test {
         };
 
         let test_allocation = Allocation {
+            id: None,
             description: String::from("A Test Allocation"),
             date: offset::Utc::now().timestamp(),
             schema: vec![test_change],
@@ -408,6 +409,7 @@ mod test {
         let test_allocations = vec![generate_test_allocation()];
 
         let test_events = vec![Event {
+            id: None,
             name: String::from("Test Event"),
             start: start_date.timestamp(),
             transforms: vec![Transform {

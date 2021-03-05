@@ -7,9 +7,9 @@ pub mod PlansService {
     use crate::models::plan_model::*;
     use crate::models::recurring_model::*;
     use crate::models::user_model::User;
-    use crate::services::finchplaid::ApiClient;
     use crate::services::{
-        snapshots::SnapshotService, timeseries::TimeseriesService, users::UserService,
+        finchplaid::ApiClient, snapshots::SnapshotService, timeseries::TimeseriesService,
+        users::UserService,
     };
     use actix_web::web::Data;
     use chrono::offset;
@@ -17,7 +17,6 @@ pub mod PlansService {
     use rust_decimal_macros::dec;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
-    use wither::{mongodb::bson::oid::ObjectId, Model};
 
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
     pub struct PlanResponse {
@@ -31,6 +30,7 @@ pub mod PlansService {
         } else {
             user.plans[0].clone()
         }
+        .ensure_ids()
     }
 
     pub async fn new_plan(
@@ -40,8 +40,7 @@ pub mod PlansService {
         user_service: Data<UserService>,
         plaid_client: Data<ApiClient>,
     ) -> Result<PlanResponse, ApiError> {
-        let mut plan: Plan = payload.into();
-        plan.set_id(ObjectId::new());
+        let plan: Plan = payload.into();
 
         if user.plans.len() < 1 {
             user.plans.push(plan.clone());
@@ -113,6 +112,8 @@ pub mod PlansService {
             plan.events = events;
         }
 
+        plan = plan.ensure_ids();
+
         if user.plans.len() < 1 {
             user.plans.push(plan.clone());
         } else {
@@ -144,7 +145,12 @@ pub mod PlansService {
         let net_worth = last_snapshot.net_worth.amount;
 
         let plan = user_service
-            .add_plaid_plan(user.clone(), plaid_client.clone(), net_worth)
+            .add_plaid_plan(
+                user.clone(),
+                user_service.clone(),
+                plaid_client.clone(),
+                net_worth,
+            )
             .await?;
 
         let timeseries =
@@ -157,22 +163,21 @@ pub mod PlansService {
     }
 
     pub async fn get_plaid_allocation(
-        user: User,
+        user: &User,
+        user_service: Data<UserService>,
         plaid_client: Data<ApiClient>,
         net_worth: Decimal,
-    ) -> Allocation {
-        let mut accounts = Vec::new();
-        for item in user.accounts.iter() {
-            match crate::services::finchplaid::get_account_data(item, plaid_client.clone()).await {
-                Ok(mut res) => accounts.append(&mut res),
-                Err(_) => (),
-            };
-        }
+    ) -> Result<Allocation, ApiError> {
+        let accounts = user_service
+            .get_accounts(user, plaid_client, false)
+            .await?
+            .accounts;
 
-        if net_worth > dec!(0.0) {
+        let res = if net_worth > dec!(0.0) {
             generate_plaid_allocation(accounts, net_worth)
         } else {
             Allocation {
+                id: None,
                 description: "Current Holdings".to_string(),
                 date: (offset::Utc::now()).timestamp(),
                 schema: vec![AllocationProportion {
@@ -184,7 +189,9 @@ pub mod PlansService {
                     proportion: dec!(100.0), // for now make everything positive
                 }],
             }
-        }
+        };
+
+        Ok(res)
     }
 
     pub fn generate_plaid_allocation(
@@ -207,9 +214,9 @@ pub mod PlansService {
                     _ => None,
                 };
 
-                asset_class.map(|c| (c, account.balance, account.account_type))
+                asset_class.map(|c| (c, account.balance, account.name))
             })
-            .map(|(asset_class, balance, account_type)| {
+            .map(|(asset_class, balance, account_name)| {
                 let performance = default_percentages
                     .get(&asset_class)
                     .cloned()
@@ -218,7 +225,7 @@ pub mod PlansService {
 
                 AllocationProportion {
                     asset: Asset {
-                        name: account_type,
+                        name: account_name,
                         class: asset_class,
                         annualized_performance: performance,
                     },
@@ -228,6 +235,7 @@ pub mod PlansService {
             .collect();
 
         Allocation {
+            id: None,
             description: "Current Holdings".to_string(),
             date: (offset::Utc::now()).timestamp(),
             schema: asset_percentages,
@@ -261,6 +269,7 @@ pub mod PlansService {
         };
 
         let test_allocation = Allocation {
+            id: None,
             description: String::from("A Test Allocation"),
             date: offset::Utc::now().timestamp(),
             schema: vec![test_change],
@@ -268,6 +277,7 @@ pub mod PlansService {
         let allocations = vec![test_allocation];
 
         let events = vec![Event {
+            id: None,
             name: String::from("Test Event"),
             start: offset::Utc::now().timestamp(),
             transforms: vec![Transform {
@@ -293,6 +303,7 @@ pub mod PlansService {
             allocations: allocations,
             events: events,
         }
+        .ensure_ids()
     }
 
     pub fn get_asset_classes_and_default_apys() -> Vec<AssetClassAndApy> {
@@ -356,7 +367,7 @@ mod test {
         let target = vec![
             AllocationProportion {
                 asset: Asset {
-                    name: "depository".to_string(),
+                    name: "blah".to_string(),
                     class: AssetClass::Cash,
                     annualized_performance: dec!(1.0),
                 },
@@ -364,7 +375,7 @@ mod test {
             },
             AllocationProportion {
                 asset: Asset {
-                    name: "investment".to_string(),
+                    name: "blah2".to_string(),
                     class: AssetClass::Equity,
                     annualized_performance: dec!(1.05),
                 },

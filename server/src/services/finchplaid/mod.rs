@@ -223,6 +223,7 @@ pub async fn exchange_public_token_for_access_token(
       user,
       item_access_token,
       item_id.clone(),
+      user_service.clone(),
       plaid_client.clone(),
       fin_product_service,
     )

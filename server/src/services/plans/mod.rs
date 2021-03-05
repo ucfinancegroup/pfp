@@ -7,9 +7,9 @@ pub mod PlansService {
     use crate::models::plan_model::*;
     use crate::models::recurring_model::*;
     use crate::models::user_model::User;
-    use crate::services::finchplaid::ApiClient;
     use crate::services::{
-        snapshots::SnapshotService, timeseries::TimeseriesService, users::UserService,
+        finchplaid::ApiClient, snapshots::SnapshotService, timeseries::TimeseriesService,
+        users::UserService,
     };
     use actix_web::web::Data;
     use chrono::offset;
@@ -209,9 +209,9 @@ pub mod PlansService {
                     _ => None,
                 };
 
-                asset_class.map(|c| (c, account.balance, account.account_type))
+                asset_class.map(|c| (c, account.balance, account.name))
             })
-            .map(|(asset_class, balance, account_type)| {
+            .map(|(asset_class, balance, account_name)| {
                 let performance = default_percentages
                     .get(&asset_class)
                     .cloned()
@@ -220,7 +220,7 @@ pub mod PlansService {
 
                 AllocationProportion {
                     asset: Asset {
-                        name: account_type,
+                        name: account_name,
                         class: asset_class,
                         annualized_performance: performance,
                     },

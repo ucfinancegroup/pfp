@@ -165,10 +165,13 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                             </td>
                             <td>
                                 <span className={styles.slider__container}>
-                                    <input type="range" min="0" max={Math.min(100, a.proportion + allocationRemaining)}
+                                    <input type="range" min="0" max="100"
                                            className={cx(styles.slider, "form-control")}
                                         value={a.proportion}  onChange={e => {
-                                        a.proportion = parseFloat(e.target.value);
+                                        const maxValue = Math.min(100, a.proportion + allocationRemaining);
+                                        let value = parseFloat(e.target.value);
+                                        value = Math.min(value, maxValue);
+                                        a.proportion = value;
                                         setAssets([...assets]);
                                     }}/>
                                     <span>{a.proportion.toFixed(2)}%</span>

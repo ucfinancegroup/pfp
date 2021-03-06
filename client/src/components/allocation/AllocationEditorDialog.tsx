@@ -90,6 +90,7 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
     function save() {
         if (!props.editing) {
             const newAllocation: Allocation = {
+                _id: null,
                 description: name,
                 date: new Date(date).getTime(),
                 schema: assets,

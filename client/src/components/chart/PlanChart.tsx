@@ -316,6 +316,7 @@ export function PlanChart(props: PlanChartProps) {
 
         const graphRecurrings: GraphRecurring[] = recurrings.map((x, i) => {
             return {
+                obj: x,
                 start: new Date(x.start),
                 end: new Date(x.end),
                 level: -1,
@@ -363,13 +364,12 @@ export function PlanChart(props: PlanChartProps) {
             y -= recurring.level * (rectHeight + betweenPadding);
 
             const g = rects.append('g')
-                .attr('class', 'rect')
                 .attr('transform', `translate(${rectLeft},${y})`)
 
 
-
-
             g.append('rect')
+                .on('click', () => clickRecurringRect(recurring.obj))
+                .attr('class', styles.rect)
                 .attr('rx', cornerRadius)
                 .attr('rx', cornerRadius)
                 .attr('width', rectWidth)
@@ -377,11 +377,13 @@ export function PlanChart(props: PlanChartProps) {
                 .attr('fill', recurring.color);
 
             if (!mini) {
+                const fontSize = Math.min(14, Math.max(11, (rectWidth / 200) * 14));
                 g.append('text')
+                    .attr('class', styles.rect__text)
                     .attr('x', 6)
-                    .attr('y', 15)
+                    .attr('y', 15 - (14 - fontSize) * 0.5)
                     .attr('fill', 'black')
-                    .attr('font-size', "14px")
+                    .attr('font-size', fontSize)
                     .text(recurring.name);
             }
         }
@@ -456,6 +458,7 @@ export function PlanChart(props: PlanChartProps) {
         }
         setRecurringDialogEditing(null);
         setRecurringDialogOpen(false);
+        updateRef.current();
     }
 
     function menuAddExpense() {
@@ -466,6 +469,12 @@ export function PlanChart(props: PlanChartProps) {
     function menuAddIncome() {
         setRecurringDialogOpen(true);
         setRecurringDialogMode(RecurringType.Income);
+    }
+
+    function clickRecurringRect(recurring: Recurring) {
+        setRecurringDialogOpen(true);
+        setRecurringDialogEditing(recurring);
+        setRecurringDialogMode(recurring.amount < 0 ? RecurringType.Expense : RecurringType.Income);
     }
 
     function menuModifyAllocations() {
@@ -537,6 +546,7 @@ export function PlanChart(props: PlanChartProps) {
 }
 
 type GraphRecurring = {
+    obj: Recurring;
     start: Date;
     end: Date;
     color: string;

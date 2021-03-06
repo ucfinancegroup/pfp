@@ -28,10 +28,10 @@ const RecurringSchema = Yup.object().shape({
     end: Yup.string().required(),
     principal: Yup.number(),
     interest: Yup.number(),
-    amount: Yup.number(),
+    amount: Yup.number().min(1, "Must be more than 1"),
     frequency: Yup.object().shape({
         typ: Yup.string().required(),
-        content: Yup.number().required(),
+        content: Yup.number().required("Frequency is required").min(1, "Must be more than 1"),
     }).required(),
 });
 
@@ -140,7 +140,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
             {({errors, touched, values, isValid}) => (
                 <Form>
 
-                    <ul className="nav nav-tabs mb-2 mt-4">
+                    <ul className="nav nav-tabs mb-2">
                         <li className="nav-item">
                             <a className={cx("nav-link", {active: !isCompounding})} onClick={() => setIsCompounding(false)}>Fixed</a>
                         </li>
@@ -197,19 +197,19 @@ export function RecurringDialog(props: RecurringDialogProps) {
                         }
                         <div className="col">
                             <div className="form-group">
-                                <label>times:</label>
-                                <Field name="frequency.content" type="number"
+                                <label>every:</label>
+                                <Field name="frequency.content" type="number" min="1"
                                        className={cx("form-control", {"is-invalid": errors.frequency?.content && touched.frequency?.content})}/>
                                 <div className="invalid-feedback"><ErrorMessage name="frequency.content"/></div>
                             </div>
                         </div>
                         <div className="col">
                             <div className="form-group">
-                                <label>per:</label>
+                                <label>&nbsp;</label>
                                 <Field as="select" name="frequency.typ"
                                        className={cx("form-control", {"is-invalid": errors.frequency?.typ && touched.frequency?.typ})}>
                                     {
-                                        recurringFrequencies.map(c => <option value={c.type} key={c.type}>{c.name}</option>)
+                                        recurringFrequencies.map(c => <option value={c.type} key={c.type}>{c.name}{values.frequency.content === 1 ? "" : "s"}</option>)
                                     }
                                 </Field>
                                 <div className="invalid-feedback"><ErrorMessage name="frequency.typ"/></div>
@@ -238,7 +238,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
                         </div>
                     </div>
 
-                    <button className="btn btn-primary mt-4" type="submit" disabled={!isValid}>
+                    <button className="btn btn-primary" type="submit" disabled={!isValid}>
                         {props.editing ? "Save" : "Add"}
                     </button>
                 </Form>
@@ -258,7 +258,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
                     </div>
                 }
                 {
-                    !props.editing && examples && currentExamples.length > 0 && <>
+                    !props.editing && examples && currentExamples.length > 0 && <div className="mb-4">
                         <p>Choose from an example, or input your own.</p>
                         <strong>Examples: </strong>
                         {
@@ -266,7 +266,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
                                 variant="primary" className={styles.example}
                                 onClick={() => doExample(e)}>{e.name}</Button>)
                         }
-                    </>
+                    </div>
                 }
                 {
                     renderForm()

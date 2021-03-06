@@ -22,6 +22,18 @@
   }
 }
 
+.rect {
+  transition: opacity .2s;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+.rect__text {
+  pointer-events: none;
+}
 
 .mouse-line {
   fill: none;

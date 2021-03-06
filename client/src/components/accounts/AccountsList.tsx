@@ -54,7 +54,27 @@ export function AccountsList(props: AccountsListProps) {
 
     return <>
         {
-            !plaidToken && <p>Loading...</p>
+            !accounts && <p>Loading...</p>
+        }
+        {
+            accounts && accounts.length === 0 &&
+            <div>
+                <h3>👋 Welcome to Finch!</h3>
+                <p>Get started by linking a financial institution to your account.
+                  We use your connected accounts to track your finances and to create predictions and correlations. Try connecting a:</p>
+                <ul>
+                    <li>
+                      🏦 Bank Account
+                    </li>
+                    <li>
+                      📈 Investment Account
+                    </li>
+                    <li>
+                      🧓 Retirement Account
+                    </li>
+                </ul>
+              <p>Simply click the button below to sign in to your financial institution.</p>
+            </div>
         }
         {
             accounts && accounts.length > 0 &&
@@ -83,6 +103,9 @@ export function AccountsList(props: AccountsListProps) {
             plaidToken && <div className="mt-4">
               <PlaidLink token={plaidToken} onSuccess={() => loadAccounts()}/>
             </div>
+        }
+        {
+            !plaidToken && accounts && <p>Loading...</p>
         }
     </>
 }

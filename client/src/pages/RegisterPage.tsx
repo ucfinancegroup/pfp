@@ -80,7 +80,7 @@ export default function RegisterPage() {
                 }
             })
             setIsLoggedIn(true);
-            router.push("/dashboard");
+            router.push("/account?tab=accounts");
         } catch (e) {
             setError(await handleFetchError(e));
         } finally {

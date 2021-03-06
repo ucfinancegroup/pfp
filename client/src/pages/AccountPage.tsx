@@ -1,11 +1,18 @@
 import React, {useContext, useEffect, useState} from "react";
 import {UserContext} from "../contexts/UserContext";
 import {RecurringList} from "../components/recurring/RecurringList";
-import {Redirect} from "react-router-dom";
+import {Redirect, useHistory, useLocation} from "react-router-dom";
 import {AccountsList} from "../components/accounts/AccountsList";
 export default function AccountPage() {
     const {isLoggedIn} = useContext(UserContext);
-    const [tab, setTab] = useState<"recurrings" | "accounts">("recurrings");
+    const location = useLocation();
+    const history = useHistory();
+    const [tab, setTab] = useState<"recurrings" | "accounts">(new URLSearchParams(location.search).get("tab") as any || "recurrings");
+
+    function gotoTab(tab: "recurrings" | "accounts") {
+        setTab(tab);
+        history.replace("/account?tab=" + tab);
+    }
 
     return <>
         {!isLoggedIn &&
@@ -13,10 +20,10 @@ export default function AccountPage() {
         }
         <h1>Your Account</h1>
         <ul className="nav nav-pills mt-4 mb-4">
-            <li className="nav-item" onClick={() => setTab("recurrings")}>
+            <li className="nav-item" onClick={() => gotoTab("recurrings")}>
                 <a className={"nav-link " + (tab === "recurrings" ? "active" : "")}>Income & Expenses</a>
             </li>
-            <li className="nav-item" onClick={() => setTab("accounts")}>
+            <li className="nav-item" onClick={() => gotoTab("accounts")}>
                 <a className={"nav-link " + (tab === "accounts" ? "active" : "")}>Connected Accounts</a>
             </li>
         </ul>
@@ -27,7 +34,6 @@ export default function AccountPage() {
             }
             {
                 tab === "accounts" && <>
-                  <h3>Connected Accounts</h3>
                     <AccountsList/>
                 </>
             }

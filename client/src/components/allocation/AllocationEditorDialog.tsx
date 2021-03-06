@@ -4,6 +4,7 @@ import React, {useEffect, useState} from "react";
 import {Allocation, AllocationProportion, AssetClassAndApy, AssetClassesApi, AssetClassTypEnum} from "../../api";
 import Modal from "react-bootstrap/cjs/Modal";
 import {dateAsInputString} from "../../Helpers";
+import {epochToDate} from "../recurring/RecurringHelpers";
 
 const cx = classNames.bind(styles);
 
@@ -40,18 +41,23 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
         setClasses(assets);
 
         // If we are creating a new allocation, get the last allocation to base this on.
-        let basedOn: Allocation;
-        for (let allocation of props.allocations) {
-            if (new Date(allocation.date) < props.creating)
-                basedOn = allocation;
-            else
-                break;
+        if (!props.editing) {
+            let basedOn: Allocation;
+            for (let allocation of props.allocations) {
+                if (epochToDate(allocation.date) < props.creating)
+                    basedOn = allocation;
+                else
+                    break;
+            }
+            setDate(dateAsInputString(props.creating));
+            basedOn.schema.forEach(a => (a as any)._react = Math.random());
+            setAssets(basedOn.schema);
+        } else {
+            setDate(dateAsInputString(epochToDate(props.editing.date)));
+            props.editing.schema.forEach(a => (a as any)._react = Math.random());
+            setAssets(props.editing.schema);
+            // If we are editing an allocation...
         }
-        setDate(dateAsInputString(props.creating));
-        basedOn.schema.forEach(a => (a as any)._react = Math.random());
-        setAssets(basedOn.schema);
-
-        // If we are editing an allocation...
     }
 
     function close() {
@@ -92,14 +98,15 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
             const newAllocation: Allocation = {
                 _id: null,
                 description: name,
-                date: new Date(date).getTime(),
+                date: new Date(date).getTime() / 1000,
                 schema: assets,
             }
             const newAllocations = [...props.allocations, newAllocation].sort((a, b) =>
                 a.date - b.date);
             props.onClose(newAllocations);
         } else {
-
+            const newAllocations = [...props.allocations];
+            props.onClose(newAllocations);
         }
     }
 

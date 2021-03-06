@@ -5,7 +5,7 @@ import {curveBasis} from "d3";
 import React, {useEffect, useRef, useState} from "react";
 import {PlanApi, Recurring, RecurringApi, RecurringNewPayload, TimeseriesApi, Plan, Allocation} from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
-import {formatPrice} from "../../Helpers";
+import {addDays, formatPrice} from "../../Helpers";
 import {RecurringDialog} from "../recurring/RecurringDialog";
 import {RecurringType} from "../recurring/RecurringType";
 import {AllocationEditorDialog} from "../allocation/AllocationEditorDialog";
@@ -43,7 +43,8 @@ export function PlanChart(props: PlanChartProps) {
     const [recurringDialogOpen, setRecurringDialogOpen] = useState<boolean>(false);
     const [recurringDialogEditing, setRecurringDialogEditing] = useState<Recurring>(null);
     const [recurringDialogMode, setRecurringDialogMode] = useState<RecurringType>();
-    const [allocationDialogOpen, setAllocationDialogOpen] = useState<boolean>(true);
+    const [allocationDialogOpen, setAllocationDialogOpen] = useState<boolean>(false);
+    const [allocationDialogEditing, setAllocationDialogEditing] = useState<Allocation>(null);
     const [plan, setPlan] = useState<Plan>();
     const self = this;
 
@@ -354,13 +355,43 @@ export function PlanChart(props: PlanChartProps) {
             rects.attr("clip-path", "url(#rectClip)");
         }
 
+        // Add the allocation change rectangles
+        for (let allocation of plan.allocations) {
+            const rectLeft = x(epochToDate(allocation.date));
+            const rectRight = x(addDays(epochToDate(allocation.date), 1));
+            const rectWidth = Math.round(rectRight - rectLeft);
+            let y = margin.top;
+
+            const g = rects.append('g')
+                .attr('transform', `translate(${rectLeft},${y})`)
+
+
+            g.append('rect')
+                .on('click', () => clickAllocationRect(allocation))
+                .attr('class', styles.rect + " " + styles["rect--allocation"])
+                .attr('width', rectWidth)
+                .attr('height', height);
+
+            if (!mini && rectWidth > 14) {
+                g.append('text')
+                    .attr('class', styles.rect__text + " " + styles["rect__text--allocation"])
+                    .attr('x', (rectWidth / 2) + 1)
+                    .attr('y', 150)
+                    .attr('fill', 'black')
+                    .attr('font-size', '12px')
+                    .text("Allocation Change");
+            }
+        }
+
+
+        // Add the recurring rectangles
         for (let recurring of sortedRecurrings) {
             const rectLeft = x(recurring.start);
             const rectRight = x(recurring.end);
             const rectHeight = !mini ? 20 : 5;
             const cornerRadius = !mini ? 5 : 2;
 
-            const rectWidth = rectRight - rectLeft;
+            const rectWidth = Math.round(rectRight - rectLeft);
             let y = bottom - rectHeight;
             y -= recurring.level * (rectHeight + betweenPadding);
 
@@ -473,9 +504,16 @@ export function PlanChart(props: PlanChartProps) {
     }
 
     function clickRecurringRect(recurring: Recurring) {
-        setRecurringDialogOpen(true);
         setRecurringDialogEditing(recurring);
         setRecurringDialogMode(recurring.amount < 0 ? RecurringType.Expense : RecurringType.Income);
+
+        setRecurringDialogOpen(true);
+    }
+
+    function clickAllocationRect(allocation: Allocation) {
+
+        setAllocationDialogEditing(allocation);
+        setAllocationDialogOpen(true);
     }
 
     function menuModifyAllocations() {
@@ -500,6 +538,7 @@ export function PlanChart(props: PlanChartProps) {
 
     async function allocationEditorClosed(allocations: Allocation[]) {
        setAllocationDialogOpen(false);
+       setAllocationDialogEditing(null);
        if (!allocations) return;
 
        await planApi.newPlan({
@@ -515,7 +554,7 @@ export function PlanChart(props: PlanChartProps) {
             plan &&
               <>
             <AllocationEditorDialog allocations={plan.allocations}
-                                    editing={null} creating={new Date()} show={allocationDialogOpen}
+                                    editing={allocationDialogEditing} creating={menuDate} show={allocationDialogOpen}
                                     onClose={allocations => allocationEditorClosed(allocations)}/>
             <RecurringDialog startDate={menuDate} show={recurringDialogOpen} mode={recurringDialogMode} onClose={r => recurringDialogClosed(r)}
             editing={recurringDialogEditing}/>

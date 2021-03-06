@@ -18,8 +18,12 @@ export function getRecurringFrequencyName(content: number, type: string) {
     }
 }
 
-export function msToDateString(ms: number) {
-    const date = new Date(ms);
+export function epochToDate(seconds: number) {
+    return new Date(seconds * 1000);
+}
+
+export function epochToDateString(seconds: number) {
+    const date = epochToDate(seconds);
     const day = date.getDate();
     const month = (date.getMonth() + 1);
     return date.getFullYear() + "-" + (month < 10 ? "0" + month : month) + "-" + (day < 10 ? "0" + day : day);

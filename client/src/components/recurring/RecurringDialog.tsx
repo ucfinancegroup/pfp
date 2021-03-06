@@ -7,7 +7,7 @@ import Button from "react-bootstrap/cjs/Button";
 import {RecurringType} from "./RecurringType";
 import * as Yup from "yup";
 import {ErrorMessage, Field, Form, Formik} from "formik";
-import {getRecurringType, msToDateString, recurringFrequencies} from "./RecurringHelpers";
+import {getRecurringType, epochToDateString, recurringFrequencies} from "./RecurringHelpers";
 import {addDays, dateAsInputString} from "../../Helpers";
 
 const cx = classNames.bind(styles);
@@ -70,9 +70,8 @@ export function RecurringDialog(props: RecurringDialogProps) {
         if (props.editing) {
             const copy = Object.assign({}, props.editing);
             copy.amount = Math.abs(copy.amount);
-            copy.start = msToDateString(copy.start) as any;
-
-            copy.end = msToDateString(copy.end) as any;
+            copy.start = epochToDateString(copy.start) as any;
+            copy.end = epochToDateString(copy.end) as any;
             setIsCompounding(copy.principal !== 0 || copy.interest !== 0);
             setInitialValues(copy)
         }
@@ -110,8 +109,10 @@ export function RecurringDialog(props: RecurringDialogProps) {
             values.interest = 0;
         }
 
-        values.start = new Date(values.start).getTime();
-        values.end = new Date(values.end).getTime();
+        if (typeof values.start === 'string')
+        values.start = new Date(values.start).getTime() / 1000;
+        if (typeof values.end === 'string')
+        values.end = new Date(values.end).getTime() / 1000;
 
         props.onClose(values);
         reset();

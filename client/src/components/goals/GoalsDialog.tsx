@@ -11,7 +11,7 @@ import * as Yup from "yup";
 import Modal from "react-bootstrap/cjs/Modal";
 import Button from "react-bootstrap/cjs/Button";
 import {ErrorMessage, Field, Form, Formik} from "formik";
-import {msToDateString} from "../recurring/RecurringHelpers";
+import {epochToDateString} from "../recurring/RecurringHelpers";
 import {goalMetrics} from "./GoalHelpers";
 import {addDays, dateAsInputString} from "../../Helpers";
 
@@ -53,8 +53,8 @@ export function GoalsDialog(props: GoalsDialogProps) {
     useEffect(() => {
         if (props.editing) {
             const copy = Object.assign({}, props.editing);
-            copy.start = msToDateString(copy.start) as any;
-            copy.end = msToDateString(copy.end) as any;
+            copy.start = epochToDateString(copy.start) as any;
+            copy.end = epochToDateString(copy.end) as any;
             setInitialValues(copy)
         }
     }, [props.editing]);
@@ -76,8 +76,10 @@ export function GoalsDialog(props: GoalsDialogProps) {
 
     async function submit(values: GoalNewPayload) {
         setError(null);
-        values.start = new Date(values.start).getTime();
-        values.end = new Date(values.end).getTime();
+        if (typeof values.start === 'string')
+            values.start = new Date(values.start).getTime() / 1000;
+        if (typeof values.end === 'string')
+            values.end = new Date(values.end).getTime() / 1000;
 
         props.onClose(values);
         reset();
@@ -160,7 +162,7 @@ export function GoalsDialog(props: GoalsDialogProps) {
                         </div>
                     </div>
 
-                    <button className="btn btn-primary mt-4" type="submit" disabled={!isValid}>
+                    <button className="btn btn-primary" type="submit" disabled={!isValid}>
                         {props.editing ? "Save" : "Add"}
                     </button>
                 </Form>

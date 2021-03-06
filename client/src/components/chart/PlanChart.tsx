@@ -9,6 +9,7 @@ import {formatPrice} from "../../Helpers";
 import {RecurringDialog} from "../recurring/RecurringDialog";
 import {RecurringType} from "../recurring/RecurringType";
 import {AllocationEditorDialog} from "../allocation/AllocationEditorDialog";
+import {epochToDate} from "../recurring/RecurringHelpers";
 
 const cx = classNames.bind(styles);
 
@@ -84,10 +85,10 @@ export function PlanChart(props: PlanChartProps) {
         const ts = planData.timeseries;
         console.log(plan);
 
-        const predictionStart = new Date(ts.start * 1000);
+        const predictionStart = epochToDate(ts.start);
         const series = ts.series;
         const data = Object.assign(series.map(({date, net_worth}) =>
-            ({date: new Date(date * 1000), value: net_worth.amount})));
+            ({date: epochToDate(date), value: net_worth.amount})));
         dataRef.current = data;
 
         const knownData = data.filter(f => f.date <= predictionStart);
@@ -317,8 +318,8 @@ export function PlanChart(props: PlanChartProps) {
         const graphRecurrings: GraphRecurring[] = recurrings.map((x, i) => {
             return {
                 obj: x,
-                start: new Date(x.start),
-                end: new Date(x.end),
+                start: epochToDate(x.start),
+                end: epochToDate(x.end),
                 level: -1,
                 name: x.name,
                 color: null,

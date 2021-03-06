@@ -88,7 +88,7 @@ export function GoalsList(props: GoalsListProps) {
                 return <div className={styles.goal} key={g.goal._id.$oid}>
                     <div className={styles.goal__header}>
                         <div className={styles.goal__name}>
-                            {g.goal.name}: <strong>{g.progress.toFixed(0)}%</strong>
+                            {g.goal.name}: <strong>{(g.progress * 100).toFixed(0)}%</strong>
                         </div>
                         <div className={styles.goal__actions}>
                             <i className="fa fa-pencil" aria-hidden="true" onClick={() => editGoal(g)}/>
@@ -96,7 +96,7 @@ export function GoalsList(props: GoalsListProps) {
                         </div>
                     </div>
                     <div className={styles.goal__progress}>
-                        <div className={styles.goal__bar} style={{width: g.progress + "%"}}>
+                        <div className={styles.goal__bar} style={{width: (g.progress * 100) + "%"}}>
                         </div>
                     </div>
                 </div>

@@ -5,7 +5,8 @@ import {Recurring, RecurringApi, RecurringNewPayload} from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
 import {RecurringDialog} from "./RecurringDialog";
 import {RecurringType} from "./RecurringType";
-import {getRecurringFrequencyName, getRecurringType} from "./RecurringHelpers";
+import {epochToDate, getRecurringFrequencyName, getRecurringType} from "./RecurringHelpers";
+import {dateAsInputString} from "../../Helpers";
 
 const cx = classNames.bind(styles);
 
@@ -85,20 +86,6 @@ export function RecurringList(props: RecurringListProps) {
     const incomes = recurrings && recurrings.filter(r => getRecurringType(r) === RecurringType.Income);
     const expenses = recurrings && recurrings.filter(r => getRecurringType(r) === RecurringType.Expense);
 
-    function formatDate(ms: number) {
-        var d = new Date(ms),
-            month = '' + (d.getMonth() + 1),
-            day = '' + d.getDate(),
-            year = d.getFullYear();
-
-        if (month.length < 2)
-            month = '0' + month;
-        if (day.length < 2)
-            day = '0' + day;
-
-        return [year, month, day].join('-');
-    }
-
     function renderTable(recurrings: Recurring[]) {
         if (recurrings.length === 0) return <p>None yet</p>
         return <table className="table">
@@ -125,8 +112,8 @@ export function RecurringList(props: RecurringListProps) {
                         }
                     </td>
                     <td>{getRecurringFrequencyName(r.frequency.content, r.frequency.typ)}</td>
-                    <td>{formatDate(r.start)}</td>
-                    <td>{formatDate(r.end)}</td>
+                    <td>{dateAsInputString(epochToDate(r.start))}</td>
+                    <td>{dateAsInputString(epochToDate(r.end))}</td>
                     <td className={styles.actions}>
                         <i className="fa fa-times" aria-hidden="true" onClick={() => deleteRecurring(r)}/>
                         <i className="fa fa-pencil" aria-hidden="true" onClick={() => editRecurring(r)}/>

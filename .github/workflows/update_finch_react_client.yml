@@ -8,7 +8,7 @@ on:
 name: "Update Finch React Client"
 
 env:
-  CLIENT_PREFIX: "\/api" # escape slashes for sed
+  CLIENT_PREFIX: \/api # escape slashes for sed
 
 jobs:
   update-finch-react-client:

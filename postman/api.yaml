@@ -3,8 +3,8 @@ info:
   version: 0.0.1
   title: FinchAPI
 servers:
-  - url: "https://localhost:8888/api" # our react client needs this endpoint, below just for postman
   - url: "https://finchapp.eastus.cloudapp.azure.com/api"
+  - url: "https://localhost:8888/api"
   - url: "https://localhost:8080/"
 paths:
   /signup:

@@ -93,6 +93,10 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
         return classes.find(c => c._class.typ == value);
     }
 
+
+    const allocationTotal = assets.length === 0 ? 0 : assets.map(a => a.proportion).reduce((a, b) => a + b);
+    const allocationRemaining = 100 - allocationTotal;
+
     function save() {
         if (!props.editing) {
             const newAllocation: Allocation = {
@@ -110,8 +114,6 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
         }
     }
 
-    const allocationTotal = assets.length === 0 ? 0 : assets.map(a => a.proportion).reduce((a, b) => a + b);
-    const allocationRemaining = 100 - allocationTotal;
 
     return <Modal show={props.show} onHide={() => close()}  dialogClassName="modal-large">
         <Modal.Header closeButton>
@@ -141,7 +143,9 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                     <i className="fa fa-plus"/>
                     Add Asset
                 </button>
-                <span className="ml-2"><strong>Unallocated: </strong>{allocationRemaining.toFixed(2)}%</span>
+                <span className={cx("ml-2", {
+                    "text-danger": allocationRemaining > 0,
+                })}><strong>Unallocated: </strong>{allocationRemaining.toFixed(2)}%</span>
             </div>
             <table className="table">
                 <thead>
@@ -216,7 +220,7 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                 }
                 </tbody>
             </table>
-            <button className="btn btn-primary" onClick={() => save()}>
+            <button className="btn btn-primary" onClick={() => save()} disabled={allocationRemaining > 0}>
                 <i className="fa fa-save"/>
                 Save Assets
             </button>

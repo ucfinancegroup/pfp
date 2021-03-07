@@ -26,6 +26,7 @@ export function PlanChart(props: PlanChartProps) {
     const height = 440;
     const width = 1000;
     const margin = ({top: 0, right: 20, bottom: 30, left: 40});
+    const [loading, setLoading] = useState<boolean>(true);
     const [recurrings, setRecurrings] = useState<Recurring[]>([]);
     const [error, setError] = useState<string>();
     const scaleRefX = useRef<any>();
@@ -49,9 +50,15 @@ export function PlanChart(props: PlanChartProps) {
     const self = this;
 
     useEffect(() => {
-        getData();
-        getRecurrings();
+        fetchEverything();
     }, []);
+
+    async function fetchEverything() {
+        setLoading(true);
+        await getData();
+        await getRecurrings();
+        setLoading(false);
+    }
 
     useEffect(() => {
         if (updateRef.current)
@@ -539,6 +546,8 @@ export function PlanChart(props: PlanChartProps) {
     async function allocationEditorClosed(allocations: Allocation[]) {
        setAllocationDialogOpen(false);
        setAllocationDialogEditing(null);
+
+       // The editor was closed without modifying anything, e.g the X was clicked.
        if (!allocations) return;
 
        await planApi.newPlan({
@@ -547,9 +556,14 @@ export function PlanChart(props: PlanChartProps) {
                allocations,
            }
        });
+
+       await fetchEverything();
     }
 
     return <div>
+        {
+            loading && <div className="text-center">Loading...</div>
+        }
         {
             plan &&
               <>

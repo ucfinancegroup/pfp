@@ -31,7 +31,7 @@ jobs:
 
       - name: Monkey Patch BASE_PATH
         id: base-path-patch
-        run: sed -i 's/^.*export const BASE_PATH.*$/export const BASE_PATH="${{ env.CLIENT_PREFIX }}";/g' runtime.ts
+        run: sed -i '' 's/^.*export const BASE_PATH.*$/export const BASE_PATH="${{ env.CLIENT_PREFIX }}";/g' runtime.ts
         working-directory: ./client/src/api
 
       - name: add-and-commit

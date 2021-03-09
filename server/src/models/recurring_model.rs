@@ -1,3 +1,4 @@
+use chrono::{DateTime, Datelike, NaiveDateTime, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use wither::{mongodb::bson::oid::ObjectId, Model};
@@ -46,4 +47,37 @@ pub enum Typ {
   Daily,
   #[serde(rename = "weekly")]
   Weekly,
+}
+
+impl Recurring {
+  // compounds the principal and returns the change (i.e., the wealth increase)
+  pub fn compound(&mut self) -> Decimal {
+    let change = self.principal * self.interest;
+
+    self.principal += change;
+
+    change
+  }
+
+  pub fn is_active(&self, date: &DateTime<Utc>) -> bool {
+    let ts = date.timestamp();
+    let active_1 = self.start <= ts && self.end > ts;
+
+    if !active_1 {
+      return false;
+    }
+
+    let naive = NaiveDateTime::from_timestamp(self.start, 0);
+    let datetime: DateTime<Utc> = DateTime::from_utc(naive, Utc);
+
+    use Typ::*;
+    let active_today = match self.frequency.typ {
+      Daily => true, // always do dailies
+      Weekly => datetime.weekday() == date.weekday(),
+      Monthly => datetime.day() == date.day(),
+      Annually => datetime.ordinal() == date.ordinal(),
+    };
+
+    active_today
+  }
 }

@@ -8,9 +8,9 @@ struct Ranking {
 impl Ranking {
   fn new(leaderboard_type: String, percentile: f64, description: String) -> Ranking {
     Ranking {
-      leaderboard_type: percentile.to_string(),
-      percentile: percentile,
-      description: description.to_string(),
+      leaderboard_type.to_string(),
+      percentile,
+      description.to_string(),
     }
   }
 }

@@ -99,7 +99,7 @@ pub fn project_snapshots(since: DateTime<Utc>) -> bson::Document {
   }
 }
 
-pub async fn generate_metric(
+async fn generate_metric(
   user: &User,
   db_service: &DatabaseService,
   since: DateTime<Utc>,
@@ -117,10 +117,6 @@ pub async fn generate_metric(
   let metrics: SimilarUserMetrics =
     compare_snapshots_to_user(&user.snapshots, extracted_snapshots, &since).await;
 
-  if metrics.total_similar_users <= 0 {
-    return Err(AppError::new("No peers for insight generation"));
-  }
-
   return Ok(metrics);
 }
 
@@ -137,6 +133,9 @@ pub async fn generate_similar_user_insight(
   let since = Utc::now() - lookback;
 
   let metrics = generate_metric(user, db_service, since).await?;
+  if metrics.total_similar_users <= 0 {
+    return Err(AppError::new("No peers for insight generation"));
+  }
 
   match insight_type {
     InsightTypes::Savings => Ok(Insight::new(

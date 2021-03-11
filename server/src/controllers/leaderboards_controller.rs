@@ -1,17 +1,14 @@
-use crate::common::Examples;
-use crate::models::{insight_model::Insight, user_model::User};
-use crate::services::users::UserService;
+use crate::models::{recurring_model::*, user_model::User};
+use crate::services::leaderboards::LeaderboardService;
 use actix_web::{
-  get, put,
-  web::{Data, Path},
+  get,
+  web::{Path},
   HttpResponse,
 };
 
 #[get("/leaderboard/{board}")]
 pub async fn get_leaderboard(user: User, board: Path<String>) -> HttpResponse {
-  println!("{}", board.into_inner());
-  let res: Result<String, ()> = Ok("test".to_string());
-  crate::common::into_response(res)
+    crate::common::into_response(LeaderboardService::get_ranking(board.to_string(), &user).await)
 }
 
 use actix_web::web::ServiceConfig;

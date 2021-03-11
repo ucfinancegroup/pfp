@@ -3,6 +3,7 @@ pub mod financial_products;
 pub mod finchplaid;
 pub mod goals;
 pub mod insights;
+pub mod leaderboards;
 pub mod plans;
 pub mod recurrings;
 pub mod secrets;

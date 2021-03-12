@@ -1,4 +1,4 @@
-use crate::models::{recurring_model::*, user_model::User};
+use crate::models::{user_model::User};
 use crate::services::leaderboards::LeaderboardService;
 use actix_web::{get, web::Path, HttpResponse};
 

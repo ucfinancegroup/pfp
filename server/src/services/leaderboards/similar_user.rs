@@ -10,6 +10,7 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use wither::mongodb::bson::doc;
 use wither::mongodb::Database;
+use wither::Model;
 
 #[derive(Clone, Copy)]
 struct SimilarUserMetrics {
@@ -105,20 +106,23 @@ async fn generate_metric(
   db: &Database,
   since: DateTime<Utc>,
 ) -> Result<SimilarUserMetrics, AppError> {
-  // let agg = db
-  //   .aggregate(
-  //     vec![match_income_range(&user), project_snapshots(since)],
-  //     None,
-  //   )
-  //   .await
-  //   .map_err(|_| AppError::new("Error during aggregation"))?;
+  let agg = User::collection(db)
+    .aggregate(
+      vec![match_income_range(&user), project_snapshots(since)],
+      None,
+    )
+    .await
+    .map_err(|e| {
+      println!("{}", e);
+      AppError::new("Error during aggregation")
+    })?;
 
-  // let extracted_snapshots = agg.map(extract_snapshots);
+  let extracted_snapshots = agg.map(extract_snapshots);
 
-  // let metrics: SimilarUserMetrics =
-  //   compare_snapshots_to_user(&user.snapshots, extracted_snapshots, &since).await;
+  let metrics: SimilarUserMetrics =
+    compare_snapshots_to_user(&user.snapshots, extracted_snapshots, &since).await;
 
-  return Ok(SimilarUserMetrics::default());
+  return Ok(metrics);
 }
 
 pub async fn generate_ranking(
@@ -134,12 +138,13 @@ pub async fn generate_ranking(
   let since = Utc::now() - lookback;
 
   let metrics = generate_metric(user, db, since).await?;
-  // if metrics.total_similar_users <= 0 {
-  //   return Err(AppError::new("No peers for insight generation"));
-  // }
+  if metrics.total_similar_users <= 0 {
+    return Err(AppError::new("No peers for insight generation"));
+  }
+  println!("{} {}", metrics.total_similar_users, metrics.income_less);
   Ok(Ranking {
     leaderboard_type: board_type,
-    percentile: 19.1,
+    percentile: 100.0 * metrics.income_less as f64 / metrics.total_similar_users as f64,
     description: "Test".to_string(),
   })
 }
@@ -147,7 +152,10 @@ pub async fn generate_ranking(
 fn extract_snapshots(
   snaps: Result<bson::Document, wither::mongodb::error::Error>,
 ) -> Result<Vec<Snapshot>, AppError> {
-  let doc = snaps.map_err(|_| AppError::new("Aggregation Error"))?;
+  let doc = snaps.map_err(|e| {
+    println!("{}", e);
+    AppError::new("Error during aggregation")
+  })?;
 
   let snapshots_doc = doc
     .get("snapshots")

@@ -1,21 +1,32 @@
-#[allow(non_snake_case)]
-pub mod LeaderboardService {
-  use crate::common::errors::ApiError;
-  use crate::models::leaderboard_model::Ranking;
-  use crate::models::user_model::User;
-  use crate::services::insights::common;
+use crate::common::errors::ApiError;
+use crate::models::leaderboard_model::{BoardType, Ranking};
+use crate::models::user_model::User;
+use crate::services::db::DatabaseService;
+use crate::services::insights::common;
 
-  pub async fn get_ranking(board: String, user: &User) -> Result<Ranking, ApiError> {
+mod similar_user;
+
+use crate::services::db;
+
+use wither::mongodb::Database;
+
+#[derive(Clone)]
+pub struct LeaderboardService {
+  db: Database,
+}
+
+#[allow(non_snake_case)]
+impl LeaderboardService {
+  pub async fn new(db: &db::DatabaseService) -> LeaderboardService {
+    LeaderboardService { db: db.db.clone() }
+  }
+
+  pub async fn get_ranking(&self, board: String, user: &User) -> Result<Ranking, ApiError> {
     let board_type = board.to_lowercase();
     if board_type == "savings" || board_type == "spending" || board_type == "income" {
-      Ok(
-        // TODO: Implement ranking method and call from here. Look at similar_user.rs for examples
-        Ranking {
-          leaderboard_type: board,
-          percentile: 19.1,
-          description: "Test".to_string(),
-        },
-      )
+      similar_user::generate_ranking(user, &self.db, BoardType::Savings)
+        .await
+        .map_err(|err| err.into())
     } else {
       Err(ApiError::new(
         400,

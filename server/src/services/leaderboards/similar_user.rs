@@ -1,14 +1,15 @@
 use crate::common::errors::AppError;
 use crate::models::{
-  leaderboard_model::{Ranking, BoardType},
+  leaderboard_model::{BoardType, Ranking},
   user_model::{Snapshot, User},
 };
-use crate::services::{db::DatabaseService, insights::common::match_income_range};
+use crate::services::insights::common::match_income_range;
 use chrono::{DateTime, Utc};
 use futures::stream::{Stream, StreamExt};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
-use wither::{mongodb::bson::doc, Model};
+use wither::mongodb::bson::doc;
+use wither::mongodb::Database;
 
 #[derive(Clone, Copy)]
 struct SimilarUserMetrics {
@@ -101,30 +102,46 @@ pub fn project_snapshots(since: DateTime<Utc>) -> bson::Document {
 
 async fn generate_metric(
   user: &User,
-  db_service: &DatabaseService,
+  db: &Database,
   since: DateTime<Utc>,
 ) -> Result<SimilarUserMetrics, AppError> {
-  let agg = User::collection(&db_service.db)
-    .aggregate(
-      vec![match_income_range(&user), project_snapshots(since)],
-      None,
-    )
-    .await
-    .map_err(|_| AppError::new("Error during aggregation"))?;
+  // let agg = db
+  //   .aggregate(
+  //     vec![match_income_range(&user), project_snapshots(since)],
+  //     None,
+  //   )
+  //   .await
+  //   .map_err(|_| AppError::new("Error during aggregation"))?;
 
-  let extracted_snapshots = agg.map(extract_snapshots);
+  // let extracted_snapshots = agg.map(extract_snapshots);
 
-  let metrics: SimilarUserMetrics =
-    compare_snapshots_to_user(&user.snapshots, extracted_snapshots, &since).await;
+  // let metrics: SimilarUserMetrics =
+  //   compare_snapshots_to_user(&user.snapshots, extracted_snapshots, &since).await;
 
-  return Ok(metrics);
+  return Ok(SimilarUserMetrics::default());
 }
 
-pub async fn generate_similar_user_insight(
+pub async fn generate_ranking(
   user: &User,
-  db_service: &DatabaseService,
-  insight_type: InsightTypes,
-) -> Result<Insight, AppError> {
+  db: &Database,
+  board_type: BoardType,
+) -> Result<Ranking, AppError> {
+  log::info!(
+    "generating a similar user insight for {}",
+    user.email.clone()
+  );
+  let lookback = chrono::Duration::days(30);
+  let since = Utc::now() - lookback;
+
+  let metrics = generate_metric(user, db, since).await?;
+  // if metrics.total_similar_users <= 0 {
+  //   return Err(AppError::new("No peers for insight generation"));
+  // }
+  Ok(Ranking {
+    leaderboard_type: board_type,
+    percentile: 19.1,
+    description: "Test".to_string(),
+  })
 }
 
 fn extract_snapshots(

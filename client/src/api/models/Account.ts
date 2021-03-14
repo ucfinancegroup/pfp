@@ -30,6 +30,12 @@ export interface Account {
      * @type {string}
      * @memberof Account
      */
+    account_id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Account
+     */
     name: string;
     /**
      * 
@@ -50,6 +56,7 @@ export function AccountFromJSONTyped(json: any, ignoreDiscriminator: boolean): A
     return {
         
         'item_id': json['item_id'],
+        'account_id': json['account_id'],
         'name': json['name'],
         'balance': json['balance'],
     };
@@ -65,6 +72,7 @@ export function AccountToJSON(value?: Account | null): any {
     return {
         
         'item_id': value.item_id,
+        'account_id': value.account_id,
         'name': value.name,
         'balance': value.balance,
     };

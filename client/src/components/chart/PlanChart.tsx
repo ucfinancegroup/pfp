@@ -38,6 +38,7 @@ export function PlanChart(props: PlanChartProps) {
     const [mouseX, setMouseX] = useState<number>(null);
     const createRectsRef = useRef<any>();
     const svgRef = useRef<any>();
+    const focusSvgRef = useRef<any>();
     const updateRef = useRef<any>();
     const [totalValue, setTotalValue] = useState<number>(null);
     const [mouseValue, setMouseValue] = useState<number>(null);
@@ -56,7 +57,7 @@ export function PlanChart(props: PlanChartProps) {
 
     async function fetchEverything() {
         setLoading(true);
-        await getData();
+        await createCharts();
         await getRecurrings();
         setLoading(false);
     }
@@ -65,15 +66,6 @@ export function PlanChart(props: PlanChartProps) {
         if (updateRef.current)
             updateRef.current();
     }, [recurrings])
-
-    async function getRecurrings() {
-        try {
-            const recurrings = await recurringApi.getRecurrings();
-            setRecurrings(recurrings);
-        } catch (e) {
-            setError(await handleFetchError(e));
-        }
-    }
 
     useEffect(() => {
         const handler = () => {
@@ -85,10 +77,16 @@ export function PlanChart(props: PlanChartProps) {
         }
     }, []);
 
+    async function getRecurrings() {
+        try {
+            const recurrings = await recurringApi.getRecurrings();
+            setRecurrings(recurrings);
+        } catch (e) {
+            setError(await handleFetchError(e));
+        }
+    }
+
     async function getData() {
-        //const ts = await tsApi.getTimeseries({
-        //    days: 60,
-        //});
         const planData = await planApi.getPlanWithDays({
             days: 365 * 25,
         });
@@ -105,6 +103,34 @@ export function PlanChart(props: PlanChartProps) {
 
         const knownData = data.filter(f => f.date <= predictionStart);
         const predictedData = data.filter(f => f.date >= predictionStart);
+
+        return {data, knownData, predictedData}
+    }
+
+    async function updateTimeseries() {
+        const {data, knownData, predictedData} = await getData();
+
+        svgRef.current.select("#knownPath")
+            .datum(knownData);
+
+        svgRef.current.select("#knownArea")
+            .datum(knownData);
+
+        svgRef.current.select("#predictedPath")
+            .datum(predictedData);
+
+        focusSvgRef.current.select("#focusKnownData")
+            .datum(knownData);
+
+        focusSvgRef.current.select("#focusPredictedData")
+            .datum(predictedData);
+
+        updateRef.current();
+    }
+
+    async function createCharts() {
+        const {data, knownData, predictedData} = await getData();
+
         setTotalValue(knownData[knownData.length - 1].value);
         setMouseValue(null);
 
@@ -195,16 +221,19 @@ export function PlanChart(props: PlanChartProps) {
 
             const knownPath = svg.append("path")
                 .datum(knownData)
+                .attr("id", "knownPath")
                 .attr("clip-path", "url(#" + clipId + ")")
                 .attr("class", styles.path + " " + styles["path--known"]);
 
             const knownArea = svg.append("path")
                 .datum(knownData)
+                .attr("id", "knownArea")
                 .attr("clip-path", "url(#" + clipId + ")")
                 .attr("class", styles.area);
 
             const predictedPath = svg.append("path")
                 .datum(predictedData)
+                .attr("id", "predictedPath")
                 .attr("clip-path", "url(#" + clipId + ")")
                 .attr("class", styles.path + " " + styles["path--predicted"]);
 
@@ -259,11 +288,13 @@ export function PlanChart(props: PlanChartProps) {
 
             svg.append("path")
                 .datum(knownData)
+                .attr("id", "focusKnownData")
                 .attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4])) as any)
                 .attr("class", styles.path+ " " + styles["path--known"]);
 
             svg.append("path")
                 .datum(predictedData)
+                .attr("id", "focusPredictedData")
                 .attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4])) as any)
                 .attr("class", styles.path + " " + styles["path--predicted"]);
 
@@ -289,6 +320,8 @@ export function PlanChart(props: PlanChartProps) {
                     gb.call(brush.move, defaultSelection);
                 }
             }
+
+            focusSvgRef.current = svg;
 
             return [svg.node(), svg];
         }
@@ -570,7 +603,7 @@ export function PlanChart(props: PlanChartProps) {
            }
        });
 
-       await fetchEverything();
+       await updateTimeseries();
     }
 
     return <div>

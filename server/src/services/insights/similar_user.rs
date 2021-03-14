@@ -124,7 +124,7 @@ async fn generate_metric(
 pub async fn generate_ranking(
   user: &User,
   db_service: &DatabaseService,
-  board: String,
+  board: BoardTypes,
 ) -> Result<Ranking, AppError> {
   log::info!("get ranking for {}", user.email.clone());
 
@@ -136,23 +136,22 @@ pub async fn generate_ranking(
     return Err(AppError::new("No peers for leaderboard generation"));
   }
 
-  match &board.to_lowercase() as &str {
-    "savings" => Ok(Ranking {
+  match board {
+    BoardTypes::Savings => Ok(Ranking {
       leaderboard_type: BoardTypes::Savings,
       percentile: 100.0 * metrics.savings_less as f64 / metrics.total_similar_users as f64,
       description: "Savings Leaderboard".to_string(),
     }),
-    "spending" => Ok(Ranking {
+    BoardTypes::Spending => Ok(Ranking {
       leaderboard_type: BoardTypes::Spending,
       percentile: 100.0 * metrics.spending_less as f64 / metrics.total_similar_users as f64,
       description: "Spending Leaderboard".to_string(),
     }),
-    "income" => Ok(Ranking {
+    BoardTypes::Income => Ok(Ranking {
       leaderboard_type: BoardTypes::Income,
       percentile: 100.0 * metrics.income_less as f64 / metrics.total_similar_users as f64,
       description: "Income Leaderboard".to_string(),
     }),
-    _ => Err(AppError::new("invalid board name")),
   }
 }
 

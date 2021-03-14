@@ -1,3 +1,4 @@
+use crate::models::leaderboard_model::BoardTypes;
 use crate::models::user_model::User;
 use crate::services::leaderboards::LeaderboardService;
 use actix_web::{
@@ -9,15 +10,10 @@ use actix_web::{
 #[get("/leaderboard/{board}")]
 pub async fn get_leaderboard(
   user: User,
-  board: Path<String>,
+  board: Path<BoardTypes>,
   leaderboards: Data<LeaderboardService>,
 ) -> HttpResponse {
-  crate::common::into_response(
-    leaderboards
-      .into_inner()
-      .get_ranking(board.to_string(), &user)
-      .await,
-  )
+  crate::common::into_response(leaderboards.into_inner().get_ranking(board.into_inner(), &user).await)
 }
 
 use actix_web::web::ServiceConfig;

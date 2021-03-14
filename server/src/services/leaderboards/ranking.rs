@@ -1,16 +1,15 @@
 use crate::common::errors::AppError;
 use crate::models::{
-  leaderboard_model::{BoardType, Ranking},
+  leaderboard_model::{BoardTypes, Ranking},
   user_model::{Snapshot, User},
 };
 use crate::services::insights::common::match_income_range;
+use crate::services::leaderboards::Database;
 use chrono::{DateTime, Utc};
 use futures::stream::{Stream, StreamExt};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
-use wither::mongodb::bson::doc;
-use wither::mongodb::Database;
-use wither::Model;
+use wither::{mongodb::bson::doc, Model};
 
 #[derive(Clone, Copy)]
 struct SimilarUserMetrics {
@@ -106,16 +105,13 @@ async fn generate_metric(
   db: &Database,
   since: DateTime<Utc>,
 ) -> Result<SimilarUserMetrics, AppError> {
-  let agg = User::collection(db)
+  let agg = User::collection(&db)
     .aggregate(
       vec![match_income_range(&user), project_snapshots(since)],
       None,
     )
     .await
-    .map_err(|e| {
-      println!("{}", e);
-      AppError::new("Error during aggregation")
-    })?;
+    .map_err(|_| AppError::new("Error during aggregation"))?;
 
   let extracted_snapshots = agg.map(extract_snapshots);
 
@@ -125,37 +121,49 @@ async fn generate_metric(
   return Ok(metrics);
 }
 
-pub async fn generate_ranking(
+pub async fn get_similar_user_metrics(
   user: &User,
   db: &Database,
-  board_type: BoardType,
+  board: String,
 ) -> Result<Ranking, AppError> {
-  log::info!(
-    "generating a similar user insight for {}",
-    user.email.clone()
-  );
-  let lookback = chrono::Duration::days(30);
-  let since = Utc::now() - lookback;
+  log::info!("get ranking for {}", user.email.clone());
 
+  let lookback = chrono::Duration::days(365);
+  let since = Utc::now() - lookback;
   let metrics = generate_metric(user, db, since).await?;
-  if metrics.total_similar_users <= 0 {
-    return Err(AppError::new("No peers for insight generation"));
-  }
-  println!("{} {}", metrics.total_similar_users, metrics.income_less);
-  Ok(Ranking {
-    leaderboard_type: board_type,
-    percentile: 100.0 * metrics.income_less as f64 / metrics.total_similar_users as f64,
-    description: "Test".to_string(),
+
+  let _percentile = 0.0 as f64;
+  log::info!(
+    "Metrics {} {}",
+    metrics.total_similar_users,
+    metrics.savings_less
+  );
+  Ok(if board.to_lowercase() == "savings" {
+    Ranking {
+      leaderboard_type: BoardTypes::Savings,
+      percentile: 100.0 * metrics.savings_less as f64 / metrics.total_similar_users as f64,
+      description: "Savings Leaderboard".to_string(),
+    }
+  // _percentile =
+  } else if board.to_lowercase() == "spending" {
+    Ranking {
+      leaderboard_type: BoardTypes::Spending,
+      percentile: 100.0 * metrics.spending_less as f64 / metrics.total_similar_users as f64,
+      description: "Spendings Leaderboard".to_string(),
+    }
+  } else {
+    Ranking {
+      leaderboard_type: BoardTypes::Income,
+      percentile: 100.0 * metrics.income_less as f64 / metrics.total_similar_users as f64,
+      description: "Income Leaderboard".to_string(),
+    }
   })
 }
 
 fn extract_snapshots(
   snaps: Result<bson::Document, wither::mongodb::error::Error>,
 ) -> Result<Vec<Snapshot>, AppError> {
-  let doc = snaps.map_err(|e| {
-    println!("{}", e);
-    AppError::new("Error during aggregation")
-  })?;
+  let doc = snaps.map_err(|_| AppError::new("Aggregation Error"))?;
 
   let snapshots_doc = doc
     .get("snapshots")
@@ -204,5 +212,79 @@ fn calculate_rates(snapshots: &Vec<Snapshot>, since: &DateTime<Utc>) -> UserMetr
   match (f, l) {
     (Some(first), Some(last)) => UserMetricRates::new(&first, &last),
     _ => UserMetricRates::default(),
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::common::Money;
+  use actix_rt;
+  use chrono::NaiveDateTime;
+  use rust_decimal_macros::dec;
+
+  #[actix_rt::test]
+  async fn test_compare_snapshots_to_user() {
+    let other_users_snapshots: Vec<Result<Vec<Snapshot>, AppError>> = vec![
+      Ok(vec![
+        Snapshot {
+          net_worth: Money::new(dec!(0)),
+          running_savings: Money::new(dec!(0)),
+          running_spending: Money::new(dec!(0)),
+          running_income: Money::new(dec!(0)),
+          snapshot_time: 50,
+        },
+        Snapshot {
+          net_worth: Money::new(dec!(0)),
+          running_savings: Money::new(dec!(5000)),
+          running_spending: Money::new(dec!(0)),
+          running_income: Money::new(dec!(0)),
+          snapshot_time: 100,
+        },
+      ]),
+      Ok(vec![
+        Snapshot {
+          net_worth: Money::new(dec!(0)),
+          running_savings: Money::new(dec!(0)),
+          running_spending: Money::new(dec!(0)),
+          running_income: Money::new(dec!(0)),
+          snapshot_time: 50,
+        },
+        Snapshot {
+          net_worth: Money::new(dec!(0)),
+          running_savings: Money::new(dec!(4500)),
+          running_spending: Money::new(dec!(0)),
+          running_income: Money::new(dec!(0)),
+          snapshot_time: 100,
+        },
+      ]),
+    ];
+
+    let this_users_snapshots: Vec<Snapshot> = vec![
+      Snapshot {
+        net_worth: Money::new(dec!(0)),
+        running_savings: Money::new(dec!(0)),
+        running_spending: Money::new(dec!(0)),
+        running_income: Money::new(dec!(0)),
+        snapshot_time: 50,
+      },
+      Snapshot {
+        net_worth: Money::new(dec!(0)),
+        running_savings: Money::new(dec!(4700)),
+        running_spending: Money::new(dec!(0)),
+        running_income: Money::new(dec!(0)),
+        snapshot_time: 100,
+      },
+    ];
+
+    let metrics: SimilarUserMetrics = compare_snapshots_to_user(
+      &this_users_snapshots,
+      futures::stream::iter(other_users_snapshots.into_iter()),
+      &DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(1, 0), Utc),
+    )
+    .await;
+
+    assert_eq!(metrics.savings_less, 1);
+    assert_eq!(metrics.total_similar_users, 2);
   }
 }

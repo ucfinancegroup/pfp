@@ -1,13 +1,8 @@
+mod ranking;
 use crate::common::errors::ApiError;
-use crate::models::leaderboard_model::{BoardType, Ranking};
+use crate::models::leaderboard_model::{Ranking};
 use crate::models::user_model::User;
-use crate::services::db::DatabaseService;
-use crate::services::insights::common;
-
-mod similar_user;
-
 use crate::services::db;
-
 use wither::mongodb::Database;
 
 #[derive(Clone)]
@@ -22,15 +17,15 @@ impl LeaderboardService {
   }
 
   pub async fn get_ranking(&self, board: String, user: &User) -> Result<Ranking, ApiError> {
-    let board_type = board.to_lowercase();
-    if board_type == "savings" || board_type == "spending" || board_type == "income" {
-      similar_user::generate_ranking(user, &self.db, BoardType::Savings)
+    let board = board.to_lowercase();
+    if board == "savings" || board == "spending" || board == "income" {
+      ranking::get_similar_user_metrics(user, &self.db, board)
         .await
         .map_err(|err| err.into())
     } else {
       Err(ApiError::new(
         400,
-        "Leaderboard type must be savings, checking, or income.".to_string(),
+        "Leaderboard type must be savings, spending, or income.".to_string(),
       ))
     }
   }

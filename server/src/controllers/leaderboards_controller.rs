@@ -1,5 +1,4 @@
 use crate::models::user_model::User;
-use crate::services::db::DatabaseService;
 use crate::services::leaderboards::LeaderboardService;
 use actix_web::{
   get,

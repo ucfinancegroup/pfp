@@ -1,4 +1,5 @@
 use crate::common::errors::AppError;
+use crate::models::leaderboard_model::{BoardTypes, Ranking};
 use crate::models::{
   insight_model::{Insight, InsightTypes},
   user_model::{Snapshot, User},
@@ -8,6 +9,7 @@ use chrono::{DateTime, Utc};
 use futures::stream::{Stream, StreamExt};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
+use wither::mongodb::Database;
 use wither::{mongodb::bson::doc, Model};
 
 #[derive(Clone, Copy)]
@@ -118,6 +120,38 @@ async fn generate_metric(
     compare_snapshots_to_user(&user.snapshots, extracted_snapshots, &since).await;
 
   return Ok(metrics);
+}
+
+pub async fn generate_ranking(
+  user: &User,
+  db_service: &DatabaseService,
+  board: String,
+) -> Result<Ranking, AppError> {
+  log::info!("get ranking for {}", user.email.clone());
+
+  let lookback = chrono::Duration::days(365);
+  let since = Utc::now() - lookback;
+  let metrics = generate_metric(user, db_service, since).await?;
+
+  Ok(if board.to_lowercase() == "savings" {
+    Ranking {
+      leaderboard_type: BoardTypes::Savings,
+      percentile: 100.0 * metrics.savings_less as f64 / metrics.total_similar_users as f64,
+      description: "Savings Leaderboard".to_string(),
+    }
+  } else if board.to_lowercase() == "spending" {
+    Ranking {
+      leaderboard_type: BoardTypes::Spending,
+      percentile: 100.0 * metrics.spending_less as f64 / metrics.total_similar_users as f64,
+      description: "Spending Leaderboard".to_string(),
+    }
+  } else {
+    Ranking {
+      leaderboard_type: BoardTypes::Income,
+      percentile: 100.0 * metrics.income_less as f64 / metrics.total_similar_users as f64,
+      description: "Income Leaderboard".to_string(),
+    }
+  })
 }
 
 pub async fn generate_similar_user_insight(

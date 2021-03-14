@@ -13,7 +13,10 @@ pub async fn get_leaderboard(
   leaderboards: Data<LeaderboardService>,
 ) -> HttpResponse {
   crate::common::into_response(
-    leaderboards.into_inner().get_ranking(board.to_string(), &user).await,
+    leaderboards
+      .into_inner()
+      .get_ranking(board.to_string(), &user)
+      .await,
   )
 }
 

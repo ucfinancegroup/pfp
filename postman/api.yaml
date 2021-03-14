@@ -1275,10 +1275,13 @@ components:
       type: object
       required:
         - item_id
+        - account_id
         - name
         - balance
       properties:
         item_id:
+          type: string
+        account_id:
           type: string
         name:
           type: string

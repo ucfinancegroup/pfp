@@ -1,0 +1,58 @@
+.class {
+  select {
+    max-width: 150px;
+  }
+}
+
+.class__name {
+  min-width: 120px;
+  font-weight: bold;
+}
+
+.allocation {
+  min-width: 120px;
+  opacity: 0.7;
+  font-size: 0.9em;
+}
+
+.apy {
+  opacity: 0.7;
+  margin-left: 0.5em;
+}
+
+.apy__input {
+  max-width: 70px;
+  display: inline-block;
+  margin-left: 0.5em;
+  margin-right: 0.25em;
+}
+
+.slider__container {
+  display: inline-flex;
+  align-items: center;
+
+  > span {
+    min-width: 80px; // Prevent flicker as it's resized
+  }
+}
+
+.slider {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  display: inline-block;
+  width: 270px;
+  margin-right: 0.5em;
+}
+
+.actions {
+  text-align: right;
+  i {
+    margin-top: 0.5em;
+    cursor: pointer;
+    margin-right: 1em;
+
+    &:hover {
+      opacity: 0.75;
+    }
+  }
+}

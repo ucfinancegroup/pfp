@@ -45,8 +45,12 @@ export function AccountsList(props: AccountsListProps) {
     }
 
     async function deleteAccount(account: Account) {
-        await plaidApi.deleteAccount({
-            id: account.item_id,
+        await plaidApi.setAccountAsHidden({
+            setAccountAsHiddenPayload: {
+                item_id: account.item_id,
+                account_id: account.account_id,
+                hide_or_not: true,
+            },
         });
 
         setAccounts([...accounts.filter(a => a !== account)]);

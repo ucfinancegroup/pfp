@@ -53,18 +53,12 @@ export function RecurringDialog(props: RecurringDialogProps) {
 
     const [error, setError] = useState<string>();
     const [examples, setExamples] = useState<RecurringNewPayload[]>();
-    const [initialValues, setInitialValues] = useState<RecurringNewPayload>(props.editing ?? initialForm as any);
+    const [initialValues, setInitialValues] = useState<RecurringNewPayload>(initialForm as any);
     const [isCompounding, setIsCompounding] = useState<boolean>(false);
 
     useEffect(() => {
         getExamples();
     }, []);
-
-    useEffect(() => {
-        if (props.show) {
-            setInitialValues(props.editing ?? initialForm as any)
-        }
-    }, [props.show])
 
     useEffect(() => {
         if (props.editing) {
@@ -73,7 +67,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
             copy.start = epochToDateString(copy.start) as any;
             copy.end = epochToDateString(copy.end) as any;
             setIsCompounding(copy.principal !== 0 || copy.interest !== 0);
-            setInitialValues(copy)
+            setInitialValues(copy);
         }
     }, [props.editing]);
 

@@ -10,6 +10,7 @@ import {RecurringDialog} from "../recurring/RecurringDialog";
 import {RecurringType} from "../recurring/RecurringType";
 import {AllocationEditorDialog} from "../allocation/AllocationEditorDialog";
 import {epochToDate} from "../recurring/RecurringHelpers";
+import {SimulateEventDialog} from "../events/SimulateEventDialog";
 
 const cx = classNames.bind(styles);
 
@@ -46,8 +47,8 @@ export function PlanChart(props: PlanChartProps) {
     const [recurringDialogMode, setRecurringDialogMode] = useState<RecurringType>();
     const [allocationDialogOpen, setAllocationDialogOpen] = useState<boolean>(false);
     const [allocationDialogEditing, setAllocationDialogEditing] = useState<Allocation>(null);
+    const [eventDialogOpen, setEventDialogOpen] = useState<boolean>();
     const [plan, setPlan] = useState<Plan>();
-    const self = this;
 
     useEffect(() => {
         fetchEverything();
@@ -88,10 +89,13 @@ export function PlanChart(props: PlanChartProps) {
         //const ts = await tsApi.getTimeseries({
         //    days: 60,
         //});
-        const planData = await planApi.getPlan();
+        const planData = await planApi.getPlanWithDays({
+            days: 365 * 25,
+        });
         setPlan(planData.plan);
+
         const ts = planData.timeseries;
-        console.log(plan);
+        console.log(planData.plan);
 
         const predictionStart = epochToDate(ts.start);
         const series = ts.series;
@@ -448,8 +452,9 @@ export function PlanChart(props: PlanChartProps) {
 
         setMouseX(x);
         const date = scaleRefX.current.invert(x);
-        var bisect = d3.bisector(function(d) { return (d as any).date; }).left;
+        const bisect = d3.bisector(function(d) { return (d as any).date; }).left;
         const point = dataRef.current[bisect(dataRef.current as any, date)];
+
         if (point) {
             setMouseValue(point.value);
             setCurrentDate(point.date);
@@ -500,6 +505,10 @@ export function PlanChart(props: PlanChartProps) {
         updateRef.current();
     }
 
+    async function eventDialogClosed() {
+        setEventDialogOpen(false);
+    }
+
     function menuAddExpense() {
         setRecurringDialogOpen(true);
         setRecurringDialogMode(RecurringType.Expense);
@@ -525,6 +534,10 @@ export function PlanChart(props: PlanChartProps) {
 
     function menuModifyAllocations() {
         setAllocationDialogOpen(true);
+    }
+
+    function menuSimulateEvent() {
+        setEventDialogOpen(true);
     }
 
     function getDateString() {
@@ -572,6 +585,7 @@ export function PlanChart(props: PlanChartProps) {
                                     onClose={allocations => allocationEditorClosed(allocations)}/>
             <RecurringDialog startDate={menuDate} show={recurringDialogOpen} mode={recurringDialogMode} onClose={r => recurringDialogClosed(r)}
             editing={recurringDialogEditing}/>
+            <SimulateEventDialog show={eventDialogOpen} onClose={() => eventDialogClosed()}/>
               </>
         }
         {totalValue !== null && <div className={styles.current}>
@@ -592,7 +606,7 @@ export function PlanChart(props: PlanChartProps) {
                 <li onClick={menuAddExpense}>Add Expense</li>
                 <li onClick={menuAddIncome}>Add Income</li>
                 <li onClick={menuModifyAllocations}>Modify Allocations</li>
-                <li>Simulate Event</li>
+                <li onClick={menuSimulateEvent}>Simulate Event</li>
               </ul>
             </div>
         }

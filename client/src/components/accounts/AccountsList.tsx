@@ -38,13 +38,15 @@ export function AccountsList(props: AccountsListProps) {
 
     async function loadAccounts() {
         const accounts = await plaidApi.getAccounts({
-            allOrUnhidden: GetAccountsAllOrUnhiddenEnum.All,
+            allOrUnhidden: GetAccountsAllOrUnhiddenEnum.Unhidden,
         });
 
         setAccounts(accounts.accounts);
     }
 
     async function deleteAccount(account: Account) {
+        setAccounts([...accounts.filter(a => a !== account)]);
+
         await plaidApi.setAccountAsHidden({
             setAccountAsHiddenPayload: {
                 item_id: account.item_id,
@@ -52,8 +54,6 @@ export function AccountsList(props: AccountsListProps) {
                 hide_or_not: true,
             },
         });
-
-        setAccounts([...accounts.filter(a => a !== account)]);
     }
 
     return <>
@@ -92,7 +92,7 @@ export function AccountsList(props: AccountsListProps) {
               </thead>
               <tbody>
               {
-                  accounts.map(a => <tr key={a.item_id}>
+                  accounts.map(a => <tr key={a.item_id + "/" + a.account_id}>
                       <td>{a.name}</td>
                       <td>{formatPrice(a.balance)}</td>
                       <td className={styles.actions}>

@@ -9,7 +9,6 @@ use chrono::{DateTime, Utc};
 use futures::stream::{Stream, StreamExt};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
-use wither::mongodb::Database;
 use wither::{mongodb::bson::doc, Model};
 
 #[derive(Clone, Copy)]
@@ -133,25 +132,28 @@ pub async fn generate_ranking(
   let since = Utc::now() - lookback;
   let metrics = generate_metric(user, db_service, since).await?;
 
-  Ok(if board.to_lowercase() == "savings" {
-    Ranking {
+  if metrics.total_similar_users <= 0 {
+    return Err(AppError::new("No peers for leaderboard generation"));
+  }
+
+  match &board.to_lowercase() as &str {
+    "savings" => Ok(Ranking {
       leaderboard_type: BoardTypes::Savings,
       percentile: 100.0 * metrics.savings_less as f64 / metrics.total_similar_users as f64,
       description: "Savings Leaderboard".to_string(),
-    }
-  } else if board.to_lowercase() == "spending" {
-    Ranking {
+    }),
+    "spending" => Ok(Ranking {
       leaderboard_type: BoardTypes::Spending,
       percentile: 100.0 * metrics.spending_less as f64 / metrics.total_similar_users as f64,
       description: "Spending Leaderboard".to_string(),
-    }
-  } else {
-    Ranking {
+    }),
+    "income" => Ok(Ranking {
       leaderboard_type: BoardTypes::Income,
       percentile: 100.0 * metrics.income_less as f64 / metrics.total_similar_users as f64,
       description: "Income Leaderboard".to_string(),
-    }
-  })
+    }),
+    _ => Err(AppError::new("invalid board name")),
+  }
 }
 
 pub async fn generate_similar_user_insight(

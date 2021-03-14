@@ -19,7 +19,7 @@ impl LeaderboardService {
   pub async fn get_ranking(&self, board: String, user: &User) -> Result<Ranking, ApiError> {
     let board = board.to_lowercase();
     if board == "savings" || board == "spending" || board == "income" {
-      ranking::get_similar_user_metrics(user, &self.db, board)
+      ranking::generate_ranking(user, &self.db, board)
         .await
         .map_err(|err| err.into())
     } else {

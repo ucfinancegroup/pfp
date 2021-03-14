@@ -3,7 +3,7 @@ use crate::models::{
   leaderboard_model::{BoardTypes, Ranking},
   user_model::{Snapshot, User},
 };
-use crate::services::insights::common::match_income_range;
+
 use crate::services::leaderboards::Database;
 use chrono::{DateTime, Utc};
 use futures::stream::{Stream, StreamExt};
@@ -107,7 +107,7 @@ async fn generate_metric(
 ) -> Result<SimilarUserMetrics, AppError> {
   let agg = User::collection(&db)
     .aggregate(
-      vec![match_income_range(&user), project_snapshots(since)],
+      vec![project_snapshots(since)],
       None,
     )
     .await
@@ -121,7 +121,7 @@ async fn generate_metric(
   return Ok(metrics);
 }
 
-pub async fn get_similar_user_metrics(
+pub async fn generate_ranking(
   user: &User,
   db: &Database,
   board: String,
@@ -132,24 +132,17 @@ pub async fn get_similar_user_metrics(
   let since = Utc::now() - lookback;
   let metrics = generate_metric(user, db, since).await?;
 
-  let _percentile = 0.0 as f64;
-  log::info!(
-    "Metrics {} {}",
-    metrics.total_similar_users,
-    metrics.savings_less
-  );
   Ok(if board.to_lowercase() == "savings" {
     Ranking {
       leaderboard_type: BoardTypes::Savings,
       percentile: 100.0 * metrics.savings_less as f64 / metrics.total_similar_users as f64,
       description: "Savings Leaderboard".to_string(),
     }
-  // _percentile =
   } else if board.to_lowercase() == "spending" {
     Ranking {
       leaderboard_type: BoardTypes::Spending,
       percentile: 100.0 * metrics.spending_less as f64 / metrics.total_similar_users as f64,
-      description: "Spendings Leaderboard".to_string(),
+      description: "Spending Leaderboard".to_string(),
     }
   } else {
     Ranking {

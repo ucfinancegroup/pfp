@@ -19,9 +19,9 @@ models/Allocation.ts
 models/AllocationProportion.ts
 models/ApiError.ts
 models/Asset.ts
-models/AssetChange.ts
 models/AssetClass.ts
 models/AssetClassAndApy.ts
+models/AssetClassChange.ts
 models/Event.ts
 models/Goal.ts
 models/GoalAndStatus.ts
@@ -51,7 +51,6 @@ models/TimeInterval.ts
 models/TimePeriod.ts
 models/TimeSeriesEntry.ts
 models/TimeSeriesResponse.ts
-models/Transform.ts
 models/UpdateUserRequest.ts
 models/User.ts
 models/ValidateUserPayload.ts

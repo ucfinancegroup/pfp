@@ -14,14 +14,14 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    AssetClassChange,
+    AssetClassChangeFromJSON,
+    AssetClassChangeFromJSONTyped,
+    AssetClassChangeToJSON,
     MongoObjectID,
     MongoObjectIDFromJSON,
     MongoObjectIDFromJSONTyped,
     MongoObjectIDToJSON,
-    Transform,
-    TransformFromJSON,
-    TransformFromJSONTyped,
-    TransformToJSON,
 } from './';
 
 /**
@@ -50,10 +50,10 @@ export interface Event {
     start: number;
     /**
      * 
-     * @type {Array<Transform>}
+     * @type {Array<AssetClassChange>}
      * @memberof Event
      */
-    transforms: Array<Transform>;
+    transforms: Array<AssetClassChange>;
 }
 
 export function EventFromJSON(json: any): Event {
@@ -69,7 +69,7 @@ export function EventFromJSONTyped(json: any, ignoreDiscriminator: boolean): Eve
         '_id': MongoObjectIDFromJSON(json['_id']),
         'name': json['name'],
         'start': json['start'],
-        'transforms': ((json['transforms'] as Array<any>).map(TransformFromJSON)),
+        'transforms': ((json['transforms'] as Array<any>).map(AssetClassChangeFromJSON)),
     };
 }
 
@@ -85,7 +85,7 @@ export function EventToJSON(value?: Event | null): any {
         '_id': MongoObjectIDToJSON(value._id),
         'name': value.name,
         'start': value.start,
-        'transforms': ((value.transforms as Array<any>).map(TransformToJSON)),
+        'transforms': ((value.transforms as Array<any>).map(AssetClassChangeToJSON)),
     };
 }
 

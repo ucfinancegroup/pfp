@@ -2,7 +2,7 @@
 pub mod TimeseriesService {
     use crate::common::{errors::ApiError, Money};
     use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
-    use crate::models::plan_model::{Allocation, Plan};
+    use crate::models::plan_model::{Allocation, AllocationProportion, Event, Plan};
     use crate::models::recurring_model::Recurring;
     use crate::models::user_model::{Snapshot, User};
     use crate::services::finchplaid::ApiClient;
@@ -123,6 +123,25 @@ pub mod TimeseriesService {
         Money::from(payments)
     }
 
+    fn calculate_account_value_from_event(event: Event, allocation: Allocation) -> Money {
+        Money::from(
+            allocation
+                .schema
+                .iter()
+                .fold(dec!(0.0), |net, prop: &AllocationProportion| {
+                    let part = event
+                        .transforms
+                        .iter()
+                        .find(|change| change.class == prop.asset.class)
+                        .cloned()
+                        .map(|change| change.change * prop.proportion / dec!(10000.0))
+                        .or(Some(prop.proportion))
+                        .unwrap();
+                    net + part
+                }),
+        )
+    }
+
     pub fn generate_timeseries_from_plan(
         plan: Plan,
         days: i64,
@@ -143,14 +162,24 @@ pub mod TimeseriesService {
         (1..days + 1)
             .map(|d| start_date_dt + Duration::days(d))
             .map(|date| {
-                apy = plan
+                let allocation = plan
                     .allocations
                     .iter()
                     .rev()
                     .find(|a| a.date <= date.timestamp())
                     .cloned()
-                    .map(calculate_apy_from_allocation)
-                    .or(Some(apy))
+                    .unwrap();
+
+                apy = calculate_apy_from_allocation(allocation.clone());
+
+                net_worth = plan
+                    .events
+                    .iter()
+                    .rev()
+                    .find(|a| a.start <= date.timestamp())
+                    .cloned()
+                    .map(|e| net_worth * calculate_account_value_from_event(e, allocation))
+                    .or(Some(net_worth))
                     .unwrap();
 
                 let payments = calculate_payments_from_recurrings(&mut recurrings, &date);
@@ -234,7 +263,7 @@ pub mod TimeseriesService {
             (1..2)
                 .map(|n| TimeseriesEntry {
                     date: (today + Duration::days(n)).timestamp(),
-                    net_worth: Money::new(dec!(200.0261157000)),
+                    net_worth: Money::new(dec!(150.01305785)),
                 })
                 .collect()
         }
@@ -436,19 +465,9 @@ pub mod TimeseriesService {
                 id: None,
                 name: String::from("Test Event"),
                 start: start_date.timestamp(),
-                transforms: vec![Transform {
-                    trigger: TimeInterval {
-                        typ: Typ::Monthly,
-                        content: 1,
-                    },
-                    changes: vec![AssetChange {
-                        asset: Asset {
-                            name: String::from("A Test Asset"),
-                            class: AssetClass::Equity,
-                            annualized_performance: dec!(1.2),
-                        },
-                        change: dec!(10.0),
-                    }],
+                transforms: vec![AssetClassChange {
+                    class: AssetClass::Equity,
+                    change: dec!(50.0),
                 }],
             }];
 

@@ -280,19 +280,9 @@ pub mod PlansService {
             id: None,
             name: String::from("Test Event"),
             start: offset::Utc::now().timestamp(),
-            transforms: vec![Transform {
-                trigger: TimeInterval {
-                    typ: Typ::Monthly,
-                    content: 1,
-                },
-                changes: vec![AssetChange {
-                    asset: Asset {
-                        name: String::from("AAPL"),
-                        class: AssetClass::Equity,
-                        annualized_performance: dec!(1.2),
-                    },
-                    change: dec!(10.0),
-                }],
+            transforms: vec![AssetClassChange {
+                class: AssetClass::Equity,
+                change: dec!(10.0),
             }],
         }];
 

@@ -1,5 +1,6 @@
 .openapi-generator-ignore
 apis/AssetClassesApi.ts
+apis/EventApi.ts
 apis/GoalApi.ts
 apis/InsightsApi.ts
 apis/LeaderboardApi.ts

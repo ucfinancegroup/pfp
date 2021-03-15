@@ -2,7 +2,7 @@
 pub mod TimeseriesService {
     use crate::common::{errors::ApiError, Money};
     use crate::controllers::timeseries_controller::{TimeseriesEntry, TimeseriesResponse};
-    use crate::models::plan_model::{Allocation, Plan};
+    use crate::models::plan_model::{Allocation, Event, Plan};
     use crate::models::recurring_model::Recurring;
     use crate::models::user_model::{Snapshot, User};
     use crate::services::finchplaid::ApiClient;
@@ -123,6 +123,14 @@ pub mod TimeseriesService {
         Money::from(payments)
     }
 
+    fn calculate_account_value_from_event(
+        event: Event,
+        allocation: Allocation,
+        date: i64,
+    ) -> Money {
+        Money::from(dec!(1.0))
+    }
+
     pub fn generate_timeseries_from_plan(
         plan: Plan,
         days: i64,
@@ -143,14 +151,27 @@ pub mod TimeseriesService {
         (1..days + 1)
             .map(|d| start_date_dt + Duration::days(d))
             .map(|date| {
-                apy = plan
+                let allocation = plan
                     .allocations
                     .iter()
                     .rev()
                     .find(|a| a.date <= date.timestamp())
                     .cloned()
-                    .map(calculate_apy_from_allocation)
-                    .or(Some(apy))
+                    .unwrap();
+
+                apy = calculate_apy_from_allocation(allocation.clone());
+
+                net_worth = plan
+                    .events
+                    .iter()
+                    .rev()
+                    .find(|a| a.start <= date.timestamp())
+                    .cloned()
+                    .map(|e| {
+                        net_worth
+                            * calculate_account_value_from_event(e, allocation, date.timestamp())
+                    })
+                    .or(Some(net_worth))
                     .unwrap();
 
                 let payments = calculate_payments_from_recurrings(&mut recurrings, &date);

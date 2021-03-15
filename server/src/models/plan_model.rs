@@ -1,5 +1,5 @@
 use crate::common::ensure_id;
-use crate::models::recurring_model::{Recurring, TimeInterval};
+use crate::models::recurring_model::Recurring;
 use actix_web_validator::Validate;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -41,13 +41,7 @@ pub struct Event {
     pub id: Option<ObjectId>,
     pub name: String,
     pub start: i64,
-    pub transforms: Vec<Transform>,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Transform {
-    pub trigger: TimeInterval,
-    pub changes: Vec<AssetChange>,
+    pub transforms: Vec<AssetClassChange>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
@@ -76,8 +70,8 @@ pub struct AssetClassAndApy {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct AssetChange {
-    pub asset: Asset,
+pub struct AssetClassChange {
+    pub class: AssetClass,
     pub change: Decimal,
 }
 

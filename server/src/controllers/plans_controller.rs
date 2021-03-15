@@ -16,7 +16,9 @@ pub struct PlanNewPayload {
     pub name: String,
     #[validate]
     pub recurrings: Vec<Recurring>,
+    #[validate]
     pub allocations: Vec<Allocation>,
+    #[validate]
     pub events: Vec<Event>,
 }
 
@@ -25,7 +27,9 @@ pub struct PlanUpdatePayload {
     pub name: Option<String>,
     #[validate]
     pub recurrings: Option<Vec<Recurring>>,
+    #[validate]
     pub allocations: Option<Vec<Allocation>>,
+    #[validate]
     pub events: Option<Vec<Event>>,
 }
 

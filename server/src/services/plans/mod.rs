@@ -306,15 +306,15 @@ pub mod PlansService {
                 transforms: vec![
                     AssetClassChange {
                         class: AssetClass::Equity,
-                        change: dec!(70.0),
+                        change: dec!(-30.0),
                     },
                     AssetClassChange {
                         class: AssetClass::Etf,
-                        change: dec!(75.0),
+                        change: dec!(-25.0),
                     },
                     AssetClassChange {
                         class: AssetClass::MutualFund,
-                        change: dec!(78.0),
+                        change: dec!(-22.0),
                     },
                 ],
             },
@@ -346,11 +346,11 @@ pub mod PlansService {
                     },
                     AssetClassChange {
                         class: AssetClass::Fixed,
-                        change: dec!(99.5),
+                        change: dec!(-0.5),
                     },
                     AssetClassChange {
                         class: AssetClass::Cash,
-                        change: dec!(98.0),
+                        change: dec!(-2.0),
                     },
                 ],
             },
@@ -360,7 +360,7 @@ pub mod PlansService {
                 start: offset::Utc::now().timestamp(),
                 transforms: vec![AssetClassChange {
                     class: AssetClass::Cash,
-                    change: dec!(0.01),
+                    change: dec!(-99.99),
                 }],
             },
         ]

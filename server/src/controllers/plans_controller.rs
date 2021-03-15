@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PlanNewPayload {
     pub name: String,
+    #[validate]
     pub recurrings: Vec<Recurring>,
     pub allocations: Vec<Allocation>,
     pub events: Vec<Event>,
@@ -22,6 +23,7 @@ pub struct PlanNewPayload {
 #[derive(Validate, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PlanUpdatePayload {
     pub name: Option<String>,
+    #[validate]
     pub recurrings: Option<Vec<Recurring>>,
     pub allocations: Option<Vec<Allocation>>,
     pub events: Option<Vec<Event>>,

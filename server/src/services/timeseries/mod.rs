@@ -134,7 +134,9 @@ pub mod TimeseriesService {
                         .iter()
                         .find(|change| change.class == prop.asset.class)
                         .cloned()
-                        .map(|change| change.change * prop.proportion / dec!(10000.0))
+                        .map(|change| {
+                            (dec!(100.0) + change.change) * prop.proportion / dec!(10000.0)
+                        })
                         .or(Some(prop.proportion))
                         .unwrap();
                     net + part
@@ -466,7 +468,7 @@ pub mod TimeseriesService {
                 start: start_date.timestamp(),
                 transforms: vec![AssetClassChange {
                     class: AssetClass::Equity,
-                    change: dec!(50.0),
+                    change: dec!(-50.0),
                 }],
             }];
 

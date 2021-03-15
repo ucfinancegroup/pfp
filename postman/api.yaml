@@ -1472,14 +1472,14 @@ components:
           description: "extra info, such as symbol name, used in Custom"
           type: string
 
-    AssetChange:
+    AssetClassChange:
       type: object
       required:
-        - asset
+        - class
         - change
       properties:
-        asset:
-          $ref: "#/components/schemas/Asset"
+        class:
+          $ref: "#/components/schemas/AssetClass"
         change:
           type: number
           format: float64
@@ -1549,19 +1549,6 @@ components:
           type: string
           format: url
 
-    Transform:
-      type: object
-      required:
-        - trigger
-        - changes
-      properties:
-        trigger:
-          $ref: "#/components/schemas/TimeInterval"
-        changes:
-          type: array
-          items:
-            $ref: "#/components/schemas/AssetChange"
-
     Event:
       type: object
       required:
@@ -1580,7 +1567,7 @@ components:
         transforms:
           type: array
           items:
-            $ref: "#/components/schemas/Transform"
+            $ref: "#/components/schemas/AssetClassChange"
 
     PlanNewPayload:
       type: object

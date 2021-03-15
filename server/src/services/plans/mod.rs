@@ -306,15 +306,15 @@ pub mod PlansService {
                 transforms: vec![
                     AssetClassChange {
                         class: AssetClass::Equity,
-                        change: dec!(30.0),
+                        change: dec!(70.0),
                     },
                     AssetClassChange {
                         class: AssetClass::Etf,
-                        change: dec!(25.0),
+                        change: dec!(75.0),
                     },
                     AssetClassChange {
                         class: AssetClass::MutualFund,
-                        change: dec!(22.0),
+                        change: dec!(78.0),
                     },
                 ],
             },

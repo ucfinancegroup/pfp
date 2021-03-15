@@ -631,6 +631,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+                
+  # sample events
+  /event/examples:
+    get:
+      summary: "Get example events"
+      operationId: getEventExamples
+      tags:
+        - event
+      security:
+        - sidCookie: []
+      responses:
+        "200":
+          description: "List of example events"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+        default:
+          description: "Server error or validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 
   # goals
   /goal/examples:
@@ -643,7 +668,7 @@ paths:
         - sidCookie: []
       responses:
         "200":
-          description: "List of example recurrngs"
+          description: "List of example goals"
           content:
             application/json:
               schema:

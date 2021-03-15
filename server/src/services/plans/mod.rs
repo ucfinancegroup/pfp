@@ -12,6 +12,7 @@ pub mod PlansService {
         users::UserService,
     };
     use actix_web::web::Data;
+    use bson::oid::ObjectId;
     use chrono::offset;
     use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
@@ -294,6 +295,75 @@ pub mod PlansService {
             events: events,
         }
         .ensure_ids()
+    }
+
+    pub fn generate_sample_events() -> Vec<Event> {
+        vec![
+            Event {
+                id: Some(ObjectId::new()),
+                name: "COVID-19".to_string(),
+                start: offset::Utc::now().timestamp(),
+                transforms: vec![
+                    AssetClassChange {
+                        class: AssetClass::Equity,
+                        change: dec!(-30.0),
+                    },
+                    AssetClassChange {
+                        class: AssetClass::Etf,
+                        change: dec!(-25.0),
+                    },
+                    AssetClassChange {
+                        class: AssetClass::MutualFund,
+                        change: dec!(-22.0),
+                    },
+                ],
+            },
+            Event {
+                id: Some(ObjectId::new()),
+                name: "Meme Stocks Pop Off".to_string(),
+                start: offset::Utc::now().timestamp(),
+                transforms: vec![AssetClassChange {
+                    class: AssetClass::Equity,
+                    change: dec!(400.0),
+                }],
+            },
+            Event {
+                id: Some(ObjectId::new()),
+                name: "Bull Market".to_string(),
+                start: offset::Utc::now().timestamp(),
+                transforms: vec![
+                    AssetClassChange {
+                        class: AssetClass::Equity,
+                        change: dec!(200.0),
+                    },
+                    AssetClassChange {
+                        class: AssetClass::Etf,
+                        change: dec!(140.0),
+                    },
+                    AssetClassChange {
+                        class: AssetClass::MutualFund,
+                        change: dec!(160.0),
+                    },
+                    AssetClassChange {
+                        class: AssetClass::Fixed,
+                        change: dec!(-0.5),
+                    },
+                    AssetClassChange {
+                        class: AssetClass::Cash,
+                        change: dec!(-2.0),
+                    },
+                ],
+            },
+            Event {
+                id: Some(ObjectId::new()),
+                name: "Zimbabwe Inflation".to_string(),
+                start: offset::Utc::now().timestamp(),
+                transforms: vec![AssetClassChange {
+                    class: AssetClass::Cash,
+                    change: dec!(-99.99),
+                }],
+            },
+        ]
     }
 
     pub fn get_asset_classes_and_default_apys() -> Vec<AssetClassAndApy> {

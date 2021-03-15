@@ -159,6 +159,8 @@ pub mod TimeseriesService {
             .map(RecurringState::from)
             .collect();
 
+        let mut events = plan.events.clone();
+
         (1..days + 1)
             .map(|d| start_date_dt + Duration::days(d))
             .map(|date| {
@@ -172,15 +174,12 @@ pub mod TimeseriesService {
 
                 apy = calculate_apy_from_allocation(allocation.clone());
 
-                net_worth = plan
-                    .events
-                    .iter()
-                    .rev()
-                    .find(|a| a.start <= date.timestamp())
-                    .cloned()
-                    .map(|e| net_worth * calculate_account_value_from_event(e, allocation))
-                    .or(Some(net_worth))
-                    .unwrap();
+                net_worth = match events.iter().position(|a| a.start <= date.timestamp()) {
+                    Some(i) => {
+                        net_worth * calculate_account_value_from_event(events.remove(i), allocation)
+                    }
+                    None => net_worth,
+                };
 
                 let payments = calculate_payments_from_recurrings(&mut recurrings, &date);
 

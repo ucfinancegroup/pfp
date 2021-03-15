@@ -43,7 +43,7 @@ impl Into<Plan> for PlanNewPayload {
 
 #[get("/event/examples")]
 pub async fn get_example_events(_: User) -> HttpResponse {
-    crate::common::into_response(PlansService::generate_sample_events().ensure_ids())
+    crate::common::into_response(PlansService::generate_sample_events())
 }
 
 #[get("/plan/example")]

@@ -296,7 +296,27 @@ pub mod PlansService {
         .ensure_ids()
     }
 
-    pub fn generate_sample_events() -> Vec<Event> {}
+    pub fn generate_sample_events() -> Vec<Event> {
+        vec![Event {
+            id: ObjectId::new(),
+            name: "COVID-19".to_string(),
+            start: offset::Utc::now().timestamp(),
+            transforms: vec![
+                AssetClassChange {
+                    class: AssetClass::Equity,
+                    change: dec!(30.0),
+                },
+                AssetClassChange {
+                    class: AssetClass::Etf,
+                    change: dec!(25.0),
+                },
+                AssetClassChange {
+                    class: AssetClass::MutualFund,
+                    change: dec!(22.0),
+                },
+            ],
+        }]
+    }
 
     pub fn get_asset_classes_and_default_apys() -> Vec<AssetClassAndApy> {
         use AssetClass::*;

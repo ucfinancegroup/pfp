@@ -1,5 +1,6 @@
 use chrono::{DateTime, Datelike, NaiveDateTime, Utc};
 use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use wither::{mongodb::bson::oid::ObjectId, Model};
 
@@ -52,7 +53,8 @@ pub enum Typ {
 impl Recurring {
   // compounds the principal and returns the change (i.e., the wealth increase)
   pub fn compound(&mut self) -> Decimal {
-    let change = self.principal * self.interest;
+    // divide by 100 to convert interest percentage to pure interest rate
+    let change = self.principal * self.interest / dec!(100);
 
     self.principal += change;
 

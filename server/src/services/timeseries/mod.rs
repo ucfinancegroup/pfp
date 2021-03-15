@@ -163,11 +163,15 @@ pub mod TimeseriesService {
 
         let mut events = plan.events.clone();
 
+        let mut allocations = plan.allocations;
+
+        events.sort_by(|a, b| a.start.cmp(&b.start));
+        allocations.sort_by(|a, b| a.date.cmp(&b.date));
+
         (1..days + 1)
             .map(|d| start_date_dt + Duration::days(d))
             .map(|date| {
-                let allocation = plan
-                    .allocations
+                let allocation = allocations
                     .iter()
                     .rev()
                     .find(|a| a.date <= date.timestamp())

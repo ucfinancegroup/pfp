@@ -405,7 +405,7 @@ pub mod TimeseriesService {
                 start: (offset::Utc::now()).timestamp(),
                 end: (offset::Utc::now() + Duration::days(2)).timestamp(),
                 principal: dec!(100.0),
-                interest: dec!(0.12),
+                interest: dec!(12),
                 amount: dec!(0),
                 frequency: TimeInterval {
                     typ: Typ::Daily,

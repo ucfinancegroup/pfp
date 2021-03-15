@@ -296,6 +296,8 @@ pub mod PlansService {
         .ensure_ids()
     }
 
+    pub fn generate_sample_events() -> Vec<Event> {}
+
     pub fn get_asset_classes_and_default_apys() -> Vec<AssetClassAndApy> {
         use AssetClass::*;
         vec![

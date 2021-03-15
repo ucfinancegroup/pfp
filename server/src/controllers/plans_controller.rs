@@ -41,8 +41,13 @@ impl Into<Plan> for PlanNewPayload {
     }
 }
 
+#[get("/event/examples")]
+pub async fn get_example_events(_: User) -> HttpResponse {
+    crate::common::into_response(PlansService::generate_sample_events().ensure_ids())
+}
+
 #[get("/plan/example")]
-pub async fn get_example(_: User) -> HttpResponse {
+pub async fn get_example_plan(_: User) -> HttpResponse {
     crate::common::into_response(PlansService::generate_sample_plan().ensure_ids())
 }
 
@@ -163,7 +168,8 @@ pub async fn update_plan_with_days(
 }
 
 pub fn init_routes(config: &mut ServiceConfig) {
-    config.service(get_example);
+    config.service(get_example_plan);
+    config.service(get_example_events);
     config.service(get_allocations_from_plaid);
     config.service(get_allocations_from_plaid_with_days);
     config.service(get_plan);

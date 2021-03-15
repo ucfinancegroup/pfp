@@ -25,6 +25,10 @@ jobs:
         id: install-openapi-generator
         run: brew install openapi-generator
 
+      - name: Purge old client lib
+        id: delete-client-src-api
+        run: rm -rf ./client/src/api
+
       - name: Run codegen
         id: run-codegen
         run: openapi-generator generate -g typescript-fetch -i ./postman/api.yaml -o ./client/src/api -c ./client/apiconfig.json

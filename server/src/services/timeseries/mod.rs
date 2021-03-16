@@ -172,6 +172,7 @@ pub mod TimeseriesService {
                     .rev()
                     .find(|a| a.date <= date.timestamp())
                     .cloned()
+                    .or(Some(Allocation::default()))
                     .unwrap();
 
                 apy = calculate_apy_from_allocation(allocation.clone());

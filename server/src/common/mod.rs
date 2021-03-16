@@ -69,6 +69,8 @@ pub fn allocation_schema_sum_around_100(
     .into_iter()
     .fold(dec!(0.0), |total, x| total + x.proportion);
 
+  log::debug!("alloc adds up to {}", total);
+
   match total > dec!(98.0) && total < dec!(102.0) {
     true => Ok(()),
     false => Err(ValidationError::new(

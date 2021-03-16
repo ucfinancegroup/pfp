@@ -3,7 +3,7 @@ import classNames from "classnames";
 import * as d3 from "d3";
 import {curveBasis} from "d3";
 import React, {useEffect, useRef, useState} from "react";
-import {PlanApi, Recurring, RecurringApi, RecurringNewPayload, TimeseriesApi, Plan, Allocation} from "../../api";
+import {PlanApi, Recurring, RecurringApi, Event, RecurringNewPayload, TimeseriesApi, Plan, Allocation} from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
 import {addDays, formatPrice} from "../../Helpers";
 import {RecurringDialog} from "../recurring/RecurringDialog";
@@ -48,7 +48,8 @@ export function PlanChart(props: PlanChartProps) {
     const [recurringDialogMode, setRecurringDialogMode] = useState<RecurringType>();
     const [allocationDialogOpen, setAllocationDialogOpen] = useState<boolean>(false);
     const [allocationDialogEditing, setAllocationDialogEditing] = useState<Allocation>(null);
-    const [eventDialogOpen, setEventDialogOpen] = useState<boolean>();
+    const [eventsDialogEditing, setEventsDialogEditing] = useState<Event>(null);
+    const [eventDialogOpen, setEventDialogOpen] = useState<boolean>(false);
     const [plan, setPlan] = useState<Plan>();
 
     useEffect(() => {
@@ -94,6 +95,7 @@ export function PlanChart(props: PlanChartProps) {
 
         const ts = planData.timeseries;
         console.log(planData.plan);
+        console.log(planData.plan.events)
 
         const predictionStart = epochToDate(ts.start);
         const series = ts.series;
@@ -403,12 +405,11 @@ export function PlanChart(props: PlanChartProps) {
         for (let allocation of plan.allocations) {
             const rectLeft = x(epochToDate(allocation.date));
             const rectRight = x(addDays(epochToDate(allocation.date), 1));
-            const rectWidth = Math.round(rectRight - rectLeft);
+            const rectWidth = Math.max(mini ? 1 : 5 , Math.round(rectRight - rectLeft));
             let y = margin.top;
 
             const g = rects.append('g')
                 .attr('transform', `translate(${rectLeft},${y})`)
-
 
             g.append('rect')
                 .on('click', () => clickAllocationRect(allocation))
@@ -419,6 +420,33 @@ export function PlanChart(props: PlanChartProps) {
             if (!mini && rectWidth > 14) {
                 g.append('text')
                     .attr('class', styles.rect__text + " " + styles["rect__text--allocation"])
+                    .attr('x', (rectWidth / 2) + 1)
+                    .attr('y', 150)
+                    .attr('fill', 'black')
+                    .attr('font-size', '12px')
+                    .text("Allocation Change");
+            }
+        }
+
+        // Add the events
+        for (let event of plan.events) {
+            const rectLeft = x(epochToDate(event.start));
+            const rectRight = x(addDays(epochToDate(event.start), 1));
+            const rectWidth = Math.max(mini ? 1 : 5 , Math.round(rectRight - rectLeft));
+            let y = margin.top;
+
+            const g = rects.append('g')
+                .attr('transform', `translate(${rectLeft},${y})`)
+
+            g.append('rect')
+                .on('click', () => clickEventRect(event))
+                .attr('class', styles.rect + " " + styles["rect--event"])
+                .attr('width', rectWidth)
+                .attr('height', height);
+
+            if (!mini && rectWidth > 14) {
+                g.append('text')
+                    .attr('class', styles.rect__text + " " + styles["rect__text--event"])
                     .attr('x', (rectWidth / 2) + 1)
                     .attr('y', 150)
                     .attr('fill', 'black')
@@ -538,8 +566,21 @@ export function PlanChart(props: PlanChartProps) {
         updateRef.current();
     }
 
-    async function eventDialogClosed() {
+    async function eventDialogClosed(events: Event[]) {
         setEventDialogOpen(false);
+        setEventsDialogEditing(null);
+
+        // The editor was closed without modifying anything, e.g the X was clicked.
+        if (!events) return;
+
+        await planApi.newPlan({
+            planNewPayload: {
+                ...plan,
+                events,
+            }
+        });
+
+        await updateTimeseries();
     }
 
     function menuAddExpense() {
@@ -560,9 +601,13 @@ export function PlanChart(props: PlanChartProps) {
     }
 
     function clickAllocationRect(allocation: Allocation) {
-
         setAllocationDialogEditing(allocation);
         setAllocationDialogOpen(true);
+    }
+
+    function clickEventRect(event: Event) {
+        setEventsDialogEditing(event);
+        setEventDialogOpen(true);
     }
 
     function menuModifyAllocations() {
@@ -618,7 +663,7 @@ export function PlanChart(props: PlanChartProps) {
                                     onClose={allocations => allocationEditorClosed(allocations)}/>
             <RecurringDialog startDate={menuDate} show={recurringDialogOpen} mode={recurringDialogMode} onClose={r => recurringDialogClosed(r)}
             editing={recurringDialogEditing}/>
-            <SimulateEventDialog show={eventDialogOpen} onClose={() => eventDialogClosed()}/>
+            <SimulateEventDialog events={plan.events} show={eventDialogOpen} editing={eventsDialogEditing} creating={menuDate} onClose={e => eventDialogClosed(e)}/>
               </>
         }
         {totalValue !== null && <div className={styles.current}>

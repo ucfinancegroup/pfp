@@ -28,8 +28,15 @@
 
   &.rect--allocation {
     opacity: 0.5;
-    fill: darkgray;
+    fill: #d27070;
   }
+
+
+  &.rect--event {
+    opacity: 0.5;
+    fill: #79b76b;
+  }
+
 
   &:hover {
     opacity: 0.7;
@@ -40,6 +47,10 @@
   pointer-events: none;
 
   &.rect__text--allocation {
+    writing-mode: vertical-lr;
+  }
+
+  &.rect__text--event {
     writing-mode: vertical-lr;
   }
 }

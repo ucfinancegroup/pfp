@@ -40,7 +40,6 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
         });
         setClasses(assets);
 
-        // If we are creating a new allocation, get the last allocation to base this on.
         if (!props.editing) {
             let basedOn: Allocation;
             for (let allocation of props.allocations) {
@@ -56,7 +55,6 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
             setDate(dateAsInputString(epochToDate(props.editing.date)));
             props.editing.schema.forEach(a => (a as any)._react = Math.random());
             setAssets(props.editing.schema);
-            // If we are editing an allocation...
         }
     }
 
@@ -137,7 +135,7 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                     </div>
                 </div>
             </div>
-            <h4>Assets:</h4>
+            <h5>Assets:</h5>
             <div className="d-flex flex-row align-items-center mb-2">
                 <button className="btn btn-primary" onClick={() => addAsset()}>
                     <i className="fa fa-plus"/>
@@ -190,8 +188,9 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                             </td>
                             <td>
                                 <select value={a.asset._class.typ} className="form-control d-inline-block"  onChange={e => {
-                                    a.asset._class.typ = e.target.value as any;
-                                    a.asset.annualized_performance = getClass(e.target.value).apy;
+                                    const class1 = getClass(e.target.value);
+                                    a.asset._class = class1._class;
+                                    a.asset.annualized_performance = class1.apy;
                                     setAssets([...assets]);
                                 }}>
                                     {classes.map(c => <option key={c._class.typ} value={c._class.typ}>{c._class.typ}</option>)}
@@ -202,7 +201,6 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                                         <input type="number" min="0" max="100" className={cx("form-control", styles.apy__input)}
                                                value={getReturn(a.asset.annualized_performance)} onChange={e => {
                                             a.asset.annualized_performance = 1 + (parseFloat(e.target.value) / 100);
-                                            console.log(e.target.value,  a.asset.annualized_performance);
                                             setAssets([...assets]);
                                         }}/>
                                         <span>%</span>

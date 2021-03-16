@@ -1842,8 +1842,6 @@ components:
           type: string
     MongoObjectID:
       type: object
-      required:
-        - "$oid"
       properties:
         "$oid":
           type: string

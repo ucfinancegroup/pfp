@@ -35,7 +35,7 @@ export interface Allocation {
      * @type {MongoObjectID}
      * @memberof Allocation
      */
-    _id: MongoObjectID;
+    _id?: MongoObjectID;
     /**
      * 
      * @type {string}
@@ -66,7 +66,7 @@ export function AllocationFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         
-        '_id': MongoObjectIDFromJSON(json['_id']),
+        '_id': !exists(json, '_id') ? undefined : MongoObjectIDFromJSON(json['_id']),
         'description': json['description'],
         'date': json['date'],
         'schema': ((json['schema'] as Array<any>).map(AllocationProportionFromJSON)),

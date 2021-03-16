@@ -137,7 +137,7 @@ pub mod TimeseriesService {
                         .map(|change| {
                             (dec!(100.0) + change.change) * prop.proportion / dec!(10000.0)
                         })
-                        .or(Some(prop.proportion))
+                        .or(Some(prop.proportion / dec!(100.0)))
                         .unwrap();
                     net + part
                 }),

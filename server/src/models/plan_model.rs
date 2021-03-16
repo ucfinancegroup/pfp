@@ -2,6 +2,7 @@ use crate::common::ensure_id;
 use crate::models::recurring_model::Recurring;
 use actix_web_validator::Validate;
 use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use validator::ValidationError;
 use wither::{mongodb::bson::oid::ObjectId, Model};
@@ -36,6 +37,23 @@ pub struct Allocation {
     pub schema: Vec<AllocationProportion>,
 }
 
+impl Default for Allocation {
+    fn default() -> Self {
+        Allocation {
+            id: None,
+            description: "default".to_string(),
+            date: 0,
+            schema: vec![AllocationProportion {
+                asset: Asset {
+                    name: "Cash".to_string(),
+                    class: AssetClass::Cash,
+                    annualized_performance: dec!(0.0),
+                },
+                proportion: dec!(100.0),
+            }],
+        }
+    }
+}
 #[derive(Validate, Model, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Event {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]

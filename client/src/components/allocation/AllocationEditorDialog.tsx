@@ -49,12 +49,10 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                     break;
             }
             setDate(dateAsInputString(props.creating));
-            basedOn.schema.forEach(a => (a as any)._react = Math.random());
-            setAssets(basedOn.schema);
+            setAssets(basedOn.schema.map(x => Object.assign({_react: Math.random()}, x)));
         } else {
             setDate(dateAsInputString(epochToDate(props.editing.date)));
-            props.editing.schema.forEach(a => (a as any)._react = Math.random());
-            setAssets(props.editing.schema);
+            setAssets(props.editing.schema.map(x => Object.assign({_react: Math.random()}, x)));
         }
     }
 
@@ -107,6 +105,7 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                 a.date - b.date);
             props.onClose(newAllocations);
         } else {
+            props.editing.schema = assets;
             const newAllocations = [...props.allocations];
             props.onClose(newAllocations);
         }

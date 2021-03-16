@@ -59,7 +59,7 @@ export function SimulateEventDialog(props: SimulateEventDialogProps) {
         } else {
             setName(props.editing.name);
             setDate(dateAsInputString(epochToDate(props.editing.start)));
-            setChanges(props.editing.transforms);
+            setChanges(props.editing.transforms.map(x => Object.assign({_react: Math.random()}, x)));
         }
     }
 
@@ -79,6 +79,7 @@ export function SimulateEventDialog(props: SimulateEventDialogProps) {
                 a.start - b.start);
             props.onClose(newEvents);
         } else {
+            props.editing.transforms = changes;
             const newEvents = [...props.events];
             props.onClose(newEvents);
         }

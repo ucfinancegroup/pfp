@@ -20,7 +20,6 @@ type PlanChartProps = {
 
 const recurringApi = new RecurringApi();
 const planApi = new PlanApi();
-const tsApi = new TimeseriesApi();
 
 export function PlanChart(props: PlanChartProps) {
     const focusHeight = 100;
@@ -89,13 +88,12 @@ export function PlanChart(props: PlanChartProps) {
 
     async function getData() {
         const planData = await planApi.getPlanWithDays({
-            days: 365 * 25,
+            days: 365 * 10,
         });
         setPlan(planData.plan);
 
         const ts = planData.timeseries;
         console.log(planData.plan);
-        console.log(planData.plan.events)
 
         const predictionStart = epochToDate(ts.start);
         const series = ts.series;
@@ -283,7 +281,7 @@ export function PlanChart(props: PlanChartProps) {
                 .on("brush", brushed)
                 .on("end", brushended);
 
-            const defaultSelection = [x(d3.utcYear.offset(x.domain()[1], -1)), x.range()[1]];
+            const defaultSelection = [x(addDays(new Date(), -30)), x(addDays(new Date(), 365))];
 
             svg.append("g")
                 .call(xAxis, x, focusHeight);

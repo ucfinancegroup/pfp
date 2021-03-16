@@ -496,7 +496,7 @@ export function PlanChart(props: PlanChartProps) {
         const date = scaleRefX.current.invert(e.offsetX);
 
         setMenuDate(date);
-        setMenuOpen({x: e.pageX + 5, y: e.pageY + 10});
+        setMenuOpen({x: e.offsetX + 5, y: e.offsetY + 10});
 
         e.preventDefault();
     }
@@ -539,17 +539,15 @@ export function PlanChart(props: PlanChartProps) {
             </div>;
     }
 
-    if (!recurrings) {
-        return <p>Loading...</p>
-    }
-
     async function recurringDialogClosed(recurring: RecurringNewPayload) {
         if (recurring) {
             if (recurringDialogEditing) {
+                setLoading(true);
                 await recurringApi.updateRecurring({
                     recurringNewPayload: recurring,
                     id:recurringDialogEditing._id.$oid,
                 });
+                setLoading(false);
                 Object.assign(recurringDialogEditing, recurring);
                 setRecurrings([...recurrings]);
             } else {
@@ -586,7 +584,9 @@ export function PlanChart(props: PlanChartProps) {
             }
         });
 
+        setLoading(true);
         await updateTimeseries();
+        setLoading(false);
     }
 
     function menuAddExpense() {
@@ -654,12 +654,19 @@ export function PlanChart(props: PlanChartProps) {
            }
        });
 
+        setLoading(true);
        await updateTimeseries();
+        setLoading(false);
     }
 
-    return <div>
+    return <>
         {
-            loading && <div className="text-center">Loading...</div>
+            <div className={cx(styles.loader, {
+                [styles["loader--active"]]: loading
+            })}>
+              <i className="fa fa-spinner fa-spin fa-fw"/>
+              <span className="ml-3">Loading...</span>
+            </div>
         }
         {
             plan &&
@@ -695,7 +702,7 @@ export function PlanChart(props: PlanChartProps) {
               </ul>
             </div>
         }
-    </div>
+    </>
 }
 
 type GraphRecurring = {

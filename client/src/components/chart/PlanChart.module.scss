@@ -106,3 +106,25 @@
   font-size: 0.8em;
   margin-left: 0.5em;
 }
+
+.loader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255,255,255,0.7);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2em;
+  opacity: 0;
+  transition: opacity 0.2s;
+  touch-action: none;
+  pointer-events: none;
+
+  &.loader--active {
+    opacity: 1;
+  }
+}

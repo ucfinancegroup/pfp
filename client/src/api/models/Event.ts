@@ -35,7 +35,7 @@ export interface Event {
      * @type {MongoObjectID}
      * @memberof Event
      */
-    _id: MongoObjectID;
+    _id?: MongoObjectID;
     /**
      * 
      * @type {string}
@@ -66,7 +66,7 @@ export function EventFromJSONTyped(json: any, ignoreDiscriminator: boolean): Eve
     }
     return {
         
-        '_id': MongoObjectIDFromJSON(json['_id']),
+        '_id': !exists(json, '_id') ? undefined : MongoObjectIDFromJSON(json['_id']),
         'name': json['name'],
         'start': json['start'],
         'transforms': ((json['transforms'] as Array<any>).map(AssetClassChangeFromJSON)),

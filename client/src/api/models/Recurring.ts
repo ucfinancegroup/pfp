@@ -35,7 +35,7 @@ export interface Recurring {
      * @type {MongoObjectID}
      * @memberof Recurring
      */
-    _id: MongoObjectID;
+    _id?: MongoObjectID;
     /**
      * 
      * @type {string}
@@ -90,7 +90,7 @@ export function RecurringFromJSONTyped(json: any, ignoreDiscriminator: boolean):
     }
     return {
         
-        '_id': MongoObjectIDFromJSON(json['_id']),
+        '_id': !exists(json, '_id') ? undefined : MongoObjectIDFromJSON(json['_id']),
         'name': json['name'],
         'start': json['start'],
         'end': json['end'],

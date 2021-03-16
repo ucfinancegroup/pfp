@@ -631,7 +631,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-                
+
   # sample events
   /event/examples:
     get:
@@ -1438,7 +1438,6 @@ components:
     Recurring:
       type: object
       required:
-        - _id
         - name
         - start
         - end
@@ -1525,7 +1524,6 @@ components:
     Allocation:
       type: object
       required:
-        - _id
         - description
         - date
         - schema
@@ -1577,7 +1575,6 @@ components:
     Event:
       type: object
       required:
-        - _id
         - name
         - start
         - transforms

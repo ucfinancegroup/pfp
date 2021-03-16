@@ -560,8 +560,16 @@ export function PlanChart(props: PlanChartProps) {
             }
         }
         setRecurringDialogEditing(null);
+
         setRecurringDialogOpen(false);
         updateRef.current();
+    }
+
+    async function deleteRecurring(recurring: Recurring) {
+        await recurringApi.deleteRecurring({
+            id: recurring._id.$oid
+        });
+        setRecurrings([...recurrings.filter(r => r._id.$oid !== recurring._id.$oid)]);
     }
 
     async function eventDialogClosed(events: Event[]) {
@@ -660,6 +668,7 @@ export function PlanChart(props: PlanChartProps) {
                                     editing={allocationDialogEditing} creating={menuDate} show={allocationDialogOpen}
                                     onClose={allocations => allocationEditorClosed(allocations)}/>
             <RecurringDialog startDate={menuDate} show={recurringDialogOpen} mode={recurringDialogMode} onClose={r => recurringDialogClosed(r)}
+                             onDelete={r => deleteRecurring(r)}
             editing={recurringDialogEditing}/>
             <SimulateEventDialog events={plan.events} show={eventDialogOpen} editing={eventsDialogEditing} creating={menuDate} onClose={e => eventDialogClosed(e)}/>
               </>

@@ -5,6 +5,7 @@ import {Allocation, AllocationProportion, AssetClassAndApy, AssetClassesApi, Ass
 import Modal from "react-bootstrap/cjs/Modal";
 import {dateAsInputString} from "../../Helpers";
 import {epochToDate} from "../recurring/RecurringHelpers";
+import {Form} from "formik";
 
 const cx = classNames.bind(styles);
 
@@ -111,6 +112,9 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
         }
     }
 
+    function deleteThis() {
+        props.onClose([...props.allocations.filter(a => a._id.$oid !== props.editing._id.$oid)]);
+    }
 
     return <Modal show={props.show} onHide={() => close()}  dialogClassName="modal-large">
         <Modal.Header closeButton>
@@ -142,7 +146,12 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                 </button>
                 <span className={cx("ml-2", {
                     "text-danger": allocationRemaining > 0,
-                })}><strong>Unallocated: </strong>{allocationRemaining.toFixed(2)}%</span>
+                })}>
+                    {
+                        allocationRemaining > 0 &&
+                   <> <strong>Unallocated: </strong>{allocationRemaining.toFixed(2)}%</>
+                }
+                </span>
             </div>
             <table className="table">
                 <thead>
@@ -185,7 +194,7 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                                     <span>{a.proportion.toFixed(2)}%</span>
                                 </span>
                             </td>
-                            <td>
+                            <td className={styles.nowrap}>
                                 <select value={a.asset._class.typ} className="form-control d-inline-block"  onChange={e => {
                                     const class1 = getClass(e.target.value);
                                     a.asset._class = class1._class;
@@ -221,6 +230,12 @@ export function AllocationEditorDialog(props: AllocationEditorDialogProps) {
                 <i className="fa fa-save"/>
                 Save Assets
             </button>
+            {
+                props.editing && <button className="btn btn-outline-danger float-right" onClick={() => deleteThis()}>
+                  <i className="fa fa-times"/>
+                  Delete
+                </button>
+            }
         </Modal.Body>
     </Modal>
 }

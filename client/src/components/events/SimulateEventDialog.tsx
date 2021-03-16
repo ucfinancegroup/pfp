@@ -114,6 +114,11 @@ export function SimulateEventDialog(props: SimulateEventDialogProps) {
         setChanges([...clone.transforms.map(x => Object.assign({_react: Math.random()}, x))]);
     }
 
+    function deleteThis() {
+        props.onClose([...props.events.filter(e => e._id.$oid !== props.editing._id.$oid)]);
+    }
+
+
     const remainingClasses = assetClasses &&
         assetClasses.filter(ac => !changes.find(change => change._class.typ === ac._class.typ));
         const selectedAssetClassActual = selectedAssetClass ?? remainingClasses[0];
@@ -199,6 +204,12 @@ export function SimulateEventDialog(props: SimulateEventDialogProps) {
                 <i className="fa fa-save"/>
                 Save
             </button>
+            {
+                props.editing && <button className="btn btn-outline-danger float-right" onClick={() => deleteThis()}>
+                  <i className="fa fa-times"/>
+                  Delete
+                </button>
+            }
         </Modal.Body>
     </Modal>
 }

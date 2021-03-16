@@ -17,6 +17,7 @@ type RecurringDialogProps = {
     editing: Recurring;
     mode: RecurringType;
     startDate?: Date;
+    onDelete: (recurring: Recurring) => void;
     onClose: (recurring: RecurringNewPayload) => void;
 };
 
@@ -122,7 +123,12 @@ export function RecurringDialog(props: RecurringDialogProps) {
         props.onClose(null);
     }
 
-    const currentExamples = examples && examples.filter(e => getRecurringType(e) == props.mode);
+    function deleteThis() {
+        props.onDelete(props.editing);
+        props.onClose(null);
+    }
+
+    const currentExamples = examples && examples.filter(e => getRecurringType(e) === props.mode);
 
     function renderForm() {
         return <Formik key={initialValues.name + initialValues.start}
@@ -185,7 +191,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
                           <div className="form-group">
                             <label>$ {props.mode === RecurringType.Expense ? "Cost" : "Amount"}:</label>
                             <Field name="amount" type="number"
-                                   className={cx("form-control", {"is-invalid": errors.amount && touched.amount})}/>
+                                   className={cx("form-control", {"is-invalid": errors.amount})}/>
                             <div className="invalid-feedback"><ErrorMessage name="amount"/></div>
                           </div>
                         </div>
@@ -232,10 +238,14 @@ export function RecurringDialog(props: RecurringDialogProps) {
                             </div>
                         </div>
                     </div>
-
                     <button className="btn btn-primary" type="submit" disabled={!isValid}>
                         {props.editing ? "Save" : "Add"}
                     </button>
+                    {
+                        props.editing && <button className="btn btn-outline-danger float-right" onClick={() => deleteThis()}>
+                          Delete
+                        </button>
+                    }
                 </Form>
             )}
         </Formik>
@@ -257,7 +267,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
                         <p>Choose from an example, or input your own.</p>
                         <strong>Examples: </strong>
                         {
-                            currentExamples.map(e => <Button key={e.name}
+                            currentExamples.filter(e => !!e.principal === isCompounding).map(e => <Button key={e.name}
                                 variant="primary" className={styles.example}
                                 onClick={() => doExample(e)}>{e.name}</Button>)
                         }

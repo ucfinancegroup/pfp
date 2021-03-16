@@ -125,7 +125,7 @@ export function RecurringList(props: RecurringListProps) {
     }
 
     return <>
-        <RecurringDialog show={dialogOpen} mode={dialogMode} onClose={r => dialogClosed(r)} editing={dialogEditing}/>
+        <RecurringDialog show={dialogOpen} mode={dialogMode} onClose={r => dialogClosed(r)} onDelete={r => deleteRecurring(r)} editing={dialogEditing}/>
         {
             error && <div className="alert alert-danger" role="alert">
                 {error}

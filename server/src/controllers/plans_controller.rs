@@ -16,7 +16,7 @@ pub struct PlanNewPayload {
     pub name: String,
     #[validate]
     pub recurrings: Vec<Recurring>,
-    #[validate]
+    #[validate(length(min = 1))]
     pub allocations: Vec<Allocation>,
     #[validate]
     pub events: Vec<Event>,
@@ -27,7 +27,7 @@ pub struct PlanUpdatePayload {
     pub name: Option<String>,
     #[validate]
     pub recurrings: Option<Vec<Recurring>>,
-    #[validate]
+    #[validate(length(min = 1))]
     pub allocations: Option<Vec<Allocation>>,
     #[validate]
     pub events: Option<Vec<Event>>,
@@ -185,4 +185,20 @@ pub fn init_routes(config: &mut ServiceConfig) {
     config.service(create_new_plan_with_days);
     config.service(update_plan);
     config.service(update_plan_with_days);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_allocation_vector_validation() {
+        let p = PlanUpdatePayload {
+            name: None,
+            recurrings: None,
+            allocations: Some(vec![]),
+            events: None,
+        };
+
+        assert!(p.validate().is_err());
+    }
 }

@@ -1,6 +1,7 @@
 pub mod asset_controller;
 pub mod goal_controller;
 pub mod insights_controller;
+pub mod leaderboards_controller;
 pub mod plaid_controller;
 pub mod plans_controller;
 pub mod recurring_controller;
@@ -19,4 +20,5 @@ pub fn configure(config: &mut ServiceConfig) {
   insights_controller::init_routes(config);
   plans_controller::init_routes(config);
   asset_controller::init_routes(config);
+  leaderboards_controller::init_routes(config);
 }

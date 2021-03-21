@@ -843,7 +843,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LeaderboardResponse"
+                $ref: "#/components/schemas/Ranking"
         default:
           description: "Server error or validation error"
           content:
@@ -1732,7 +1732,7 @@ components:
           type: number
           format: float64
 
-    LeaderboardResponse:
+    Ranking:
       type: object
       required:
         - leaderboard_type

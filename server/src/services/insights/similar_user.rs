@@ -1,4 +1,5 @@
 use crate::common::errors::AppError;
+use crate::models::leaderboard_model::{BoardTypes, Ranking};
 use crate::models::{
   insight_model::{Insight, InsightTypes},
   user_model::{Snapshot, User},
@@ -99,19 +100,11 @@ pub fn project_snapshots(since: DateTime<Utc>) -> bson::Document {
   }
 }
 
-pub async fn generate_similar_user_insight(
+async fn generate_metric(
   user: &User,
   db_service: &DatabaseService,
-  insight_type: InsightTypes,
-) -> Result<Insight, AppError> {
-  log::info!(
-    "generating a similar user insight for {}",
-    user.email.clone()
-  );
-
-  let lookback = chrono::Duration::days(30);
-  let since = Utc::now() - lookback;
-
+  since: DateTime<Utc>,
+) -> Result<SimilarUserMetrics, AppError> {
   let agg = User::collection(&db_service.db)
     .aggregate(
       vec![match_income_range(&user), project_snapshots(since)],
@@ -125,6 +118,56 @@ pub async fn generate_similar_user_insight(
   let metrics: SimilarUserMetrics =
     compare_snapshots_to_user(&user.snapshots, extracted_snapshots, &since).await;
 
+  return Ok(metrics);
+}
+
+pub async fn generate_ranking(
+  user: &User,
+  db_service: &DatabaseService,
+  board: BoardTypes,
+) -> Result<Ranking, AppError> {
+  log::info!("get ranking for {}", user.email.clone());
+
+  let lookback = chrono::Duration::days(365);
+  let since = Utc::now() - lookback;
+  let metrics = generate_metric(user, db_service, since).await?;
+
+  if metrics.total_similar_users <= 0 {
+    return Err(AppError::new("No peers for leaderboard generation"));
+  }
+
+  match board {
+    BoardTypes::Savings => Ok(Ranking {
+      leaderboard_type: BoardTypes::Savings,
+      percentile: 100.0 * metrics.savings_less as f64 / metrics.total_similar_users as f64,
+      description: "Savings Leaderboard".to_string(),
+    }),
+    BoardTypes::Spending => Ok(Ranking {
+      leaderboard_type: BoardTypes::Spending,
+      percentile: 100.0 * metrics.spending_less as f64 / metrics.total_similar_users as f64,
+      description: "Spending Leaderboard".to_string(),
+    }),
+    BoardTypes::Income => Ok(Ranking {
+      leaderboard_type: BoardTypes::Income,
+      percentile: 100.0 * metrics.income_less as f64 / metrics.total_similar_users as f64,
+      description: "Income Leaderboard".to_string(),
+    }),
+  }
+}
+
+pub async fn generate_similar_user_insight(
+  user: &User,
+  db_service: &DatabaseService,
+  insight_type: InsightTypes,
+) -> Result<Insight, AppError> {
+  log::info!(
+    "generating a similar user insight for {}",
+    user.email.clone()
+  );
+  let lookback = chrono::Duration::days(30);
+  let since = Utc::now() - lookback;
+
+  let metrics = generate_metric(user, db_service, since).await?;
   if metrics.total_similar_users <= 0 {
     return Err(AppError::new("No peers for insight generation"));
   }

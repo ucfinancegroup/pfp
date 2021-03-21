@@ -45,7 +45,7 @@ pub mod GoalService {
 
     if change == goal.threshold {
       return Ok(GoalAndStatus {
-        progress: dec!(100.0),
+        progress: dec!(1.0),
         goal,
       });
     }

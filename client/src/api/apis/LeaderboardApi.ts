@@ -18,9 +18,9 @@ import {
     ApiError,
     ApiErrorFromJSON,
     ApiErrorToJSON,
-    LeaderboardResponse,
-    LeaderboardResponseFromJSON,
-    LeaderboardResponseToJSON,
+    Ranking,
+    RankingFromJSON,
+    RankingToJSON,
 } from '../models';
 
 export interface GetLeaderboardRequest {
@@ -35,7 +35,7 @@ export class LeaderboardApi extends runtime.BaseAPI {
     /**
      * Get a leaderboard
      */
-    async getLeaderboardRaw(requestParameters: GetLeaderboardRequest): Promise<runtime.ApiResponse<LeaderboardResponse>> {
+    async getLeaderboardRaw(requestParameters: GetLeaderboardRequest): Promise<runtime.ApiResponse<Ranking>> {
         if (requestParameters.type === null || requestParameters.type === undefined) {
             throw new runtime.RequiredError('type','Required parameter requestParameters.type was null or undefined when calling getLeaderboard.');
         }
@@ -51,13 +51,13 @@ export class LeaderboardApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => LeaderboardResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => RankingFromJSON(jsonValue));
     }
 
     /**
      * Get a leaderboard
      */
-    async getLeaderboard(requestParameters: GetLeaderboardRequest): Promise<LeaderboardResponse> {
+    async getLeaderboard(requestParameters: GetLeaderboardRequest): Promise<Ranking> {
         const response = await this.getLeaderboardRaw(requestParameters);
         return await response.value();
     }

@@ -16,34 +16,34 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface LeaderboardResponse
+ * @interface Ranking
  */
-export interface LeaderboardResponse {
+export interface Ranking {
     /**
      * 
      * @type {string}
-     * @memberof LeaderboardResponse
+     * @memberof Ranking
      */
     leaderboard_type: string;
     /**
      * 
      * @type {string}
-     * @memberof LeaderboardResponse
+     * @memberof Ranking
      */
     description?: string;
     /**
      * 
      * @type {number}
-     * @memberof LeaderboardResponse
+     * @memberof Ranking
      */
     percentile: number;
 }
 
-export function LeaderboardResponseFromJSON(json: any): LeaderboardResponse {
-    return LeaderboardResponseFromJSONTyped(json, false);
+export function RankingFromJSON(json: any): Ranking {
+    return RankingFromJSONTyped(json, false);
 }
 
-export function LeaderboardResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): LeaderboardResponse {
+export function RankingFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ranking {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -55,7 +55,7 @@ export function LeaderboardResponseFromJSONTyped(json: any, ignoreDiscriminator:
     };
 }
 
-export function LeaderboardResponseToJSON(value?: LeaderboardResponse | null): any {
+export function RankingToJSON(value?: Ranking | null): any {
     if (value === undefined) {
         return undefined;
     }

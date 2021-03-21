@@ -32,7 +32,6 @@ models/GoalNewPayload.ts
 models/Insight.ts
 models/ItemIdResponse.ts
 models/KnownFinancialProduct.ts
-models/LeaderboardResponse.ts
 models/LinkTokenCreateResponse.ts
 models/Location.ts
 models/LoginPayload.ts
@@ -44,6 +43,7 @@ models/PlanNewPayload.ts
 models/PlanResponse.ts
 models/PlanUpdatePayload.ts
 models/PublicTokenExchangeRequest.ts
+models/Ranking.ts
 models/Recurring.ts
 models/RecurringNewPayload.ts
 models/SetAccountAsHiddenPayload.ts

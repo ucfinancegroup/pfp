@@ -1733,9 +1733,9 @@ components:
     BoardType:
       type: string
       enum:
-        - savings
-        - spending
-        - income
+        - Savings
+        - Spending
+        - Income
     Ranking:
       type: object
       required:

@@ -24,6 +24,7 @@ models/Asset.ts
 models/AssetClass.ts
 models/AssetClassAndApy.ts
 models/AssetClassChange.ts
+models/BoardType.ts
 models/Event.ts
 models/Goal.ts
 models/GoalAndStatus.ts

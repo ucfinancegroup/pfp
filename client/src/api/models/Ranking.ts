@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    BoardType,
+    BoardTypeFromJSON,
+    BoardTypeFromJSONTyped,
+    BoardTypeToJSON,
+} from './';
+
 /**
  * 
  * @export
@@ -21,10 +28,10 @@ import { exists, mapValues } from '../runtime';
 export interface Ranking {
     /**
      * 
-     * @type {string}
+     * @type {BoardType}
      * @memberof Ranking
      */
-    leaderboard_type: string;
+    leaderboard_type: BoardType;
     /**
      * 
      * @type {string}
@@ -49,7 +56,7 @@ export function RankingFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
     }
     return {
         
-        'leaderboard_type': json['leaderboard_type'],
+        'leaderboard_type': BoardTypeFromJSON(json['leaderboard_type']),
         'description': !exists(json, 'description') ? undefined : json['description'],
         'percentile': json['percentile'],
     };
@@ -64,7 +71,7 @@ export function RankingToJSON(value?: Ranking | null): any {
     }
     return {
         
-        'leaderboard_type': value.leaderboard_type,
+        'leaderboard_type': BoardTypeToJSON(value.leaderboard_type),
         'description': value.description,
         'percentile': value.percentile,
     };

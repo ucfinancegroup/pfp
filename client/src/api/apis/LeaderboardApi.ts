@@ -18,13 +18,16 @@ import {
     ApiError,
     ApiErrorFromJSON,
     ApiErrorToJSON,
+    BoardType,
+    BoardTypeFromJSON,
+    BoardTypeToJSON,
     Ranking,
     RankingFromJSON,
     RankingToJSON,
 } from '../models';
 
 export interface GetLeaderboardRequest {
-    type: GetLeaderboardTypeEnum;
+    type: BoardType;
 }
 
 /**
@@ -62,14 +65,4 @@ export class LeaderboardApi extends runtime.BaseAPI {
         return await response.value();
     }
 
-}
-
-/**
-    * @export
-    * @enum {string}
-    */
-export enum GetLeaderboardTypeEnum {
-    Savings = 'savings',
-    Spending = 'spending',
-    Income = 'income'
 }

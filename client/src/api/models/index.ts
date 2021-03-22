@@ -8,6 +8,7 @@ export * from './Asset';
 export * from './AssetClass';
 export * from './AssetClassAndApy';
 export * from './AssetClassChange';
+export * from './BoardType';
 export * from './Event';
 export * from './Goal';
 export * from './GoalAndStatus';

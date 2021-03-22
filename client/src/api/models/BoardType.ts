@@ -18,9 +18,9 @@
  * @enum {string}
  */
 export enum BoardType {
-    Savings = 'savings',
-    Spending = 'spending',
-    Income = 'income'
+    Savings = 'Savings',
+    Spending = 'Spending',
+    Income = 'Income'
 }
 
 export function BoardTypeFromJSON(json: any): BoardType {

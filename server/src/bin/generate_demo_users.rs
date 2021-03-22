@@ -49,6 +49,7 @@ fn main() {
       goals: vec![],
       insights: vec![],
       plans: vec![],
+      rankings: vec![],
     },
     User {
       id: None,
@@ -87,6 +88,7 @@ fn main() {
       goals: vec![],
       insights: vec![],
       plans: vec![],
+      rankings: vec![],
     },
     User {
       id: None,
@@ -125,6 +127,7 @@ fn main() {
       goals: vec![],
       insights: vec![],
       plans: vec![],
+      rankings: vec![],
     },
   ];
 

@@ -268,6 +268,14 @@ impl Migrating for User {
         set: Some(doc! {"net_worth": 0.0}),
         unset: None,
       }),
+      Box::new(wither::IntervalMigration {
+        name: "add rankings field".to_string(),
+        // NOTE: use a logical time here. A day after your deployment date, or the like.
+        threshold: chrono::Utc.ymd(2021, 5, 1).and_hms(0, 0, 0),
+        filter: doc! {"ranking": doc!{"$exists": false}},
+        set: Some(doc! {"ranking": wither::mongodb::bson::to_bson(&Vec::<Ranking>::new()).unwrap()}),
+        unset: None,
+      }),
     ]
   }
 }

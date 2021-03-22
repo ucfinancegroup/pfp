@@ -16,7 +16,7 @@ pub async fn get_leaderboard(
   crate::common::into_response_res(
     leaderboards
       .into_inner()
-      .get_ranking(board.into_inner(), &user)
+      .get_ranking(board.into_inner(), user)
       .await,
   )
 }

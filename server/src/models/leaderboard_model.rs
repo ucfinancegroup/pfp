@@ -20,7 +20,7 @@ impl Ranking {
   }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum BoardTypes {
   Savings,
   Spending,

@@ -122,7 +122,7 @@ async fn generate_metric(
 }
 
 pub async fn generate_ranking(
-  user: &User,
+  user: User,
   db_service: &DatabaseService,
   board: BoardTypes,
 ) -> Result<Ranking, AppError> {
@@ -130,7 +130,7 @@ pub async fn generate_ranking(
 
   let lookback = chrono::Duration::days(365);
   let since = Utc::now() - lookback;
-  let metrics = generate_metric(user, db_service, since).await?;
+  let metrics = generate_metric(&user, db_service, since).await?;
 
   if metrics.total_similar_users <= 0 {
     return Err(AppError::new("No peers for leaderboard generation"));

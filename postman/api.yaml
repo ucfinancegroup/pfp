@@ -833,8 +833,7 @@ paths:
         - in: path
           name: type
           schema:
-            type: string
-            enum: [savings, spending, income]
+            $ref: "#/components/schemas/BoardType"
           required: true
           description: Which leaderboard to get
       responses:
@@ -1731,7 +1730,12 @@ components:
         progress:
           type: number
           format: float64
-
+    BoardType:
+      type: string
+      enum:
+        - savings
+        - spending
+        - income
     Ranking:
       type: object
       required:
@@ -1739,7 +1743,7 @@ components:
         - percentile
       properties:
         leaderboard_type:
-          type: string
+          $ref: "#/components/schemas/BoardType"
         description:
           type: string
         percentile:

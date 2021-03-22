@@ -13,7 +13,12 @@ pub async fn get_leaderboard(
   board: Path<BoardTypes>,
   leaderboards: Data<LeaderboardService>,
 ) -> HttpResponse {
-  crate::common::into_response_res(leaderboards.into_inner().get_ranking(board.into_inner(), &user).await)
+  crate::common::into_response_res(
+    leaderboards
+      .into_inner()
+      .get_ranking(board.into_inner(), user)
+      .await,
+  )
 }
 
 use actix_web::web::ServiceConfig;

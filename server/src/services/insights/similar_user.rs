@@ -122,7 +122,7 @@ async fn generate_metric(
 }
 
 pub async fn generate_ranking(
-  user: &User,
+  user: User,
   db_service: &DatabaseService,
   board: BoardTypes,
 ) -> Result<Ranking, AppError> {
@@ -130,28 +130,28 @@ pub async fn generate_ranking(
 
   let lookback = chrono::Duration::days(365);
   let since = Utc::now() - lookback;
-  let metrics = generate_metric(user, db_service, since).await?;
+  let metrics = generate_metric(&user, db_service, since).await?;
 
   if metrics.total_similar_users <= 0 {
     return Err(AppError::new("No peers for leaderboard generation"));
   }
 
   match board {
-    BoardTypes::Savings => Ok(Ranking {
-      leaderboard_type: BoardTypes::Savings,
-      percentile: 100.0 * metrics.savings_less as f64 / metrics.total_similar_users as f64,
-      description: "Savings Leaderboard".to_string(),
-    }),
-    BoardTypes::Spending => Ok(Ranking {
-      leaderboard_type: BoardTypes::Spending,
-      percentile: 100.0 * metrics.spending_less as f64 / metrics.total_similar_users as f64,
-      description: "Spending Leaderboard".to_string(),
-    }),
-    BoardTypes::Income => Ok(Ranking {
-      leaderboard_type: BoardTypes::Income,
-      percentile: 100.0 * metrics.income_less as f64 / metrics.total_similar_users as f64,
-      description: "Income Leaderboard".to_string(),
-    }),
+    BoardTypes::Savings => Ok(Ranking::new(
+      BoardTypes::Savings,
+      100.0 * metrics.savings_less as f64 / metrics.total_similar_users as f64,
+      "Savings Leaderboard".to_string(),
+    )),
+    BoardTypes::Spending => Ok(Ranking::new(
+      BoardTypes::Spending,
+      100.0 * metrics.spending_less as f64 / metrics.total_similar_users as f64,
+      "Spending Leaderboard".to_string(),
+    )),
+    BoardTypes::Income => Ok(Ranking::new(
+      BoardTypes::Income,
+      100.0 * metrics.income_less as f64 / metrics.total_similar_users as f64,
+      "Income Leaderboard".to_string(),
+    )),
   }
 }
 

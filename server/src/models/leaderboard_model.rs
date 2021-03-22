@@ -13,8 +13,8 @@ impl Ranking {
   pub fn new(leaderboard_type: BoardTypes, percentile: f64, description: String) -> Ranking {
     Ranking {
       leaderboard_type: leaderboard_type,
-      percentile,
-      description,
+      percentile: percentile,
+      description: description,
       generation_time: Utc::now().timestamp(),
     }
   }

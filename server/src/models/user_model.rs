@@ -2,6 +2,7 @@ use crate::common::{errors::ApiError, Money};
 use crate::models::{
   goal_model::Goal,
   insight_model::{Insight, InsightTypes},
+  leaderboard_model::{Ranking},
   plan_model::Plan,
   recurring_model::Recurring,
 };
@@ -41,6 +42,7 @@ pub struct User {
   pub goals: Vec<Goal>,
   pub insights: Vec<Insight>,
   pub plans: Vec<Plan>,
+  pub rankings: Vec<Ranking>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -332,6 +334,7 @@ mod test {
       goals: vec![],
       insights: vec![],
       plans: vec![],
+      rankings: vec![],
     };
 
     assert_eq!(Ok(true), user.compare_password("password".to_string()));

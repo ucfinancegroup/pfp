@@ -67,6 +67,7 @@ impl UserService {
       goals: vec![],
       insights: vec![],
       plans: vec![],
+      rankings: vec![],
     };
 
     user.save(&self.db, None).await.map_or_else(
@@ -435,6 +436,7 @@ mod test {
       goals: Vec::new(),
       insights: Vec::new(),
       plans: Vec::new(),
+      rankings: vec![],
     };
 
     let mut found = false;

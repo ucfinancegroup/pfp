@@ -144,7 +144,7 @@ pub async fn generate_ranking(
     )),
     BoardTypes::Spending => Ok(Ranking::new(
       BoardTypes::Spending,
-      00.0 * metrics.spending_less as f64 / metrics.total_similar_users as f64,
+      100.0 * metrics.spending_less as f64 / metrics.total_similar_users as f64,
       "Spending Leaderboard".to_string(),
     )),
     BoardTypes::Income => Ok(Ranking::new(

@@ -34,17 +34,13 @@ impl LeaderboardService {
       return Ok((&user.rankings[index]).clone());
     }
 
-    let result = similar_user::generate_ranking(user.clone(), &self.db, board).await;
-
-    match result {
-      Err(err) => Err(err.into()),
-      Ok(rank) => {
-        user.rankings[index] = rank.clone();
-        user.save(&self.db.db, None).await.map_or_else(
-          |_| Err(ApiError::new(500, "Database Error".to_string())),
-          |_| Ok(rank),
-        )
-      }
-    }
+    let rank = similar_user::generate_ranking(user.clone(), &self.db, board)
+      .await
+      .map_err(|err| err.into())?;
+    user.rankings[index] = rank.clone();
+    user.save(&self.db.db, None).await.map_or_else(
+      |_| Err(ApiError::new(500, "Database Error".to_string())),
+      |_| Ok(rank),
+    )
   }
 }

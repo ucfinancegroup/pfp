@@ -246,6 +246,7 @@ export function PlanChart(props: PlanChartProps) {
 
             (node as any).update = function(focusX, focusY) {
                 scaleRefX.current = focusX;
+                scaleRefY.current = focusY;
                 gx.call(xAxis, focusX, height);
                 gy.call(yAxis, focusY, data.y);
                 knownArea.attr("d", area(focusX, focusY) as any);
@@ -330,8 +331,8 @@ export function PlanChart(props: PlanChartProps) {
 
         function update() {
             const [minX, maxX] = (focus as any).value as any;
-            const maxY = d3.max(data, (d: any) => minX <= d.date && d.date <= maxX ? d.value as any : NaN);
-            (chart as any).update(x.copy().domain((focus as any).value as any), y.copy().domain([0, maxY] as any));
+            const maxY = d3.max(dataRef.current, (d: any) => minX <= d.date && d.date <= maxX ? d.value as any : NaN);
+            (chart as any).update(x.copy().domain((focus as any).value as any),y.copy().domain([0, maxY] as any));
             createRectsRef.current(focusSvg, x, true, focusHeight - 30);
             document.getElementById("d3test").innerHTML = "";
             document.getElementById("d3test").appendChild(chart);

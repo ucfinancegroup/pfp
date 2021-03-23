@@ -4,18 +4,17 @@ import React, {useEffect, useState} from "react";
 import {Goal, GoalAndStatus, GoalApi, GoalMetric, GoalNewPayload, Recurring} from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
 import {GoalsDialog} from "./GoalsDialog";
-import {RecurringType} from "../recurring/RecurringType";
 
 const cx = classNames.bind(styles);
 
 type GoalsListProps = {
-
+    goals: GoalAndStatus[] // Just for unit testing because mocks were complicated
 };
 
 const goalApi = new GoalApi();
 
 export function GoalsList(props: GoalsListProps) {
-    let [goals, setGoals] = useState<GoalAndStatus[]>();
+    let [goals, setGoals] = useState<GoalAndStatus[]>(props.goals);
     const [error, setError] = useState<string>();
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [dialogEditing, setDialogEditing] = useState<Goal>(null);

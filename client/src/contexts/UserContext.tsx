@@ -8,8 +8,8 @@ type UserContextProps = {
 
 export const UserContext = createContext<UserContextProps>({} as any);
 
-const UserContextProvider = ({children}: {children: ReactNode}) => {
-    const hasCookie = !!Cookies.get("finch-sid");
+const UserContextProvider = ({children, loggedIn}: {children: ReactNode, loggedIn?: boolean}) => {
+    const hasCookie = loggedIn ?? !!Cookies.get("finch-sid");
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(hasCookie);
 
     return <UserContext.Provider value={{isLoggedIn, setIsLoggedIn}}>

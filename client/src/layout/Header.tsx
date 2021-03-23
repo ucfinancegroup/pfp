@@ -24,7 +24,7 @@ export default function Header() {
         <Navbar expand="lg" bg="dark" variant="dark">
             <Container>
                 <Navbar.Brand href="/">
-                    <img
+                    <img id="logo"
                         alt=""
                         src="/logo.png"
                         className={cx(styles.logo, "d-inline-block", "align-top")}

@@ -35,6 +35,7 @@ export function LeaderboardList() {
         </div>
     }
     return <>
+    {!rankings && <p>Loading...</p> }
     {rankings && renderList(rankings)}
     </>
 }

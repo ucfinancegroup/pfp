@@ -46,20 +46,27 @@ export function LeaderboardList() {
                             <h3>{rank.leaderboard_type}</h3>
                             <p>You are in the top <strong>
                                 <span className=
-                                {(rank.percentile < 50) ? styles.red : styles.green}>
-                                {(100 - rank.percentile).toFixed(1)}%
+                                    {(rank.percentile < 50) ? styles.red : styles.green}>
+                                    {(100 - rank.percentile).toFixed(1)}%
                             </span></strong> of similar users.</p>
                         </div>
                         <svg className={styles.meter}>
+                            <defs>
+                                <linearGradient id="linear" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#05a" />
+                                    <stop offset="100%" stop-color="#0a5" />
+                                </linearGradient>
+                            </defs>
                             <circle r="4em" cx="70%" cy="50%" stroke="green" opacity="20%"
-                            stroke-width="1em"
-                            fill="none">
+                                stroke-width="1em"
+                                fill="none">
                             </circle>
-                            <circle r="4em" cx="70%" cy="50%" stroke="green"
-                            stroke-width="1em"
-                            stroke-dasharray={`${rank.percentile*8*Math.PI}em, 2000`}
-                            fill="none">
+                            <circle r="4em" cx="70%" cy="50%" stroke="url(#linear)"
+                                stroke-width="1em"
+                                stroke-dasharray={`${rank.percentile * 8 * Math.PI}em, 2000`}
+                                fill="none">
                             </circle>
+
                         </svg>
                     </li>
                 })}

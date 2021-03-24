@@ -8,7 +8,7 @@ import {GoalsDialog} from "./GoalsDialog";
 const cx = classNames.bind(styles);
 
 type GoalsListProps = {
-    goals: GoalAndStatus[] // Just for unit testing because mocks were complicated
+    goals?: GoalAndStatus[] // Just for unit testing because mocks were complicated
 };
 
 const goalApi = new GoalApi();

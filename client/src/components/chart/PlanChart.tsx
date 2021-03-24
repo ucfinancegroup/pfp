@@ -27,7 +27,7 @@ export function PlanChart(props: PlanChartProps) {
     const width = 1000;
     const margin = ({top: 0, right: 20, bottom: 30, left: 40});
     const [loading, setLoading] = useState<boolean>(true);
-    const [recurrings, setRecurrings] = useState<Recurring[]>([]);
+    const [accountRecurrings, setAccountRecurrings] = useState<Recurring[]>([]);
     const [error, setError] = useState<string>();
     const scaleRefX = useRef<any>();
     const scaleRefY = useRef<any>();
@@ -65,7 +65,7 @@ export function PlanChart(props: PlanChartProps) {
     useEffect(() => {
         if (updateRef.current)
             updateRef.current();
-    }, [recurrings])
+    }, [accountRecurrings])
 
     useEffect(() => {
         const handler = () => {
@@ -80,7 +80,7 @@ export function PlanChart(props: PlanChartProps) {
     async function getRecurrings() {
         try {
             const recurrings = await recurringApi.getRecurrings();
-            setRecurrings(recurrings);
+            setAccountRecurrings(recurrings);
         } catch (e) {
             setError(await handleFetchError(e));
         }
@@ -139,13 +139,13 @@ export function PlanChart(props: PlanChartProps) {
             .defined((d: any) => !isNaN(d.value))
             .x((d: any)  => x(d.date))
             .y0(y(0))
-            .y1((d: any)  => y(d.value));
+            .y1((d: any)  => y(Math.max(0, d.value))); // Math.max prevents line from going below the chart
 
         const line = (x, y) => d3.area()
             .curve(curveBasis)
             .defined((d: any) => !isNaN(d.value))
             .x((d: any)  => x(d.date))
-            .y((d: any)  => y(d.value));
+            .y((d: any)  => y(Math.max(0, d.value)));
 
         const x = d3.scaleUtc()
             .domain(d3.extent(data,  (d: any) => d.date) as any)
@@ -287,13 +287,13 @@ export function PlanChart(props: PlanChartProps) {
             svg.append("g")
                 .call(xAxis, x, focusHeight);
 
-            svg.append("path")
+            const knownPath =  svg.append("path")
                 .datum(knownData)
                 .attr("id", "focusKnownData")
                 .attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4])) as any)
                 .attr("class", styles.path+ " " + styles["path--known"]);
 
-            svg.append("path")
+           const predictedPath  = svg.append("path")
                 .datum(predictedData)
                 .attr("id", "focusPredictedData")
                 .attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4])) as any)
@@ -321,10 +321,15 @@ export function PlanChart(props: PlanChartProps) {
                     gb.call(brush.move, defaultSelection);
                 }
             }
+            const node = svg.node();
+            (node as any).update = function() {
+                knownPath.attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4])) as any);
+                predictedPath.attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4])) as any);
+                createRectsRef.current(focusSvg, x, true, focusHeight - 30);
+            };
 
             focusSvgRef.current = svg;
-
-            return [svg.node(), svg];
+            return [node, svg];
         }
 
         const [focus, focusSvg] = createFocus();
@@ -333,7 +338,7 @@ export function PlanChart(props: PlanChartProps) {
             const [minX, maxX] = (focus as any).value as any;
             const maxY = d3.max(dataRef.current, (d: any) => minX <= d.date && d.date <= maxX ? d.value as any : NaN);
             (chart as any).update(x.copy().domain((focus as any).value as any),y.copy().domain([0, maxY] as any));
-            createRectsRef.current(focusSvg, x, true, focusHeight - 30);
+            (focus as any).update();
             document.getElementById("d3test").innerHTML = "";
             document.getElementById("d3test").appendChild(chart);
             document.getElementById("d3test").appendChild(focus as any);
@@ -361,7 +366,7 @@ export function PlanChart(props: PlanChartProps) {
             '#c4da90',
         ];
 
-        const graphRecurrings: GraphRecurring[] = recurrings.map((x, i) => {
+        const graphRecurrings: GraphRecurring[] = accountRecurrings.map((x, i) => {
             return {
                 obj: x,
                 start: epochToDate(x.start),
@@ -541,34 +546,70 @@ export function PlanChart(props: PlanChartProps) {
     }
 
     async function recurringDialogClosed(recurring: RecurringNewPayload) {
+
+
         if (recurring) {
-            if (recurringDialogEditing) {
-                setLoading(true);
-                await recurringApi.updateRecurring({
-                    recurringNewPayload: recurring,
-                    id:recurringDialogEditing._id.$oid,
-                });
-                setLoading(false);
-                Object.assign(recurringDialogEditing, recurring);
-                setRecurrings([...recurrings]);
+            // Check if the recurring is attched to the account or plan.
+            var isAccountRecurring = false;
+            if (recurringDialogEditing)
+                isAccountRecurring = !!accountRecurrings.find(r => r._id.$oid === recurringDialogEditing._id.$oid);
+
+            console.log("IS account recurring?", isAccountRecurring);
+
+            if (isAccountRecurring) {
+
+                if (recurringDialogEditing) {
+                    setLoading(true);
+                    await recurringApi.updateRecurring({
+                        recurringNewPayload: recurring,
+                        id: recurringDialogEditing._id.$oid,
+                    });
+                    setLoading(false);
+                    Object.assign(recurringDialogEditing, recurring);
+                    setAccountRecurrings([...accountRecurrings]);
+                } else {
+                    const result = await recurringApi.newRecurring({
+                        recurringNewPayload: recurring
+                    });
+                    setAccountRecurrings([...accountRecurrings, result]);
+                }
             } else {
-                const result = await recurringApi.newRecurring({
-                    recurringNewPayload: recurring
-                });
-                setRecurrings([...recurrings, result]);
+                // Edit the relevant plan recurring OR append to the plan recurrings.
+                if (recurringDialogEditing) {
+                    var planRecurring = plan.recurrings.find(r => r._id.$oid === recurringDialogEditing._id.$oid);
+                    var index = plan.recurrings.indexOf(planRecurring);
+                    // Replace the existing one with the new one.
+                    plan.recurrings.splice(index, 1, recurringDialogEditing);
+                    await planApi.newPlan({
+                        planNewPayload: {
+                            ...plan,
+                            recurrings: [...plan.recurrings],
+                        }
+                    });
+                } else {
+                    await planApi.newPlan({
+                        planNewPayload: {
+                            ...plan,
+                            recurrings: [...plan.recurrings, recurring],
+                        }
+                    });
+                }
             }
+
+            updateRef.current();
+            setLoading(true);
+            await updateTimeseries();
+            setLoading(false);
         }
         setRecurringDialogEditing(null);
-
         setRecurringDialogOpen(false);
-        updateRef.current();
     }
 
     async function deleteRecurring(recurring: Recurring) {
         await recurringApi.deleteRecurring({
             id: recurring._id.$oid
         });
-        setRecurrings([...recurrings.filter(r => r._id.$oid !== recurring._id.$oid)]);
+        setAccountRecurrings([...accountRecurrings.filter(r => r._id.$oid !== recurring._id.$oid)]);
     }
 
     async function eventDialogClosed(events: Event[]) {
@@ -633,7 +674,7 @@ export function PlanChart(props: PlanChartProps) {
 
     function renderPercentDifference() {
         if (!mouseValue) return null;
-        const percentDifference = (mouseValue - totalValue) / totalValue;
+        const percentDifference = ((mouseValue - totalValue) / totalValue) * 100;
         if (percentDifference >= 0) {
             return <span className="text-success">+{percentDifference.toFixed(2)}%</span>
         } else {
@@ -655,9 +696,9 @@ export function PlanChart(props: PlanChartProps) {
            }
        });
 
-        setLoading(true);
+       setLoading(true);
        await updateTimeseries();
-        setLoading(false);
+       setLoading(false);
     }
 
     return <>

@@ -53,8 +53,8 @@ export function LeaderboardList() {
                         <svg className={styles.meter}>
                             <defs>
                                 <linearGradient id="linear" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stop-color="#05a" />
-                                    <stop offset="100%" stop-color="#0a5" />
+                                    <stop offset="0%" stop-color="#1fb08e" />
+                                    <stop offset="100%" stop-color="#5adec0" />
                                 </linearGradient>
                             </defs>
                             <circle r="4em" cx="70%" cy="50%" stroke="green" opacity="20%"
@@ -63,7 +63,7 @@ export function LeaderboardList() {
                             </circle>
                             <circle r="4em" cx="70%" cy="50%" stroke="url(#linear)"
                                 stroke-width="1em"
-                                stroke-dasharray={`${rank.percentile * 8 * Math.PI}em, 2000`}
+                                stroke-dasharray={`${rank.percentile/100 * 8 * Math.PI}em, 2000`}
                                 fill="none">
                             </circle>
 

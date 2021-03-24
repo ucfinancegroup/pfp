@@ -18,6 +18,7 @@ pub mod PlansService {
     use rust_decimal_macros::dec;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
+    use validator::Validate;
 
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
     pub struct PlanResponse {
@@ -27,7 +28,29 @@ pub mod PlansService {
 
     pub fn get_user_plan(user: &User) -> Plan {
         if user.plans.len() < 1 {
-            generate_sample_plan()
+            let alloc = Allocation {
+                id: None,
+                description: "Just cash!".to_string(),
+                date: chrono::Utc::now().timestamp(),
+                schema: vec![AllocationProportion {
+                    asset: Asset {
+                        name: "Dollars".to_string(),
+                        class: AssetClass::Cash,
+                        annualized_performance: dec!(1.01),
+                    },
+                    proportion: dec!(100),
+                }],
+            };
+
+            assert!(alloc.validate().is_ok());
+
+            Plan {
+                id: None,
+                name: "Your default Plan".to_string(),
+                recurrings: vec![],
+                events: vec![],
+                allocations: vec![alloc],
+            }
         } else {
             user.plans[0].clone()
         }
@@ -243,6 +266,7 @@ pub mod PlansService {
         }
     }
 
+    // TODO (not this)
     pub fn generate_sample_plan() -> Plan {
         let recurrings = vec![Recurring {
             id: None,

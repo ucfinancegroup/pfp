@@ -11,7 +11,6 @@ const leaderboardApi = new LeaderboardApi();
 export function LeaderboardList() {
     const [rankings, setRankings] = useState<Ranking[]>();
     const [error, setError] = useState<string>();
-
     useEffect(() => {
         getRankings();
     }, []);
@@ -37,10 +36,11 @@ export function LeaderboardList() {
                 return <div className={styles.board}>
                     <div className={styles.board__header}>
                         <div className={styles.board__name}>
-                            {r.leaderboard_type}: Top <strong>
+                            <strong>{r.leaderboard_type}</strong>: You are in the top <strong>
                             <span className={(r.percentile < 50) ? styles.red : styles.green}>
                                 {(100 - r.percentile).toFixed(1)}%
-                            </span></strong>
+                            </span> </strong>
+                            of users!
                         </div>
                     </div>
                     <div className={styles.board__progress}>

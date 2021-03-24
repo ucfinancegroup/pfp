@@ -337,8 +337,8 @@ export function PlanChart(props: PlanChartProps) {
 
         function update() {
             const [minX, maxX] = (focus as any).value as any;
-            const maxY = d3.max(dataRef.current, (d: any) => minX <= d.date && d.date <= maxX ? d.value as any : NaN);
-            (chart as any).update(x.copy().domain((focus as any).value as any),y.copy().domain([0, maxY] as any));
+            const maxY = d3.max(dataRef.current, (d: any) => minX <= d.date && d.date <= maxX ? d.value as any : NaN) as any as number;
+            (chart as any).update(x.copy().domain((focus as any).value as any),y.copy().domain([0, maxY * 1.5] as any));
             (focus as any).update();
             document.getElementById("d3test").innerHTML = "";
             document.getElementById("d3test").appendChild(chart);

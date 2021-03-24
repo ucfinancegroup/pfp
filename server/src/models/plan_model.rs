@@ -1,9 +1,9 @@
 use crate::common::ensure_id;
 use crate::models::recurring_model::Recurring;
-use actix_web_validator::Validate;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
+use validator::Validate;
 use validator::ValidationError;
 use wither::{mongodb::bson::oid::ObjectId, Model};
 

@@ -12,7 +12,7 @@ use actix_web::{
   dev::Payload, error::ErrorServiceUnavailable, error::ErrorUnauthorized, web::Data, Error,
   FromRequest, HttpRequest,
 };
-use actix_web_validator::Validate;
+use validator::Validate;
 use argon2::{self, Config};
 use chrono::Utc;
 use futures::future::Future;

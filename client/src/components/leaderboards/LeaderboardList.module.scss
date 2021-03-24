@@ -14,52 +14,9 @@
         width: 100%;
         height: 100%;
       }
-  
-    .board__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-  
-    .board__name {
-      font-size: 1.25em;
-    }
-  
-    .board__actions {
-      i {
-        cursor: pointer;
-        margin-left: 1em;
-  
-        &:hover {
-          opacity: 0.75;
-        }
-      }
-    }
-
+      
     .center {
       text-align: center;
-    }
-  
-    .board__progress {
-      margin-top: 0.3em;
-      height: 15px;
-      background-color: #e2e2e2;
-      border-radius: 5px;
-      overflow: hidden;
-  
-      .board__bar {
-        height: 100%;
-        background-image: linear-gradient(to right,
-                #1fb08e 0%,
-                #5adec0 100%
-        );
-      }
-    }
-    .red {
-        color:red;
-    }
-    .green {
-        color: green;
     }
   }
   

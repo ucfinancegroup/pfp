@@ -44,14 +44,18 @@ export function LeaderboardList() {
                     return <li className={styles.board}>
                         <div>
                             <h3>{rank.leaderboard_type}</h3>
-                            {/* <p>You are in the top</p> */}
+                            <p>You are in the top <strong>
+                                <span className=
+                                {(rank.percentile < 50) ? styles.red : styles.green}>
+                                {(100 - rank.percentile).toFixed(1)}%
+                            </span></strong> of similar users.</p>
                         </div>
                         <svg className={styles.meter}>
-                            <circle r="4em" cx="50%" cy="50%" stroke="green" opacity="20%"
+                            <circle r="4em" cx="60%" cy="50%" stroke="green" opacity="20%"
                             stroke-width="1em"
                             fill="none">
                             </circle>
-                            <circle r="4em" cx="50%" cy="50%" stroke="green"
+                            <circle r="4em" cx="60%" cy="50%" stroke="green"
                             stroke-width="1em"
                             stroke-dasharray={`${rank.percentile*8*Math.PI}em, 2000`}
                             fill="none">

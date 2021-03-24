@@ -37,7 +37,10 @@ export function LeaderboardList() {
                 return <div className={styles.board}>
                     <div className={styles.board__header}>
                         <div className={styles.board__name}>
-                            {r.leaderboard_type}: Top <strong>{(100 - r.percentile).toFixed(1)}%</strong>
+                            {r.leaderboard_type}: Top <strong>
+                            <span className={(r.percentile < 50) ? styles.red : styles.green}>
+                                {(100 - r.percentile).toFixed(1)}%
+                            </span></strong>
                         </div>
                     </div>
                     <div className={styles.board__progress}>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Ranking, LeaderboardApi, BoardType } from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
-import styles from "../goals/GoalsList.module.scss";
+import styles from "./LeaderboardList.module.scss";
 import classNames from "classnames";
 
 const cx = classNames.bind(styles);
@@ -34,14 +34,14 @@ export function LeaderboardList() {
     function renderList(rankings: Ranking[]) {
         return <div>
             {rankings.map(r => {
-                return <div className={styles.goal}>
-                    <div className={styles.goal__header}>
-                        <div className={styles.goal__name}>
+                return <div className={styles.board}>
+                    <div className={styles.board__header}>
+                        <div className={styles.board__name}>
                             {r.leaderboard_type}: Top <strong>{(100 - r.percentile).toFixed(1)}%</strong>
                         </div>
                     </div>
-                    <div className={styles.goal__progress}>
-                        <div className={styles.goal__bar} style={{ width: (r.percentile) + "%" }}>
+                    <div className={styles.board__progress}>
+                        <div className={styles.board_bar} style={{ width: r.percentile + "%" }}>
                         </div>
                     </div>
                 </div>

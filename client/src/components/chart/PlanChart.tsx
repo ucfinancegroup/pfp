@@ -253,7 +253,7 @@ export function PlanChart(props: PlanChartProps) {
                 knownPath.attr("d", line(focusX, focusY) as any);
                 predictedPath.attr("d", line(focusX, focusY) as any);
 
-                createRectsRef.current(svg, focusX, false, height - margin.bottom);
+                createRectsRef.current( svg, focusX, false, height - margin.bottom);
             };
 
             svgRef.current = svg;
@@ -282,7 +282,7 @@ export function PlanChart(props: PlanChartProps) {
                 .on("brush", brushed)
                 .on("end", brushended);
 
-            const defaultSelection = [x(addDays(new Date(), -30)), x(addDays(new Date(), 365))];
+            const defaultSelection = [x(addDays(new Date(), 0)), x(addDays(new Date(), 365))];
 
             svg.append("g")
                 .call(xAxis, x, focusHeight);
@@ -323,6 +323,7 @@ export function PlanChart(props: PlanChartProps) {
             }
             const node = svg.node();
             (node as any).update = function() {
+
                 knownPath.attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4])) as any);
                 predictedPath.attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4])) as any);
                 createRectsRef.current(focusSvg, x, true, focusHeight - 30);
@@ -365,6 +366,7 @@ export function PlanChart(props: PlanChartProps) {
             '#ADEAC3',
             '#c4da90',
         ];
+
 
         const graphRecurrings: GraphRecurring[] = accountRecurrings.map((x, i) => {
             return {
@@ -474,7 +476,6 @@ export function PlanChart(props: PlanChartProps) {
             const g = rects.append('g')
                 .attr('transform', `translate(${rectLeft},${y})`)
 
-
             g.append('rect')
                 .on('click', () => clickRecurringRect(recurring.obj))
                 .attr('class', styles.rect)
@@ -485,10 +486,13 @@ export function PlanChart(props: PlanChartProps) {
                 .attr('fill', recurring.color);
 
             if (!mini) {
+                const left = rectLeft - margin.left - 6;
+                console.log(left, rectWidth);
+                const x = (left < 0  && left > -rectWidth + 20 ? -rectLeft + margin.left : 0) + 6;
                 const fontSize = Math.min(14, Math.max(11, (rectWidth / 200) * 14));
                 g.append('text')
                     .attr('class', styles.rect__text)
-                    .attr('x', 6)
+                    .attr('x', x)
                     .attr('y', 15 - (14 - fontSize) * 0.5)
                     .attr('fill', 'black')
                     .attr('font-size', fontSize)

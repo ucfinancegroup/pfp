@@ -164,7 +164,7 @@ export function PlanChart(props: PlanChartProps) {
 
         const yAxis = (g, y, title) => g
             .attr("transform", `translate(${margin.left},0)`)
-            .call(d3.axisLeft(y).tickFormat(d3.format(".0s")))
+            .call(d3.axisLeft(y).tickFormat(d3.format(".2s")))
             .call(g => g.select(".domain").remove())
             .call(g => g.selectAll(".title").data([title]).join("text")
                 .attr("class", "title")

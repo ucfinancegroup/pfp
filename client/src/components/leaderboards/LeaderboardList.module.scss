@@ -1,5 +1,19 @@
 .board {
-    margin-bottom: 1em;
+    margin: 1em;
+    padding: 1em;
+    width: 20em;
+    height: 20em;
+    background-color: #fff;
+    box-shadow: 0 .125rem .25rem rgba(0, 0, 0, 0.315);
+    border-radius: 5px;
+    position: relative;
+    overflow: hidden;
+
+    .meter {
+        transform: rotate(270deg);
+        width: 100%;
+        height: 100%;
+      }
   
     .board__header {
       display: flex;
@@ -38,7 +52,7 @@
       }
     }
     .red {
-        color: red;
+        color:red;
     }
     .green {
         color: green;

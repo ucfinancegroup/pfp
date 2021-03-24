@@ -11,6 +11,11 @@ const leaderboardApi = new LeaderboardApi();
 export function LeaderboardList() {
     const [rankings, setRankings] = useState<Ranking[]>();
     const [error, setError] = useState<string>();
+    const [tab, setTab] = useState<BoardType>();
+
+    function gotoTab(tab: BoardType) {
+        setTab(tab);
+    }
     useEffect(() => {
         getRankings();
     }, []);
@@ -30,26 +35,32 @@ export function LeaderboardList() {
         console.log(rankings);
     }
 
+    console.log(styles);
+
     function renderList(rankings: Ranking[]) {
-        return <div>
-            {rankings.map(r => {
-                return <div className={styles.board}>
-                    <div className={styles.board__header}>
-                        <div className={styles.board__name}>
-                            <strong>{r.leaderboard_type}</strong>: You are in the top <strong>
-                            <span className={(r.percentile < 50) ? styles.red : styles.green}>
-                                {(100 - r.percentile).toFixed(1)}%
-                            </span> </strong>
-                            of users!
+        return <>
+            <ul className="nav nav-pills mt-4 mb-4">
+                {rankings.map(rank => {
+                    return <li className={styles.board}>
+                        <div>
+                            <h3>{rank.leaderboard_type}</h3>
+                            {/* <p>You are in the top</p> */}
                         </div>
-                    </div>
-                    <div className={styles.board__progress}>
-                        <div className={styles.board_bar} style={{ width: r.percentile + "%" }}>
-                        </div>
-                    </div>
-                </div>
-            })}
-        </div>
+                        <svg className={styles.meter}>
+                            <circle r="4em" cx="50%" cy="50%" stroke="green" opacity="20%"
+                            stroke-width="1em"
+                            fill="none">
+                            </circle>
+                            <circle r="4em" cx="50%" cy="50%" stroke="green"
+                            stroke-width="1em"
+                            stroke-dasharray={`${rank.percentile*8*Math.PI}em, 2000`}
+                            fill="none">
+                            </circle>
+                        </svg>
+                    </li>
+                })}
+            </ul>
+        </>
     }
     return <>
         {!rankings && <p>Loading...</p>}

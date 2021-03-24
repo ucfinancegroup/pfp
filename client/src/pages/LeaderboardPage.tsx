@@ -1,17 +1,17 @@
-import React, {useContext} from "react";
+import React, {useContext, useEffect, useState} from "react";
+import { LeaderboardList } from "../components/leaderboards/LeaderboardList";
 import {UserContext} from "../contexts/UserContext";
-import {Redirect} from "react-router-dom";
+import {Redirect, useHistory, useLocation} from "react-router-dom";
 
 export default function LeaderboardPage() {
     const {isLoggedIn} = useContext(UserContext);
-
     return <>
         {!isLoggedIn &&
-        <Redirect to="/"/>
+            <Redirect to="/"/>
         }
-        <h1>Leaderboard</h1>
+        <h1>Your Leaderboards</h1>
         <div className="box">
-            <p>Coming Soon</p>
+            <LeaderboardList />
         </div>
-    </>;
+    </>
 }

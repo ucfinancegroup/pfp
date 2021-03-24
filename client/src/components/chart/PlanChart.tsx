@@ -323,9 +323,10 @@ export function PlanChart(props: PlanChartProps) {
             }
             const node = svg.node();
             (node as any).update = function() {
+                const maxY = d3.max(dataRef.current, (d: any) => d.value) as any as number;
 
-                knownPath.attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4])) as any);
-                predictedPath.attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4])) as any);
+                knownPath.attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4]).domain([0, maxY * 1.25])) as any);
+                predictedPath.attr("d", line(x, y.copy().range([focusHeight - margin.bottom, 4]).domain([0, maxY * 1.25])) as any);
                 createRectsRef.current(focusSvg, x, true, focusHeight - 30);
             };
 

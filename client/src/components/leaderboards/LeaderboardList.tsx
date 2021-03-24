@@ -42,7 +42,7 @@ export function LeaderboardList() {
             <ul className="nav nav-pills mt-4 mb-4">
                 {rankings.map(rank => {
                     return <li className={styles.board}>
-                        <div>
+                        <div className={styles.center}>
                             <h3>{rank.leaderboard_type}</h3>
                             <p>You are in the top <strong>
                                 <span className=

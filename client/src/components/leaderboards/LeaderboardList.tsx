@@ -74,7 +74,8 @@ export function LeaderboardList() {
         </>
     }
     return <>
-        {!rankings && <p>Loading...</p>}
-        {rankings && renderList(rankings)}
+        {error && <p>Error: {error}</p>}
+        {!error && !rankings && <p>Loading...</p>}
+        {!error && rankings && renderList(rankings)}
     </>
 }

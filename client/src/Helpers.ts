@@ -1,7 +1,7 @@
 export function dateAsInputString(d: Date) {
-    let month = '' + (d.getMonth() + 1),
-        day = '' + d.getDate(),
-        year = d.getFullYear();
+    let month = '' + (d.getUTCMonth() + 1),
+        day = '' + d.getUTCDate(),
+        year = d.getUTCFullYear();
 
     if (month.length < 2)
         month = '0' + month;

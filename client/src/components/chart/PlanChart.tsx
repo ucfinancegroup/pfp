@@ -93,7 +93,6 @@ export function PlanChart(props: PlanChartProps) {
         setPlan(planData.plan);
 
         const ts = planData.timeseries;
-        console.log(planData.plan);
 
         const predictionStart = epochToDate(ts.start);
         const series = ts.series;
@@ -368,8 +367,8 @@ export function PlanChart(props: PlanChartProps) {
             '#c4da90',
         ];
 
-
-        const graphRecurrings: GraphRecurring[] = accountRecurrings.map((x, i) => {
+        const allRecurrings = [...accountRecurrings, ...plan.recurrings];
+        const graphRecurrings: GraphRecurring[] = allRecurrings.map((x, i) => {
             return {
                 obj: x,
                 start: epochToDate(x.start),
@@ -488,7 +487,6 @@ export function PlanChart(props: PlanChartProps) {
 
             if (!mini) {
                 const left = rectLeft - margin.left - 6;
-                console.log(left, rectWidth);
                 const x = (left < 0  && left > -rectWidth + 20 ? -rectLeft + margin.left : 0) + 6;
                 const fontSize = Math.min(14, Math.max(11, (rectWidth / 200) * 14));
                 g.append('text')
@@ -551,8 +549,7 @@ export function PlanChart(props: PlanChartProps) {
     }
 
     async function recurringDialogClosed(recurring: RecurringNewPayload) {
-
-
+        setRecurringDialogOpen(false);
         if (recurring) {
             // Check if the recurring is attched to the account or plan.
             var isAccountRecurring = false;
@@ -584,7 +581,7 @@ export function PlanChart(props: PlanChartProps) {
                     var planRecurring = plan.recurrings.find(r => r._id.$oid === recurringDialogEditing._id.$oid);
                     var index = plan.recurrings.indexOf(planRecurring);
                     // Replace the existing one with the new one.
-                    plan.recurrings.splice(index, 1, recurringDialogEditing);
+                    plan.recurrings.splice(index, 1, Object.assign(recurringDialogEditing, recurring));
                     await planApi.newPlan({
                         planNewPayload: {
                             ...plan,
@@ -601,20 +598,38 @@ export function PlanChart(props: PlanChartProps) {
                 }
             }
 
-            updateRef.current();
             setLoading(true);
             await updateTimeseries();
             setLoading(false);
         }
         setRecurringDialogEditing(null);
-        setRecurringDialogOpen(false);
     }
 
     async function deleteRecurring(recurring: Recurring) {
-        await recurringApi.deleteRecurring({
-            id: recurring._id.$oid
-        });
-        setAccountRecurrings([...accountRecurrings.filter(r => r._id.$oid !== recurring._id.$oid)]);
+        var isAccountRecurring = false;
+        if (recurringDialogEditing)
+            isAccountRecurring = !!accountRecurrings.find(r => r._id.$oid === recurringDialogEditing._id.$oid);
+
+        if (isAccountRecurring) {
+            await recurringApi.deleteRecurring({
+                id: recurring._id.$oid
+            });
+            setAccountRecurrings([...accountRecurrings.filter(r => r._id.$oid !== recurring._id.$oid)]);
+        } else {
+            var planRecurring = plan.recurrings.find(r => r._id.$oid === recurring._id.$oid);
+            var index = plan.recurrings.indexOf(planRecurring);
+            plan.recurrings.splice(index, 1);
+            await planApi.newPlan({
+                planNewPayload: {
+                    ...plan,
+                    recurrings: [...plan.recurrings],
+                }
+            });
+        }
+
+        setLoading(true);
+        await updateTimeseries();
+        setLoading(false);
     }
 
     async function eventDialogClosed(events: Event[]) {

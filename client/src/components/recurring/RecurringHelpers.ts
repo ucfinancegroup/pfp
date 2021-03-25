@@ -24,9 +24,9 @@ export function epochToDate(seconds: number) {
 
 export function epochToDateString(seconds: number) {
     const date = epochToDate(seconds);
-    const day = date.getDate();
-    const month = (date.getMonth() + 1);
-    return date.getFullYear() + "-" + (month < 10 ? "0" + month : month) + "-" + (day < 10 ? "0" + day : day);
+    const day = date.getUTCDate();
+    const month = (date.getUTCMonth() + 1);
+    return date.getUTCFullYear() + "-" + (month < 10 ? "0" + month : month) + "-" + (day < 10 ? "0" + day : day);
 }
 
 export const recurringFrequencies = [

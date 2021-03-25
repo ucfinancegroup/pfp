@@ -62,7 +62,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
     }, []);
 
     useEffect(() => {
-        if (props.editing) {
+        if (props.editing && props.show) {
             const copy = Object.assign({}, props.editing);
             copy.amount = Math.abs(copy.amount);
             copy.start = epochToDateString(copy.start) as any;
@@ -70,7 +70,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
             setIsCompounding(copy.principal !== 0 || copy.interest !== 0);
             setInitialValues(copy);
         }
-    }, [props.editing]);
+    }, [props.editing, props.show]);
 
     async function getExamples() {
         const examples = await recurringApi.getRecurringExamples();
@@ -104,11 +104,11 @@ export function RecurringDialog(props: RecurringDialogProps) {
             values.interest = 0;
         }
 
+
         if (typeof values.start === 'string')
         values.start = new Date(values.start).getTime() / 1000;
         if (typeof values.end === 'string')
         values.end = new Date(values.end).getTime() / 1000;
-
         props.onClose(values);
         reset();
     }

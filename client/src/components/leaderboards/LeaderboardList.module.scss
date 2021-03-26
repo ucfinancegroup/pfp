@@ -18,8 +18,15 @@
     .meter circle {
       margin-bottom: 1em;
     }
+
+    .info {
+      position: absolute;
+      right: 1em;
+    }
       
     .center {
+      float: left;
+      clear: none;
       text-align: center;
       height:7em;
     }

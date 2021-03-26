@@ -44,11 +44,11 @@ export function LeaderboardList() {
                     return <li className={styles.board}>
                         <div className={styles.center}>
                             <h3>{rank.leaderboard_type}</h3>
-                            <p>You are in the top <strong>
+                            <p>You are better than <strong>
                                 <span className=
                                     {(rank.percentile < 50) ? styles.red : styles.green}>
                                     {(100 - rank.percentile).toFixed(1)}%
-                            </span></strong> of similar users.</p>
+                            </span></strong> of similar users in {rank.leaderboard_type}.</p>
                         </div>
                         <svg className={styles.meter}>
                             <defs>

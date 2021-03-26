@@ -48,7 +48,7 @@ export function LeaderboardList() {
                                 <span className=
                                     {(rank.percentile < 50) ? styles.red : styles.green}>
                                     {(100 - rank.percentile).toFixed(1)}%
-                            </span></strong> of similar users in {rank.leaderboard_type}.</p>
+                            </span></strong> of similar users by {rank.leaderboard_type}.</p>
                         </div>
                         <svg className={styles.meter}>
                             <defs>

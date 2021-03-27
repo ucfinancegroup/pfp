@@ -22,6 +22,15 @@
     .info {
       position: absolute;
       right: 1em;
+
+      i {
+        cursor: pointer;
+        margin-left: 1em;
+
+        &:hover {
+          opacity: 0.75;
+        }
+      }
     }
       
     .center {

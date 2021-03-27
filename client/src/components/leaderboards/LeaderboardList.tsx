@@ -3,6 +3,7 @@ import { Ranking, LeaderboardApi, BoardType } from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
 import styles from "./LeaderboardList.module.scss";
 import classNames from "classnames";
+import Modal from "react-bootstrap/cjs/Modal";
 
 const cx = classNames.bind(styles);
 
@@ -12,6 +13,7 @@ export function LeaderboardList() {
     const [rankings, setRankings] = useState<Ranking[]>();
     const [error, setError] = useState<string>();
     const [tab, setTab] = useState<BoardType>();
+    const [dialogOpen, setDialogOpen] = useState<boolean>();
 
     function gotoTab(tab: BoardType) {
         setTab(tab);
@@ -51,7 +53,8 @@ export function LeaderboardList() {
                                         {(100 - rank.percentile).toFixed(1)}%
                             </span></strong> of similar users by {rank.leaderboard_type}.</p>
                             </div>
-                            <div className={styles.info}><i className="fa fa-info" aria-hidden="true"/></div>
+                            <div className={styles.info}><i className="fa fa-info" aria-hidden="true"
+                            onClick={() => setDialogOpen(true)}/></div>
                         </div>
                         <svg className={styles.meter}>
                             <defs>
@@ -76,7 +79,14 @@ export function LeaderboardList() {
             </ul>
         </>
     }
-    return <>
+    return <><Modal show={dialogOpen}>
+        <Modal.Header closeButton onHide={() => setDialogOpen(false)}>
+            <Modal.Title>Leaderboards</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            <p>Similar users are determined by specified annual income.</p>
+        </Modal.Body>
+    </Modal>
         {error && <p>Error: {error}</p>}
         {!error && !rankings && <p>Loading...</p>}
         {!error && rankings && renderList(rankings)}

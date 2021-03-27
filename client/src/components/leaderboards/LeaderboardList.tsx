@@ -54,7 +54,7 @@ export function LeaderboardList() {
                             </span></strong> of similar users by {rank.leaderboard_type}.</p>
                             </div>
                             <div className={styles.info}><i className="fa fa-info" aria-hidden="true"
-                            onClick={() => setDialogOpen(true)}/></div>
+                                onClick={() => setDialogOpen(true)} /></div>
                         </div>
                         <svg className={styles.meter}>
                             <defs>
@@ -79,7 +79,8 @@ export function LeaderboardList() {
             </ul>
         </>
     }
-    return <><Modal show={dialogOpen}>
+    return <>
+    <Modal show={dialogOpen}>
         <Modal.Header closeButton onHide={() => setDialogOpen(false)}>
             <Modal.Title>Leaderboards</Modal.Title>
         </Modal.Header>

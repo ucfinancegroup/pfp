@@ -3,6 +3,7 @@ import { Ranking, LeaderboardApi, BoardType } from "../../api";
 import handleFetchError from "../../hooks/handleFetchError";
 import styles from "./LeaderboardList.module.scss";
 import classNames from "classnames";
+import Modal from "react-bootstrap/cjs/Modal";
 
 const cx = classNames.bind(styles);
 
@@ -12,6 +13,7 @@ export function LeaderboardList() {
     const [rankings, setRankings] = useState<Ranking[]>();
     const [error, setError] = useState<string>();
     const [tab, setTab] = useState<BoardType>();
+    const [dialogOpen, setDialogOpen] = useState<boolean>();
 
     function gotoTab(tab: BoardType) {
         setTab(tab);
@@ -42,13 +44,17 @@ export function LeaderboardList() {
             <ul className="nav nav-pills mt-4 mb-4">
                 {rankings.map(rank => {
                     return <li className={styles.board}>
-                        <div className={styles.center}>
-                            <h3>{rank.leaderboard_type}</h3>
-                            <p>You are better than <strong>
-                                <span className=
-                                    {(rank.percentile < 50) ? styles.red : styles.green}>
-                                    {(100 - rank.percentile).toFixed(1)}%
-                            </span></strong> of similar users in {rank.leaderboard_type}.</p>
+                        <div>
+                            <div className={styles.center}>
+                                <h3>{rank.leaderboard_type}</h3>
+                                <p>You are better than <strong>
+                                    <span className=
+                                        {(rank.percentile < 50) ? styles.red : styles.green}>
+                                        {(100 - rank.percentile).toFixed(1)}%
+                            </span></strong> of similar users by {rank.leaderboard_type}.</p>
+                            </div>
+                            <div className={styles.info}><i className="fa fa-info" aria-hidden="true"
+                                onClick={() => setDialogOpen(true)} /></div>
                         </div>
                         <svg className={styles.meter}>
                             <defs>
@@ -63,7 +69,7 @@ export function LeaderboardList() {
                             </circle>
                             <circle r="4em" cx="70%" cy="50%" stroke="url(#linear)"
                                 stroke-width="1em"
-                                stroke-dasharray={`${rank.percentile/100 * 8 * Math.PI}em, 2000`}
+                                stroke-dasharray={`${rank.percentile / 100 * 8 * Math.PI}em, 2000`}
                                 fill="none">
                             </circle>
 
@@ -74,6 +80,14 @@ export function LeaderboardList() {
         </>
     }
     return <>
+    <Modal show={dialogOpen}>
+        <Modal.Header closeButton onHide={() => setDialogOpen(false)}>
+            <Modal.Title>Leaderboards</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            <p>Similar users are determined by specified annual income.</p>
+        </Modal.Body>
+    </Modal>
         {error && <p>Error: {error}</p>}
         {!error && !rankings && <p>Loading...</p>}
         {!error && rankings && renderList(rankings)}

@@ -1,0 +1,292 @@
+{
+  "_id": { "$oid": "605b9026f0aa737a4c6064ff" },
+  "email": "jefferson@us.gov",
+  "password": "$argon2i$v=19$m=4096,t=3,p=1$H+dckjVNTOTtLgttVVX+UiSnnsxEmEiSLCZVc7G9f90$2oGtjZyjd2JTsvW5z5wlMK8+EP6id14wF8QGOtEjY08",
+  "first_name": "Thomas",
+  "last_name": "Jefferson",
+  "income": 30000,
+  "net_worth": 12000000,
+  "location": { "has_location": true, "lat": 38.0086, "lon": 78.4532 },
+  "birthday": "1743-04-13",
+  "accounts": [
+    {
+      "item_id": "agq4ovvd3LSXDzxWdXjQFM1RzmnlNEsRXjANP",
+      "access_token": "access-sandbox-2bd18d78-2fb5-4f6c-a097-a21293d6fb28"
+    }
+  ],
+  "account_records": [
+    {
+      "item_id": "agq4ovvd3LSXDzxWdXjQFM1RzmnlNEsRXjANP",
+      "account_id": "AAzMq88Q9vUVP7xJAV8ytnNVVPlWmwcWn7dm9",
+      "account_name": "Plaid Gold Standard 0% Interest Checking",
+      "hidden": false,
+      "known_account_id": { "$oid": "602aafad14ecccfdcaa89873" }
+    },
+    {
+      "item_id": "agq4ovvd3LSXDzxWdXjQFM1RzmnlNEsRXjANP",
+      "account_id": "G948jvv3kEUmWQnlMmjXUB5vv6MAdaCWzlQdG",
+      "account_name": "Plaid Silver Standard 0.1% Interest Saving",
+      "hidden": false,
+      "known_account_id": { "$oid": "602aafad14ecccfdcaa89874" }
+    },
+    {
+      "item_id": "agq4ovvd3LSXDzxWdXjQFM1RzmnlNEsRXjANP",
+      "account_id": "nl7gBaapJ3uoJzL48oVPIqKggve6wjc8Ldn4K",
+      "account_name": "Plaid Bronze Standard 0.2% Interest CD",
+      "hidden": false,
+      "known_account_id": { "$oid": "602aafad14ecccfdcaa89875" }
+    },
+    {
+      "item_id": "agq4ovvd3LSXDzxWdXjQFM1RzmnlNEsRXjANP",
+      "account_id": "bkKN8vv3j9uR8BdAQR6lIbNJJ6e5pZcGM5de3",
+      "account_name": "Plaid Diamond 12.5% APR Interest Credit Card",
+      "hidden": true,
+      "known_account_id": { "$oid": "602aafad14ecccfdcaa89876" }
+    },
+    {
+      "item_id": "agq4ovvd3LSXDzxWdXjQFM1RzmnlNEsRXjANP",
+      "account_id": "mRjorddL9BuGjk1a6G3NhZMxxRmoeDc7VbWaP",
+      "account_name": "Plaid Platinum Standard 1.85% Interest Money Market",
+      "hidden": false,
+      "known_account_id": { "$oid": "602aafad14ecccfdcaa89877" }
+    },
+    {
+      "item_id": "agq4ovvd3LSXDzxWdXjQFM1RzmnlNEsRXjANP",
+      "account_id": "yNEvALL3bZFar3bnBaMGIwbqqa371zUr79lBo",
+      "account_name": "Plaid IRA",
+      "hidden": false,
+      "known_account_id": { "$oid": "602aafad14ecccfdcaa89878" }
+    },
+    {
+      "item_id": "agq4ovvd3LSXDzxWdXjQFM1RzmnlNEsRXjANP",
+      "account_id": "91m4GQQVwgfvZoxgAvpkt85vvzVn6yflXL56K",
+      "account_name": "Plaid 401k",
+      "hidden": false,
+      "known_account_id": { "$oid": "602aafad14ecccfdcaa89879" }
+    },
+    {
+      "item_id": "agq4ovvd3LSXDzxWdXjQFM1RzmnlNEsRXjANP",
+      "account_id": "vdompZZ5R7F53PGeK5ZmTQnvv5z7mMTo9jEdJ",
+      "account_name": "Plaid Student Loan",
+      "hidden": true,
+      "known_account_id": { "$oid": "602aafad14ecccfdcaa8987a" }
+    },
+    {
+      "item_id": "agq4ovvd3LSXDzxWdXjQFM1RzmnlNEsRXjANP",
+      "account_id": "RdpkRvvV14FvZAnNdvEBtlnAAZERDjCzmKBE5",
+      "account_name": "Plaid Mortgage",
+      "hidden": true,
+      "known_account_id": { "$oid": "602aafad14ecccfdcaa8987b" }
+    }
+  ],
+  "snapshots": [
+    {
+      "net_worth": { "amount": 42069.69 },
+      "running_savings": { "amount": 0 },
+      "running_spending": { "amount": 0 },
+      "running_income": { "amount": 0 },
+      "snapshot_time": { "$numberLong": "1300000000" }
+    },
+    {
+      "net_worth": { "amount": 69420.69 },
+      "running_savings": { "amount": 0 },
+      "running_spending": { "amount": 0 },
+      "running_income": { "amount": 0 },
+      "snapshot_time": { "$numberLong": "1400000000" }
+    },
+    {
+      "net_worth": { "amount": 86753.09 },
+      "running_savings": { "amount": 0 },
+      "running_spending": { "amount": 0 },
+      "running_income": { "amount": 0 },
+      "snapshot_time": { "$numberLong": "1500000000" }
+    },
+    {
+      "net_worth": { "amount": 68472.74 },
+      "running_savings": { "amount": 0 },
+      "running_spending": { "amount": 0 },
+      "running_income": { "amount": 0 },
+      "snapshot_time": { "$numberLong": "1600000000" }
+    },
+    {
+      "net_worth": { "amount": 68472.74 },
+      "running_savings": { "amount": 1000 },
+      "running_spending": { "amount": 1000 },
+      "running_income": { "amount": 25000 },
+      "snapshot_time": { "$numberLong": "1616613216" }
+    },
+    {
+      "net_worth": { "amount": 68472.74 },
+      "running_savings": { "amount": 1000 },
+      "running_spending": { "amount": 1000 },
+      "running_income": { "amount": 25000 },
+      "snapshot_time": { "$numberLong": "1616702216" }
+    },
+    {
+      "net_worth": { "amount": 68472.74 },
+      "running_savings": { "amount": 1000 },
+      "running_spending": { "amount": 1000 },
+      "running_income": { "amount": 25000 },
+      "snapshot_time": { "$numberLong": "1616769272" }
+    },
+    {
+      "net_worth": { "amount": 68472.74 },
+      "running_savings": { "amount": 1000 },
+      "running_spending": { "amount": 1000 },
+      "running_income": { "amount": 25000 },
+      "snapshot_time": { "$numberLong": "1616769278" }
+    },
+    {
+      "net_worth": { "amount": 68472.74 },
+      "running_savings": { "amount": 1000 },
+      "running_spending": { "amount": 1000 },
+      "running_income": { "amount": 25000 },
+      "snapshot_time": { "$numberLong": "1616769279" }
+    },
+    {
+      "net_worth": { "amount": 68472.74 },
+      "running_savings": { "amount": 1000 },
+      "running_spending": { "amount": 1000 },
+      "running_income": { "amount": 25000 },
+      "snapshot_time": { "$numberLong": "1616769280" }
+    },
+    {
+      "net_worth": { "amount": 68472.74 },
+      "running_savings": { "amount": 1000 },
+      "running_spending": { "amount": 1000 },
+      "running_income": { "amount": 25000 },
+      "snapshot_time": { "$numberLong": "1617029710" }
+    }
+  ],
+  "recurrings": [
+    {
+      "_id": { "$oid": "605df11e00fe422e008ab5f2" },
+      "name": "Hemp Farming Products",
+      "start": { "$numberLong": "1616716800" },
+      "end": { "$numberLong": "1682380800" },
+      "principal": 0,
+      "amount": -500,
+      "interest": 0,
+      "frequency": { "typ": "monthly", "content": 1 }
+    },
+    {
+      "_id": { "$oid": "605df15900fe422e008ab5f3" },
+      "name": "Rent from J. Madison",
+      "start": { "$numberLong": "1742947200" },
+      "end": { "$numberLong": "2534457600" },
+      "principal": 0,
+      "amount": 500,
+      "interest": 0,
+      "frequency": { "typ": "monthly", "content": 1 }
+    },
+    {
+      "_id": { "$oid": "605df1d900fe422e008ab5f4" },
+      "name": "Treasury Bond",
+      "start": { "$numberLong": "1616716800" },
+      "end": { "$numberLong": "1934841600" },
+      "principal": 100000,
+      "amount": 0,
+      "interest": 0.03,
+      "frequency": { "typ": "annually", "content": 1 }
+    }
+  ],
+  "goals": [
+    {
+      "_id": { "$oid": "605cd5c0001e78ce00b38c12" },
+      "name": "Example Goal",
+      "start": { "$numberLong": "1616695984" },
+      "end": { "$numberLong": "1617214380" },
+      "threshold": 500,
+      "metric": "Savings"
+    },
+    {
+      "_id": { "$oid": "605cd5c0001e78ce00b38c55" },
+      "name": "Earn 1 million dollars",
+      "start": { "$numberLong": "1400000000" },
+      "end": { "$numberLong": "1700000000" },
+      "threshold": 1000000,
+      "metric": "Income"
+    }
+  ],
+  "insights": [
+    {
+      "_id": { "$oid": "605b91010002367a0008afc6" },
+      "title": "Savings Insight",
+      "description": "Your savings over the last 30 days puts you above 95% of similar users!",
+      "insight_type": "Savings",
+      "dismissed": true,
+      "generation_time": { "$numberLong": "1616613633" }
+    }
+  ],
+  "plans": [
+    {
+      "_id": { "$oid": "6061eb7600fe422e008ab6ed" },
+      "name": "Plan",
+      "recurrings": [
+        {
+          "_id": { "$oid": "605df36700fe422e008ab608" },
+          "name": "Sus Zimbabwe Bonds",
+          "start": { "$numberLong": "1774483200" },
+          "end": { "$numberLong": "1903305600" },
+          "principal": 1000000,
+          "amount": 0,
+          "interest": 100,
+          "frequency": { "typ": "annually", "content": 10 }
+        }
+      ],
+      "allocations": [
+        {
+          "_id": { "$oid": "605df0f800fe422e008ab5f1" },
+          "description": "Current Holdings",
+          "date": { "$numberLong": "1616769272" },
+          "schema": [
+            {
+              "asset": {
+                "name": "Dollar Billz",
+                "class": { "typ": "Cash" },
+                "annualized_performance": 1
+              },
+              "proportion": 26
+            },
+            {
+              "asset": {
+                "name": "Stonks",
+                "class": { "typ": "Equity" },
+                "annualized_performance": 1.05
+              },
+              "proportion": 74
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "_id": { "$oid": "605e049400fe422e008ab633" },
+          "name": "Zimbabwe Inflation",
+          "start": { "$numberLong": "2879078220" },
+          "transforms": [{ "class": { "typ": "Cash" }, "change": -99.99 }]
+        }
+      ]
+    }
+  ],
+  "rankings": [
+    {
+      "leaderboard_type": "Savings",
+      "percentile": 95.65217391304348,
+      "description": "Savings Leaderboard",
+      "generation_time": { "$numberLong": "1617029941" }
+    },
+    {
+      "leaderboard_type": "Spending",
+      "percentile": 8.695652173913043,
+      "description": "Spending Leaderboard",
+      "generation_time": { "$numberLong": "1617029941" }
+    },
+    {
+      "leaderboard_type": "Income",
+      "percentile": 8.695652173913043,
+      "description": "Income Leaderboard",
+      "generation_time": { "$numberLong": "1617029941" }
+    }
+  ]
+}

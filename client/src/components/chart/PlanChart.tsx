@@ -388,16 +388,16 @@ export function PlanChart(props: PlanChartProps) {
             let level = 0;
             a.color = colors[ai % (colors.length)];
 
-            for (let b of sortedRecurrings) {
-                const overlap = a.end > b.start && a.start < b.end;
+            for (let i = 0; i < sortedRecurrings.length; i++) {
+                const overlap =  sortedRecurrings.find(b => b.level === i && a.end > b.start && a.start < b.end);
 
-                if (overlap && level === b.level)
-                    level++;
+                level = i;
+                if (!overlap)
+                    break;
             }
 
             a.level = level;
             ai++;
-
         }
 
         const rects = svg.append('g')

@@ -47,11 +47,11 @@ export function LeaderboardList() {
                         <div>
                             <div className={styles.center}>
                                 <h3>{rank.leaderboard_type}</h3>
-                                <p>You are better than <strong>
+                                <p>You are in the <strong>
                                     <span className=
                                         {(rank.percentile < 50) ? styles.red : styles.green}>
-                                        {(100 - rank.percentile).toFixed(1)}%
-                            </span></strong> of similar users by {rank.leaderboard_type}.</p>
+                                        {rank.percentile.toFixed(1)}th
+                            </span></strong> percentile by {rank.leaderboard_type}.</p>
                             </div>
                             <div className={styles.info}><i className="fa fa-info" aria-hidden="true"
                                 onClick={() => setDialogOpen(true)} /></div>

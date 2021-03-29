@@ -45,7 +45,7 @@ export function RecurringDialog(props: RecurringDialogProps) {
         end: dateAsInputString(initialEndDate),
         principal: 0,
         interest: 0,
-        amount: 0,
+        amount: 100,
         frequency: {
             typ: TimeIntervalTypEnum.Monthly,
             content: 1,

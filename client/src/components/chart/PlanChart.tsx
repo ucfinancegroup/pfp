@@ -146,8 +146,9 @@ export function PlanChart(props: PlanChartProps) {
             .x((d: any)  => x(d.date))
             .y((d: any)  => y(Math.max(0, d.value)));
 
+        const xExtent = d3.extent(data,  (d: any) => d.date) as any;
         const x = d3.scaleUtc()
-            .domain(d3.extent(data,  (d: any) => d.date) as any)
+            .domain(xExtent)
             .range([margin.left, width - margin.right]);
 
         const maxY = d3.max(data,  (d: any) => d.value);
@@ -281,7 +282,8 @@ export function PlanChart(props: PlanChartProps) {
                 .on("brush", brushed)
                 .on("end", brushended);
 
-            const defaultSelection = [x(addDays(new Date(), 0)), x(addDays(new Date(), 365))];
+
+            const defaultSelection = [x(xExtent[0]), x(xExtent[1])];
 
             svg.append("g")
                 .call(xAxis, x, focusHeight);

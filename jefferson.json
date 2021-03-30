@@ -214,8 +214,16 @@
       "title": "Savings Insight",
       "description": "Your savings over the last 30 days puts you above 95% of similar users!",
       "insight_type": "Savings",
-      "dismissed": true,
+      "dismissed": false,
       "generation_time": { "$numberLong": "1616613633" }
+    },
+    {
+      "_id": { "$oid": "6061fa7f00fdba1000269972" },
+      "title": "Try this new account others like you are using",
+      "description": "Many users similar to you are using a Plaid Student Loan account: Student Loan",
+      "insight_type": "ProductRecommendation",
+      "dismissed": false,
+      "generation_time": { "$numberLong": "1617033855" }
     }
   ],
   "plans": [

@@ -178,16 +178,6 @@
       "amount": 500,
       "interest": 0,
       "frequency": { "typ": "monthly", "content": 1 }
-    },
-    {
-      "_id": { "$oid": "605df1d900fe422e008ab5f4" },
-      "name": "Treasury Bond",
-      "start": { "$numberLong": "1616716800" },
-      "end": { "$numberLong": "1934841600" },
-      "principal": 100000,
-      "amount": 0,
-      "interest": 0.03,
-      "frequency": { "typ": "annually", "content": 1 }
     }
   ],
   "goals": [
@@ -230,18 +220,7 @@
     {
       "_id": { "$oid": "6061eb7600fe422e008ab6ed" },
       "name": "Plan",
-      "recurrings": [
-        {
-          "_id": { "$oid": "605df36700fe422e008ab608" },
-          "name": "Sus Zimbabwe Bonds",
-          "start": { "$numberLong": "1774483200" },
-          "end": { "$numberLong": "1903305600" },
-          "principal": 1000000,
-          "amount": 0,
-          "interest": 100,
-          "frequency": { "typ": "annually", "content": 10 }
-        }
-      ],
+      "recurrings": [],
       "allocations": [
         {
           "_id": { "$oid": "605df0f800fe422e008ab5f1" },
